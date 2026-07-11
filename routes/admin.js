@@ -10,18 +10,24 @@ function isAdmin(req, res, next) {
 
 router.use(isAdmin);
 
+// Dashboard
 router.get('/', (req, res) => {
   const stats = {
     totalMovies: movies.length,
     totalSeries: series.length,
+    totalAnime: movies.filter(m => m.genre === 'Anime').length + series.filter(s => s.genre === 'Anime').length,
     totalUsers: users.length,
     premiumUsers: users.filter(u => u.plan === 'premium').length,
-    totalViews: '1.2M',
-    revenue: '₹48,50,000'
+    freeUsers: users.filter(u => u.plan === 'free').length,
+    totalViews: '2.4M',
+    revenue: '₹48,50,000',
+    premiumMovies: movies.filter(m => m.premium).length,
+    freeMovies: movies.filter(m => !m.premium).length
   };
-  res.render('admin/dashboard', { stats, recentUsers: users.slice(-5).reverse(), movies: movies.slice(-5).reverse() });
+  res.render('admin/dashboard', { stats, recentUsers: users.slice(-5).reverse(), recentMovies: movies.slice(-5).reverse() });
 });
 
+// Movies CRUD
 router.get('/movies', (req, res) => {
   res.render('admin/movies', { movies });
 });
@@ -65,6 +71,7 @@ router.get('/movies/delete/:id', (req, res) => {
   res.redirect('/admin/movies');
 });
 
+// Series CRUD
 router.get('/series', (req, res) => {
   res.render('admin/series', { series });
 });
@@ -108,15 +115,64 @@ router.get('/series/delete/:id', (req, res) => {
   res.redirect('/admin/series');
 });
 
+// Users Management
 router.get('/users', (req, res) => {
   res.render('admin/users', { users });
 });
 
 router.get('/users/toggle/:id', (req, res) => {
   const user = users.find(u => u.id === parseInt(req.params.id));
-  if (user) user.plan = user.plan === 'premium' ? 'free' : 'premium';
+  if (user && user.role !== 'admin') {
+    user.plan = user.plan === 'premium' ? 'free' : 'premium';
+  }
   req.session.success = 'User plan updated!';
   res.redirect('/admin/users');
+});
+
+router.get('/users/delete/:id', (req, res) => {
+  const idx = users.findIndex(u => u.id === parseInt(req.params.id));
+  if (idx !== -1 && users[idx].role !== 'admin') {
+    users.splice(idx, 1);
+    req.session.success = 'User deleted!';
+  }
+  res.redirect('/admin/users');
+});
+
+// Settings
+router.get('/settings', (req, res) => {
+  res.render('admin/settings', { admin: req.session.user });
+});
+
+// Anime (filtered from movies + series)
+router.get('/anime', (req, res) => {
+  const anime = [...movies.filter(m => m.genre === 'Anime'), ...series.filter(s => s.genre === 'Anime')];
+  res.render('admin/anime', { anime });
+});
+
+// Payments
+router.get('/payments', (req, res) => {
+  res.render('admin/payments');
+});
+
+// Subscriptions
+router.get('/subscriptions', (req, res) => {
+  const premiumUsers = users.filter(u => u.plan === 'premium').length;
+  res.render('admin/subscriptions', { premiumUsers });
+});
+
+// Analytics
+router.get('/analytics', (req, res) => {
+  res.render('admin/analytics');
+});
+
+// Reports
+router.get('/reports', (req, res) => {
+  res.render('admin/reports');
+});
+
+// Activity Logs
+router.get('/logs', (req, res) => {
+  res.render('admin/logs');
 });
 
 module.exports = router;

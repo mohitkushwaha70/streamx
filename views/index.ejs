@@ -22,12 +22,20 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           Watch Now
         </a>
-        <a href="/movies/<%= heroMovie.id %>" class="btn btn-icon-lg" title="More Info">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-        </a>
-        <button class="btn btn-icon-lg" title="Add to Watchlist" onclick="addToWatchlist(<%= heroMovie.id %>)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <% if (user) { %>
+        <form action="/watchlist/add" method="POST" style="display:inline">
+          <input type="hidden" name="id" value="<%= heroMovie.id %>">
+          <button type="submit" class="btn btn-primary btn-lg" style="background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.3);box-shadow:none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            Watchlist
+          </button>
+        </form>
+        <% } else { %>
+        <button class="btn btn-primary btn-lg" style="background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.3);box-shadow:none;" onclick="document.getElementById('authModal') && document.getElementById('authModal').classList.add('active')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          Watchlist
         </button>
+        <% } %>
       </div>
     </div>
   </section>
@@ -37,20 +45,26 @@
   <section class="section">
     <div class="section-header">
       <h2 class="section-title">Continue <span class="accent">Watching</span></h2>
-      <a href="/movies" class="section-link">View All →</a>
     </div>
     <div class="content-row">
       <% continueWatching.forEach(item => { %>
-      <a href="/watch/movie/<%= item.id %>" class="continue-card">
-        <div class="thumb">
+      <div class="continue-card">
+        <a href="/watch/<%= item.type %>/<%= item.id %>" class="thumb">
           <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">
           <div class="progress-bar"><div class="fill" style="width: <%= item.progress %>%"></div></div>
-        </div>
+          <span class="progress-pct"><%= item.progress %>%</span>
+        </a>
         <div class="info">
           <h4><%= item.title %></h4>
-          <p><%= item.genre %> • <%= item.duration %></p>
+          <p><%= item.genre %><% if (item.duration) { %> • <%= item.duration %><% } %></p>
         </div>
-      </a>
+        <form action="/watchlist/continue/remove" method="POST" class="cw-remove">
+          <input type="hidden" name="id" value="<%= item.id %>">
+          <button type="submit" title="Remove">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </form>
+      </div>
       <% }) %>
     </div>
   </section>
@@ -62,7 +76,7 @@
       <h2 class="section-title">Trending <span class="accent">Now</span></h2>
       <a href="/movies" class="section-link">View All →</a>
     </div>
-    <div class="content-grid">
+    <div class="content-row">
       <% trending.forEach(item => { %>
       <a href="/movies/<%= item.id %>" class="content-card">
         <div class="card-image">
@@ -112,7 +126,7 @@
       <h2 class="section-title">New <span class="accent">Releases</span></h2>
       <a href="/movies?sort=year" class="section-link">View All →</a>
     </div>
-    <div class="content-grid">
+    <div class="content-row">
       <% newReleases.forEach(item => { %>
       <a href="/movies/<%= item.id %>" class="content-card">
         <div class="card-image">
@@ -143,7 +157,7 @@
       <h2 class="section-title">Trending <span class="accent">Series</span></h2>
       <a href="/series" class="section-link">View All →</a>
     </div>
-    <div class="content-grid">
+    <div class="content-row">
       <% trendingSeries.forEach(item => { %>
       <a href="/series/<%= item.id %>" class="content-card">
         <div class="card-image">

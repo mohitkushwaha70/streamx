@@ -1,0 +1,142 @@
+<%- include('partials/header', { pageTitle: 'My Watchlist' }) %>
+<%- include('partials/navbar', { active: '' }) %>
+
+<main class="main-content page-content">
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">My Watchlist</h2>
+    </div>
+
+    <div class="wl-tabs">
+      <button class="wl-tab active" onclick="switchWlTab('watchlist')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        Watchlist <span class="wl-count"><%= watchlist.length %></span>
+      </button>
+      <button class="wl-tab" onclick="switchWlTab('favorites')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        Favorites <span class="wl-count"><%= favorites.length %></span>
+      </button>
+      <button class="wl-tab" onclick="switchWlTab('saved')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>
+        Saved <span class="wl-count"><%= savedItems.length %></span>
+      </button>
+    </div>
+
+    <div id="wl-watchlist" class="wl-panel">
+      <% if (watchlist.length === 0) { %>
+        <div class="wl-empty">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          <h3>Your watchlist is empty</h3>
+          <p>Browse movies and series, then add them to your watchlist.</p>
+          <a href="/movies" class="btn btn-primary">Browse Movies</a>
+        </div>
+      <% } else { %>
+        <div class="content-grid">
+          <% watchlist.forEach(item => { %>
+            <div class="content-card">
+              <a href="<%= item.seasons ? '/series/' + item.id : '/movies/' + item.id %>">
+                <div class="card-image">
+                  <% if (item.premium) { %><div class="card-badge premium">Premium</div><% } %>
+                  <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">
+                  <div class="card-overlay"><div class="play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div></div>
+                </div>
+                <div class="card-info">
+                  <div class="card-title"><%= item.title %></div>
+                  <div class="card-meta"><span class="rating">★ <%= item.rating %></span><span class="dot"></span><span><%= item.genre %></span></div>
+                </div>
+              </a>
+              <form action="/watchlist/remove" method="POST" class="wl-remove-form">
+                <input type="hidden" name="id" value="<%= item.id %>">
+                <button type="submit" class="wl-remove-btn" title="Remove from watchlist">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+              </form>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+
+    <div id="wl-favorites" class="wl-panel" style="display:none">
+      <% if (favorites.length === 0) { %>
+        <div class="wl-empty">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <h3>No favorites yet</h3>
+          <p>Heart the content you love and it'll show up here.</p>
+          <a href="/movies" class="btn btn-primary">Browse Movies</a>
+        </div>
+      <% } else { %>
+        <div class="content-grid">
+          <% favorites.forEach(item => { %>
+            <div class="content-card">
+              <a href="<%= item.seasons ? '/series/' + item.id : '/movies/' + item.id %>">
+                <div class="card-image">
+                  <% if (item.premium) { %><div class="card-badge premium">Premium</div><% } %>
+                  <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">
+                  <div class="card-overlay"><div class="play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div></div>
+                </div>
+                <div class="card-info">
+                  <div class="card-title"><%= item.title %></div>
+                  <div class="card-meta"><span class="rating">★ <%= item.rating %></span><span class="dot"></span><span><%= item.genre %></span></div>
+                </div>
+              </a>
+              <form action="/watchlist/favorite/remove" method="POST" class="wl-remove-form">
+                <input type="hidden" name="id" value="<%= item.id %>">
+                <button type="submit" class="wl-remove-btn wl-remove-fav" title="Remove from favorites">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--red)" stroke="var(--red)" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </button>
+              </form>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+
+    <div id="wl-saved" class="wl-panel" style="display:none">
+      <% if (savedItems.length === 0) { %>
+        <div class="wl-empty">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>
+          <h3>Nothing saved yet</h3>
+          <p>Save content to watch later.</p>
+          <a href="/movies" class="btn btn-primary">Browse Movies</a>
+        </div>
+      <% } else { %>
+        <div class="content-grid">
+          <% savedItems.forEach(item => { %>
+            <div class="content-card">
+              <a href="<%= item.seasons ? '/series/' + item.id : '/movies/' + item.id %>">
+                <div class="card-image">
+                  <% if (item.premium) { %><div class="card-badge premium">Premium</div><% } %>
+                  <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">
+                  <div class="card-overlay"><div class="play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div></div>
+                </div>
+                <div class="card-info">
+                  <div class="card-title"><%= item.title %></div>
+                  <div class="card-meta"><span class="rating">★ <%= item.rating %></span><span class="dot"></span><span><%= item.genre %></span></div>
+                </div>
+              </a>
+              <form action="/watchlist/saved/remove" method="POST" class="wl-remove-form">
+                <input type="hidden" name="id" value="<%= item.id %>">
+                <button type="submit" class="wl-remove-btn" title="Remove from saved">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+              </form>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+
+  </div>
+</main>
+
+<script>
+function switchWlTab(tab) {
+  document.querySelectorAll('.wl-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.wl-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('wl-' + tab).style.display = 'block';
+  event.currentTarget.classList.add('active');
+}
+</script>
+
+<%- include('partials/footer') %>

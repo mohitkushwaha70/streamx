@@ -1,0 +1,148 @@
+<%- include('../partials/header', { pageTitle: 'Analytics - STREAMX Admin' }) %>
+
+<div class="admin-layout">
+  <%- include('../partials/admin-sidebar') %>
+  <main class="admin-main">
+    <div class="admin-header">
+      <div>
+        <h1>Analytics</h1>
+        <p style="color:#555;font-size:0.85rem;">Platform performance and user insights</p>
+      </div>
+      <div class="admin-header-right">
+        <select class="form-input" style="width:auto;padding:8px 16px;background:#0a0a0a;border-color:#1a1a1a;font-size:0.8rem;">
+          <option>Last 7 days</option><option selected>Last 30 days</option><option>Last 90 days</option><option>This Year</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <div class="stat-info"><span class="stat-number">2.4M</span><span class="stat-label">Total Views</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+        <div class="stat-info"><span class="stat-number">18.5K</span><span class="stat-label">Active Users</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="stat-info"><span class="stat-number">42m</span><span class="stat-label">Avg. Watch Time</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon gold"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg></div>
+        <div class="stat-info"><span class="stat-number">+24%</span><span class="stat-label">Growth</span></div>
+      </div>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="admin-card">
+        <div class="admin-card-header"><h3>Views (Last 7 Days)</h3></div>
+        <div class="admin-form" style="padding: 20px;">
+          <div style="display:flex;align-items:flex-end;gap:8px;height:150px;padding:10px 0;">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div style="width:100%;background:var(--gradient-blue);border-radius:4px 4px 0 0;height:60%;"></div>
+              <span style="font-size:0.65rem;color:#555;">Mon</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div style="width:100%;background:var(--gradient-blue);border-radius:4px 4px 0 0;height:80%;"></div>
+              <span style="font-size:0.65rem;color:#555;">Tue</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div style="width:100%;background:var(--gradient-blue);border-radius:4px 4px 0 0;height:45%;"></div>
+              <span style="font-size:0.65rem;color:#555;">Wed</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div style="width:100%;background:var(--gradient-blue);border-radius:4px 4px 0 0;height:90%;"></div>
+              <span style="font-size:0.65rem;color:#555;">Thu</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div style="width:100%;background:var(--gradient-blue);border-radius:4px 4px 0 0;height:70%;"></div>
+              <span style="font-size:0.65rem;color:#555;">Fri</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div style="width:100%;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:4px 4px 0 0;height:100%;"></div>
+              <span style="font-size:0.65rem;color:#f59e0b;">Sat</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div style="width:100%;background:var(--gradient-blue);border-radius:4px 4px 0 0;height:85%;"></div>
+              <span style="font-size:0.65rem;color:#555;">Sun</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-header"><h3>Top Genres</h3></div>
+        <div class="admin-form" style="padding: 20px;">
+          <div style="padding:8px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#ccc;font-size:0.85rem;">Action</span>
+            <div style="flex:1;margin:0 16px;height:6px;background:#1a1a1a;border-radius:3px;"><div style="width:85%;height:100%;background:var(--gradient-blue);border-radius:3px;"></div></div>
+            <span style="color:#3b82f6;font-weight:700;font-size:0.85rem;">85%</span>
+          </div>
+          <div style="padding:8px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#ccc;font-size:0.85rem;">Sci-Fi</span>
+            <div style="flex:1;margin:0 16px;height:6px;background:#1a1a1a;border-radius:3px;"><div style="width:72%;height:100%;background:var(--gradient-blue);border-radius:3px;"></div></div>
+            <span style="color:#3b82f6;font-weight:700;font-size:0.85rem;">72%</span>
+          </div>
+          <div style="padding:8px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#ccc;font-size:0.85rem;">Anime</span>
+            <div style="flex:1;margin:0 16px;height:6px;background:#1a1a1a;border-radius:3px;"><div style="width:68%;height:100%;background:linear-gradient(135deg,#a855f7,#ec4899);border-radius:3px;"></div></div>
+            <span style="color:#a855f7;font-weight:700;font-size:0.85rem;">68%</span>
+          </div>
+          <div style="padding:8px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#ccc;font-size:0.85rem;">Drama</span>
+            <div style="flex:1;margin:0 16px;height:6px;background:#1a1a1a;border-radius:3px;"><div style="width:54%;height:100%;background:var(--gradient-blue);border-radius:3px;"></div></div>
+            <span style="color:#3b82f6;font-weight:700;font-size:0.85rem;">54%</span>
+          </div>
+          <div style="padding:8px 0;display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#ccc;font-size:0.85rem;">Comedy</span>
+            <div style="flex:1;margin:0 16px;height:6px;background:#1a1a1a;border-radius:3px;"><div style="width:41%;height:100%;background:var(--gradient-blue);border-radius:3px;"></div></div>
+            <span style="color:#3b82f6;font-weight:700;font-size:0.85rem;">41%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-grid" style="margin-top: 20px;">
+      <div class="admin-card">
+        <div class="admin-card-header"><h3>Most Watched</h3></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Title</th><th>Views</th><th>Completion</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Attack on Titan: Final War</strong></td><td>284K</td><td style="color:#22c55e;">92%</td></tr>
+              <tr><td><strong>Cyber Nexus</strong></td><td>256K</td><td style="color:#22c55e;">88%</td></tr>
+              <tr><td><strong>The Dark Horizon</strong></td><td>198K</td><td style="color:#22c55e;">85%</td></tr>
+              <tr><td><strong>Demon Slayer</strong></td><td>187K</td><td style="color:#22c55e;">90%</td></tr>
+              <tr><td><strong>Dark Matter</strong></td><td>165K</td><td style="color:#3b82f6;">79%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-header"><h3>User Activity</h3></div>
+        <div class="admin-form" style="padding: 20px;">
+          <div style="padding:10px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;">
+            <span style="color:#888;font-size:0.85rem;">Peak Hours</span>
+            <span style="color:#fff;font-weight:600;font-size:0.85rem;">8 PM - 11 PM</span>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;">
+            <span style="color:#888;font-size:0.85rem;">Most Active Day</span>
+            <span style="color:#fff;font-weight:600;font-size:0.85rem;">Saturday</span>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;">
+            <span style="color:#888;font-size:0.85rem;">Mobile Users</span>
+            <span style="color:#fff;font-weight:600;font-size:0.85rem;">64%</span>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;">
+            <span style="color:#888;font-size:0.85rem;">Desktop Users</span>
+            <span style="color:#fff;font-weight:600;font-size:0.85rem;">28%</span>
+          </div>
+          <div style="padding:10px 0;display:flex;justify-content:space-between;">
+            <span style="color:#888;font-size:0.85rem;">TV Users</span>
+            <span style="color:#fff;font-weight:600;font-size:0.85rem;">8%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

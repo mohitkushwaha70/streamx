@@ -1,6 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
+const passport = require('passport');
 const path = require('path');
 
 try { require('dotenv').config(); } catch(e) {}
@@ -21,6 +22,8 @@ app.use(session({
   saveUninitialized: false,
   cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
@@ -37,13 +40,19 @@ const moviesRoutes = require('./routes/movies');
 const seriesRoutes = require('./routes/series');
 const watchRoutes = require('./routes/watch');
 const adminRoutes = require('./routes/admin');
+const animeRoutes = require('./routes/anime');
+const profileRoutes = require('./routes/profile');
+const watchlistRoutes = require('./routes/watchlist');
 
 app.use('/', mainRoutes);
 app.use('/auth', authRoutes);
 app.use('/movies', moviesRoutes);
 app.use('/series', seriesRoutes);
 app.use('/watch', watchRoutes);
+app.use('/anime', animeRoutes);
 app.use('/admin', adminRoutes);
+app.use('/profile', profileRoutes);
+app.use('/watchlist', watchlistRoutes);
 
 app.use((err, req, res, next) => {
   console.error('Error:', err.message);

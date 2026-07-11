@@ -1,0 +1,83 @@
+<%- include('partials/header', { pageTitle: 'Anime' }) %>
+<%- include('partials/navbar', { active: 'anime' }) %>
+
+<main class="main-content page-content">
+  <div class="page-header">
+    <h1>Anime</h1>
+    <p>Explore <%= allAnime.length %> anime titles</p>
+  </div>
+
+  <% if (animeMovies.length > 0) { %>
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Anime <span class="accent">Movies</span></h2>
+    </div>
+    <div class="content-grid">
+      <% animeMovies.forEach(item => { %>
+      <a href="/anime" class="content-card">
+        <div class="card-image">
+          <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">
+          <span class="card-badge new">ANIME</span>
+          <div class="card-overlay">
+            <div class="play-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="card-info">
+          <div class="card-title"><%= item.title %></div>
+          <div class="card-meta">
+            <span class="rating">★ <%= item.rating %></span>
+            <span class="dot"></span>
+            <span><%= item.year %></span>
+            <span class="dot"></span>
+            <span><%= item.duration %></span>
+          </div>
+        </div>
+      </a>
+      <% }) %>
+    </div>
+  </section>
+  <% } %>
+
+  <% if (animeSeries.length > 0) { %>
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Anime <span class="accent">Series</span></h2>
+    </div>
+    <div class="content-grid">
+      <% animeSeries.forEach(item => { %>
+      <a href="/anime" class="content-card">
+        <div class="card-image">
+          <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">
+          <span class="card-badge premium">⭐ PREMIUM</span>
+          <div class="card-overlay">
+            <div class="play-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="card-info">
+          <div class="card-title"><%= item.title %></div>
+          <div class="card-meta">
+            <span class="rating">★ <%= item.rating %></span>
+            <span class="dot"></span>
+            <span><%= item.seasons %> Season<%= item.seasons > 1 ? 's' : '' %></span>
+            <span class="dot"></span>
+            <span><%= item.genre %></span>
+          </div>
+        </div>
+      </a>
+      <% }) %>
+    </div>
+  </section>
+  <% } %>
+
+  <% if (allAnime.length === 0) { %>
+  <div class="section" style="text-align:center; padding: 80px 20px;">
+    <h2 style="color: var(--text-muted);">Anime section coming soon!</h2>
+  </div>
+  <% } %>
+</main>
+
+<%- include('partials/footer') %>

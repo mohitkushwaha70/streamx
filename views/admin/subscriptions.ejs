@@ -1,0 +1,90 @@
+<%- include('../partials/header', { pageTitle: 'Subscriptions - STREAMX Admin' }) %>
+
+<div class="admin-layout">
+  <%- include('../partials/admin-sidebar') %>
+  <main class="admin-main">
+    <div class="admin-header">
+      <div>
+        <h1>Subscriptions</h1>
+        <p style="color:#555;font-size:0.85rem;">Manage premium plans and subscriptions</p>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon gold"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+        <div class="stat-info"><span class="stat-number"><%= premiumUsers %></span><span class="stat-label">Premium Users</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="stat-info"><span class="stat-number">89%</span><span class="stat-label">Retention Rate</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg></div>
+        <div class="stat-info"><span class="stat-number">+12%</span><span class="stat-label">Growth Rate</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+        <div class="stat-info"><span class="stat-number">14.2 mo</span><span class="stat-label">Avg. Duration</span></div>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-header"><h3>Active Subscriptions</h3></div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>User</th><th>Plan</th><th>Amount</th><th>Start</th><th>Expires</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><div class="user-cell"><div class="avatar-sm">A</div><strong>Admin</strong></div></td><td>Premium Yearly</td><td>₹2,999/yr</td><td>Jan 1, 2026</td><td>Jan 1, 2027</td><td><span class="plan-badge premium">Active</span></td></tr>
+            <tr><td><div class="user-cell"><div class="avatar-sm">M</div><strong>Mohit</strong></div></td><td>Premium Monthly</td><td>₹299/mo</td><td>Jul 1, 2026</td><td>Aug 1, 2026</td><td><span class="plan-badge premium">Active</span></td></tr>
+            <tr><td><div class="user-cell"><div class="avatar-sm">A</div><strong>Amit Singh</strong></div></td><td>Premium Yearly</td><td>₹2,999/yr</td><td>Mar 15, 2026</td><td>Mar 15, 2027</td><td><span class="plan-badge premium">Active</span></td></tr>
+            <tr><td><div class="user-cell"><div class="avatar-sm">R</div><strong>Rahul Kumar</strong></div></td><td>Free</td><td>-</td><td>-</td><td>-</td><td><span class="plan-badge free">Free</span></td></tr>
+            <tr><td><div class="user-cell"><div class="avatar-sm">P</div><strong>Priya Sharma</strong></div></td><td>Free</td><td>-</td><td>-</td><td>-</td><td><span class="plan-badge free">Free</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="admin-card" style="margin-top: 20px;">
+      <div class="admin-card-header"><h3>Plan Pricing</h3></div>
+      <div class="admin-form" style="padding: 24px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">
+          <div style="background:#080808;border:1px solid #1a1a1a;border-radius:12px;padding:24px;text-align:center;">
+            <div style="font-size:0.7rem;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Free</div>
+            <div style="font-size:1.8rem;font-weight:900;color:#fff;">₹0</div>
+            <div style="font-size:0.8rem;color:#555;margin-top:4px;">Forever</div>
+            <div style="margin-top:16px;font-size:0.8rem;color:#888;text-align:left;">
+              <div style="padding:4px 0;">Limited content</div>
+              <div style="padding:4px 0;">Ads included</div>
+              <div style="padding:4px 0;">1 device</div>
+              <div style="padding:4px 0;">HD quality</div>
+            </div>
+          </div>
+          <div style="background:#080808;border:1px solid #f59e0b;border-radius:12px;padding:24px;text-align:center;position:relative;">
+            <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#f59e0b,#f97316);color:white;padding:2px 12px;border-radius:99px;font-size:0.6rem;font-weight:700;">POPULAR</div>
+            <div style="font-size:0.7rem;color:#f59e0b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Premium Monthly</div>
+            <div style="font-size:1.8rem;font-weight:900;color:#fff;">₹299</div>
+            <div style="font-size:0.8rem;color:#555;margin-top:4px;">/month</div>
+            <div style="margin-top:16px;font-size:0.8rem;color:#888;text-align:left;">
+              <div style="padding:4px 0;">All content</div>
+              <div style="padding:4px 0;">No ads</div>
+              <div style="padding:4px 0;">3 devices</div>
+              <div style="padding:4px 0;">4K quality</div>
+            </div>
+          </div>
+          <div style="background:#080808;border:1px solid #22c55e;border-radius:12px;padding:24px;text-align:center;">
+            <div style="font-size:0.7rem;color:#22c55e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Premium Yearly</div>
+            <div style="font-size:1.8rem;font-weight:900;color:#fff;">₹2,999</div>
+            <div style="font-size:0.8rem;color:#555;margin-top:4px;">/year (Save 17%)</div>
+            <div style="margin-top:16px;font-size:0.8rem;color:#888;text-align:left;">
+              <div style="padding:4px 0;">All content</div>
+              <div style="padding:4px 0;">No ads</div>
+              <div style="padding:4px 0;">5 devices</div>
+              <div style="padding:4px 0;">4K + HDR</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

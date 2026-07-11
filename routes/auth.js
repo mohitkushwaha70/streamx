@@ -1,7 +1,39 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { users, getNextUserId } = require('../data/sample');
+
+passport.serializeUser((user, done) => done(null, user.id));
+passport.deserializeUser((id, done) => {
+  const user = users.find(u => u.id === id);
+  done(null, user || null);
+});
+
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: '/auth/google/callback'
+  }, (accessToken, refreshToken, profile, done) => {
+    let user = users.find(u => u.googleId === profile.id);
+    if (!user) {
+      user = {
+        id: getNextUserId(),
+        googleId: profile.id,
+        name: profile.displayName,
+        email: profile.emails && profile.emails[0] ? profile.emails[0].value : '',
+        password: '',
+        role: 'user',
+        avatar: profile.displayName.charAt(0).toUpperCase(),
+        plan: 'free'
+      };
+      users.push(user);
+    }
+    return done(null, user);
+  }));
+}
 
 router.get('/login', (req, res) => {
   if (req.session.user) return res.redirect('/');
@@ -37,9 +69,42 @@ router.post('/register', (req, res) => {
   res.redirect('/');
 });
 
+router.get('/google', (req, res, next) => {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    return res.redirect('/auth/login?error=google_not_configured');
+  }
+  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+});
+
+router.get('/google/callback', (req, res, next) => {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    return res.redirect('/auth/login?error=google_not_configured');
+  }
+  passport.authenticate('google', { failureRedirect: '/auth/login' })(req, res, () => {
+    req.session.user = {
+      id: req.user.id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role,
+      avatar: req.user.avatar,
+      plan: req.user.plan
+    };
+    res.redirect('/');
+  });
+});
+
 router.get('/logout', (req, res) => {
-  req.session.destroy();
-  res.redirect('/');
+  req.session.destroy(() => {
+    res.clearCookie('connect.sid');
+    res.redirect('/');
+  });
+});
+
+router.post('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie('connect.sid');
+    res.redirect('/');
+  });
 });
 
 module.exports = router;

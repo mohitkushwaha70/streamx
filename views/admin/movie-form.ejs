@@ -18,7 +18,7 @@
           <div class="form-group">
             <label>Genre *</label>
             <select name="genre" class="form-input" required>
-              <% ['Action','Comedy','Drama','Horror','Romance','Sci-Fi','Thriller','Adventure','Crime','Documentary','Fantasy','Medical','Reality'].forEach(g => { %>
+              <% ['Action','Anime','Comedy','Drama','Horror','Romance','Sci-Fi','Thriller','Adventure','Crime','Documentary','Fantasy','Medical','Reality'].forEach(g => { %>
               <option value="<%= g %>" <%= movie && movie.genre === g ? 'selected' : '' %>><%= g %></option>
               <% }) %>
             </select>
@@ -86,4 +86,4 @@
   </main>
 </div>
 
-<%- include('../partials/footer') %>
+

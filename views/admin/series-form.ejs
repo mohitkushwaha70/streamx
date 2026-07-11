@@ -1,0 +1,76 @@
+<%- include('../partials/header', { pageTitle: show ? 'Edit Series' : 'Add Series' }) %>
+
+<div class="admin-layout">
+  <%- include('../partials/admin-sidebar') %>
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1><%= show ? 'Edit' : 'Add New' %> Series</h1>
+      <a href="/admin/series" class="btn btn-outline">← Back</a>
+    </div>
+
+    <div class="admin-card">
+      <form method="POST" action="<%= show ? '/admin/series/edit/' + show.id : '/admin/series/add' %>" class="admin-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Title *</label>
+            <input type="text" name="title" class="form-input" value="<%= show ? show.title : '' %>" required>
+          </div>
+          <div class="form-group">
+            <label>Genre *</label>
+            <select name="genre" class="form-input" required>
+              <% ['Action','Comedy','Drama','Horror','Sci-Fi','Thriller','Adventure','Crime','Documentary','Fantasy','Medical','Reality'].forEach(g => { %>
+              <option value="<%= g %>" <%= show && show.genre === g ? 'selected' : '' %>><%= g %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Year *</label>
+            <input type="number" name="year" class="form-input" value="<%= show ? show.year : 2026 %>" required>
+          </div>
+          <div class="form-group">
+            <label>Rating *</label>
+            <input type="number" name="rating" class="form-input" step="0.1" min="0" max="10" value="<%= show ? show.rating : 8.0 %>" required>
+          </div>
+          <div class="form-group">
+            <label>Seasons *</label>
+            <input type="number" name="seasons" class="form-input" value="<%= show ? show.seasons : 1 %>" min="1" required>
+          </div>
+          <div class="form-group">
+            <label>Total Episodes *</label>
+            <input type="number" name="episodes" class="form-input" value="<%= show ? show.episodes : 8 %>" min="1" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description *</label>
+          <textarea name="description" class="form-input" rows="3" required><%= show ? show.description : '' %></textarea>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Poster URL</label>
+            <input type="url" name="poster" class="form-input" value="<%= show ? show.poster : '' %>" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <label>Backdrop URL</label>
+            <input type="url" name="backdrop" class="form-input" value="<%= show ? show.backdrop : '' %>" placeholder="https://...">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Video URL</label>
+          <input type="url" name="videoUrl" class="form-input" value="<%= show ? show.videoUrl : '' %>" placeholder="https://...">
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" name="premium" <%= show && show.premium ? 'checked' : '' %>>
+            <span>Premium Content (requires subscription)</span>
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-lg"><%= show ? 'Update Series' : 'Add Series' %></button>
+          <a href="/admin/series" class="btn btn-outline btn-lg">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,33 @@
+<nav class="navbar" id="navbar">
+  <a href="/" class="nav-logo">
+    <div class="logo-icon">▶</div>
+    STREAM<span>X</span>
+  </a>
+  <div class="nav-links">
+    <a href="/" class="<%= typeof active !== 'undefined' && active === 'home' ? 'active' : '' %>">Home</a>
+    <a href="/movies" class="<%= typeof active !== 'undefined' && active === 'movies' ? 'active' : '' %>">Movies</a>
+    <a href="/series" class="<%= typeof active !== 'undefined' && active === 'series' ? 'active' : '' %>">Series</a>
+    <a href="/anime" class="<%= typeof active !== 'undefined' && active === 'anime' ? 'active' : '' %>">Anime</a>
+    <a href="/pricing" class="<%= typeof active !== 'undefined' && active === 'pricing' ? 'active' : '' %>">Pricing</a>
+  </div>
+  <div class="nav-right">
+    <form class="nav-search" action="/search" method="GET">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" name="q" placeholder="Search movies, series..." value="<%= typeof query !== 'undefined' ? query : '' %>">
+    </form>
+    <% if (user) { %>
+      <div class="avatar" onclick="document.getElementById('userMenu').classList.toggle('show')"><%= user.avatar %></div>
+      <div class="dropdown-menu" id="userMenu">
+        <div class="dropdown-header">
+          <strong><%= user.name %></strong>
+          <span class="plan-badge <%= user.plan %>"><%= user.plan %></span>
+        </div>
+        <% if (user.role === 'admin') { %><a href="/admin">🛡️ Admin Panel</a><% } %>
+        <a href="/auth/logout">🚪 Logout</a>
+      </div>
+    <% } else { %>
+      <a href="/auth/login" class="btn btn-outline btn-sm">SIGN IN</a>
+      <a href="/auth/register" class="btn btn-primary btn-sm">SIGN UP</a>
+    <% } %>
+  </div>
+</nav>

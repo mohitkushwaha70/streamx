@@ -1,0 +1,59 @@
+<%- include('partials/header', { pageTitle: 'Pricing' }) %>
+<%- include('partials/navbar', { active: 'pricing' }) %>
+
+<main class="main-content page-content">
+  <div class="page-header" style="text-align:center;">
+    <h1>Choose Your <span class="accent">Plan</span></h1>
+    <p style="color: var(--text-secondary); margin-top: 8px;">Stream unlimited movies and series in premium quality</p>
+  </div>
+
+  <section class="section">
+    <div class="pricing-grid">
+      <!-- Free -->
+      <div class="pricing-card">
+        <h3>Basic</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">For casual viewers</p>
+        <div class="price">Free<small></small></div>
+        <ul>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Limited content</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> 480p quality</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> 1 device</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> With ads</li>
+        </ul>
+        <a href="/auth/register" class="btn btn-outline" style="width:100%;">Get Started</a>
+      </div>
+
+      <!-- Premium -->
+      <div class="pricing-card featured">
+        <h3>Premium</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Most popular choice</p>
+        <div class="price">₹199<small>/month</small></div>
+        <ul>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> All content access</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> 4K Ultra HD</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> 3 devices</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> No ads</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Offline downloads</li>
+        </ul>
+        <a href="/auth/register" class="btn btn-primary" style="width:100%;">Choose Premium</a>
+      </div>
+
+      <!-- Ultra -->
+      <div class="pricing-card">
+        <h3>Ultra</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">For the ultimate experience</p>
+        <div class="price">₹499<small>/month</small></div>
+        <ul>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Everything in Premium</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> 4K + Dolby Atmos</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> 6 devices</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Early access</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Exclusive originals</li>
+        </ul>
+        <a href="/auth/register" class="btn btn-outline" style="width:100%;">Choose Ultra</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/footer') %>

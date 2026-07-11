@@ -1,0 +1,89 @@
+<%- include('../partials/header', { pageTitle: movie ? 'Edit Movie' : 'Add Movie' }) %>
+
+<div class="admin-layout">
+  <%- include('../partials/admin-sidebar') %>
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1><%= movie ? 'Edit' : 'Add New' %> Movie</h1>
+      <a href="/admin/movies" class="btn btn-outline">← Back</a>
+    </div>
+
+    <div class="admin-card">
+      <form method="POST" action="<%= movie ? '/admin/movies/edit/' + movie.id : '/admin/movies/add' %>" class="admin-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Title *</label>
+            <input type="text" name="title" class="form-input" value="<%= movie ? movie.title : '' %>" required>
+          </div>
+          <div class="form-group">
+            <label>Genre *</label>
+            <select name="genre" class="form-input" required>
+              <% ['Action','Comedy','Drama','Horror','Romance','Sci-Fi','Thriller','Adventure','Crime','Documentary','Fantasy','Medical','Reality'].forEach(g => { %>
+              <option value="<%= g %>" <%= movie && movie.genre === g ? 'selected' : '' %>><%= g %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Year *</label>
+            <input type="number" name="year" class="form-input" value="<%= movie ? movie.year : 2026 %>" required>
+          </div>
+          <div class="form-group">
+            <label>Rating *</label>
+            <input type="number" name="rating" class="form-input" step="0.1" min="0" max="10" value="<%= movie ? movie.rating : 8.0 %>" required>
+          </div>
+          <div class="form-group">
+            <label>Duration *</label>
+            <input type="text" name="duration" class="form-input" value="<%= movie ? movie.duration : '2h 0m' %>" placeholder="e.g. 2h 15m" required>
+          </div>
+          <div class="form-group">
+            <label>Language</label>
+            <input type="text" name="language" class="form-input" value="<%= movie ? movie.language : 'English' %>">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description *</label>
+          <textarea name="description" class="form-input" rows="3" required><%= movie ? movie.description : '' %></textarea>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Cast</label>
+            <input type="text" name="cast" class="form-input" value="<%= movie ? movie.cast : '' %>" placeholder="e.g. Actor 1, Actor 2">
+          </div>
+          <div class="form-group">
+            <label>Director</label>
+            <input type="text" name="director" class="form-input" value="<%= movie ? movie.director : '' %>">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Poster URL</label>
+            <input type="url" name="poster" class="form-input" value="<%= movie ? movie.poster : '' %>" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <label>Backdrop URL</label>
+            <input type="url" name="backdrop" class="form-input" value="<%= movie ? movie.backdrop : '' %>" placeholder="https://...">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Video URL</label>
+          <input type="url" name="videoUrl" class="form-input" value="<%= movie ? movie.videoUrl : '' %>" placeholder="https://...">
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" name="premium" <%= movie && movie.premium ? 'checked' : '' %>>
+            <span>Premium Content (requires subscription)</span>
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-lg">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <%= movie ? 'Update Movie' : 'Add Movie' %>
+          </button>
+          <a href="/admin/movies" class="btn btn-outline btn-lg">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+
+<%- include('../partials/footer') %>

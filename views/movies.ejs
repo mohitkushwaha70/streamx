@@ -1,0 +1,55 @@
+<%- include('partials/header', { pageTitle: 'Movies' }) %>
+<%- include('partials/navbar', { active: 'movies' }) %>
+
+<main class="main-content page-content">
+  <div class="page-header">
+    <h1>Movies</h1>
+    <p>Browse our collection of <%= movies.length %> movies</p>
+  </div>
+
+  <div class="section">
+    <div class="filter-bar">
+      <div class="genre-grid">
+        <a href="/movies" class="genre-chip <%= !currentGenre ? 'active' : '' %>">All</a>
+        <% genres.forEach(g => { %>
+        <a href="/movies?genre=<%= g %>&sort=<%= currentSort %>" class="genre-chip <%= currentGenre === g ? 'active' : '' %>"><%= g %></a>
+        <% }) %>
+      </div>
+      <div class="sort-bar">
+        <a href="/movies?genre=<%= currentGenre %>&sort=trending" class="tab-btn <%= currentSort === 'trending' ? 'active' : '' %>">Trending</a>
+        <a href="/movies?genre=<%= currentGenre %>&sort=rating" class="tab-btn <%= currentSort === 'rating' ? 'active' : '' %>">Top Rated</a>
+        <a href="/movies?genre=<%= currentGenre %>&sort=year" class="tab-btn <%= currentSort === 'year' ? 'active' : '' %>">Newest</a>
+        <a href="/movies?genre=<%= currentGenre %>&sort=az" class="tab-btn <%= currentSort === 'az' ? 'active' : '' %>">A-Z</a>
+      </div>
+    </div>
+
+    <div class="content-grid">
+      <% movies.forEach(item => { %>
+      <a href="/movies/<%= item.id %>" class="content-card">
+        <div class="card-image">
+          <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">
+          <% if (item.badge === 'new') { %><span class="card-badge new">NEW</span><% } %>
+          <% if (item.premium && item.badge !== 'new') { %><span class="card-badge premium">⭐ PREMIUM</span><% } %>
+          <div class="card-overlay">
+            <div class="play-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="card-info">
+          <div class="card-title"><%= item.title %></div>
+          <div class="card-meta">
+            <span class="rating">★ <%= item.rating %></span>
+            <span class="dot"></span>
+            <span><%= item.year %></span>
+            <span class="dot"></span>
+            <span><%= item.genre %></span>
+          </div>
+        </div>
+      </a>
+      <% }) %>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>

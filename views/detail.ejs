@@ -1,0 +1,89 @@
+<%- include('partials/header', { pageTitle: item.title }) %>
+<%- include('partials/navbar', { active: type === 'movie' ? 'movies' : 'series' }) %>
+
+<main class="main-content">
+  <!-- Detail Hero -->
+  <section class="detail-hero">
+    <div class="hero-bg" style="background-image: url('<%= item.backdrop %>')"></div>
+    <div class="hero-content detail-content">
+      <div class="hero-badge">
+        <% if (item.premium) { %>⭐ PREMIUM<% } else { %>🔥 <%= type === 'series' ? item.seasons + ' Season' + (item.seasons > 1 ? 's' : '') : item.duration %><% } %>
+      </div>
+      <h1 class="hero-title"><%= item.title %></h1>
+      <div class="hero-meta">
+        <span class="rating">★ <%= item.rating %></span>
+        <span><%= item.year %></span>
+        <span><%= item.genre %></span>
+        <% if (item.cast) { %><span><%= item.cast %></span><% } %>
+        <% if (item.director) { %><span>Dir: <%= item.director %></span><% } %>
+      </div>
+      <p class="hero-desc"><%= item.description %></p>
+      <div class="hero-actions">
+        <a href="/watch/<%= type %>/<%= item.id %>" class="btn btn-primary btn-lg">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          Watch Now
+        </a>
+        <button class="btn btn-icon-lg" onclick="addToWatchlist(<%= item.id %>)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <% if (item.episodes) { %>
+  <!-- Episodes -->
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Episodes</h2>
+    </div>
+    <div class="episodes-list">
+      <% item.episodes.forEach(ep => { %>
+      <a href="/watch/series/<%= item.id %>?ep=<%= ep.number %>" class="episode-card">
+        <div class="ep-number"><%= ep.number %></div>
+        <div class="ep-info">
+          <h4><%= ep.title %></h4>
+          <p><%= ep.description %></p>
+        </div>
+        <div class="ep-duration"><%= ep.duration %></div>
+        <div class="ep-play">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+      </a>
+      <% }) %>
+    </div>
+  </section>
+  <% } %>
+
+  <!-- Related -->
+  <% if (related.length > 0) { %>
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">You May Also <span class="accent">Like</span></h2>
+    </div>
+    <div class="content-grid">
+      <% related.forEach(r => { %>
+      <a href="/<%= type === 'movie' ? 'movies' : 'series' %>/<%= r.id %>" class="content-card">
+        <div class="card-image">
+          <img src="<%= r.poster %>" alt="<%= r.title %>" loading="lazy">
+          <div class="card-overlay">
+            <div class="play-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="card-info">
+          <div class="card-title"><%= r.title %></div>
+          <div class="card-meta">
+            <span class="rating">★ <%= r.rating %></span>
+            <span class="dot"></span>
+            <span><%= r.genre %></span>
+          </div>
+        </div>
+      </a>
+      <% }) %>
+    </div>
+  </section>
+  <% } %>
+</main>
+
+<%- include('partials/footer') %>

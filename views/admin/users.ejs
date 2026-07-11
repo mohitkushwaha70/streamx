@@ -1,0 +1,52 @@
+<%- include('../partials/header', { pageTitle: 'Manage Users' }) %>
+
+<div class="admin-layout">
+  <%- include('../partials/admin-sidebar') %>
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1>Manage Users</h1>
+      <span class="admin-count"><%= users.length %> users</span>
+    </div>
+
+    <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+
+    <div class="admin-card">
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr><th>#</th><th>User</th><th>Email</th><th>Role</th><th>Plan</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <% users.forEach((u, i) => { %>
+            <tr>
+              <td><%= i + 1 %></td>
+              <td>
+                <div class="user-cell">
+                  <div class="avatar-sm"><%= u.avatar %></div>
+                  <strong><%= u.name %></strong>
+                </div>
+              </td>
+              <td style="color: var(--text-muted)"><%= u.email %></td>
+              <td><span class="table-badge <%= u.role %>"><%= u.role %></span></td>
+              <td><span class="plan-badge <%= u.plan %>"><%= u.plan %></span></td>
+              <td>
+                <div class="action-btns">
+                  <% if (u.role !== 'admin') { %>
+                  <a href="/admin/users/toggle/<%= u.id %>" class="btn btn-sm <%= u.plan === 'premium' ? 'btn-outline' : 'btn-primary' %>" onclick="return confirm('Toggle premium for <%= u.name %>?')">
+                    <%= u.plan === 'premium' ? 'Remove Premium' : 'Make Premium' %>
+                  </a>
+                  <% } else { %>
+                  <span style="color: var(--text-muted); font-size: 0.8rem;">Admin</span>
+                  <% } %>
+                </div>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<%- include('../partials/footer') %>

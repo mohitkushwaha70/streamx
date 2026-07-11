@@ -1,0 +1,45 @@
+<%- include('partials/header', { pageTitle: 'Search' }) %>
+<%- include('partials/navbar', { active: '' }) %>
+
+<main class="main-content page-content">
+  <div class="page-header">
+    <h1><%= query ? 'Results for "' + query + '"' : 'Search' %></h1>
+    <p><%= results.length %> result<%= results.length !== 1 ? 's' : '' %> found</p>
+  </div>
+
+  <% if (results.length > 0) { %>
+  <div class="section">
+    <div class="content-grid">
+      <% results.forEach(item => { %>
+      <a href="/<%= item.seasons ? 'series' : 'movies' %>/<%= item.id %>" class="content-card">
+        <div class="card-image">
+          <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">
+          <div class="card-overlay">
+            <div class="play-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="card-info">
+          <div class="card-title"><%= item.title %></div>
+          <div class="card-meta">
+            <span class="rating">★ <%= item.rating %></span>
+            <span class="dot"></span>
+            <span><%= item.genre %></span>
+            <span class="dot"></span>
+            <span><%= item.seasons ? 'Series' : 'Movie' %></span>
+          </div>
+        </div>
+      </a>
+      <% }) %>
+    </div>
+  </div>
+  <% } else if (query) { %>
+  <div class="section" style="text-align:center; padding: 80px 20px;">
+    <h2 style="color: var(--text-muted); margin-bottom: 12px;">No results found</h2>
+    <p style="color: var(--text-muted);">Try searching with different keywords</p>
+  </div>
+  <% } %>
+</main>
+
+<%- include('partials/footer') %>

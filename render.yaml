@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: streamx
+    runtime: node
+    buildCommand: "npm install"
+    startCommand: "node server.js"
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: SESSION_SECRET
+        value: "streamx_super_secret_key_2026"

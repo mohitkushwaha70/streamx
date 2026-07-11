@@ -1,100 +1,335 @@
 <%- include('partials/header', { pageTitle: 'Watch - ' + item.title }) %>
 <%- include('partials/navbar', { active: '' }) %>
 
+<style>
+.player-page { padding: 0 !important; background: #000; }
+.player-main { display: flex; gap: 0; max-width: 1600px; margin: 0 auto; }
+.player-left { flex: 1; min-width: 0; }
+.player-right { width: 380px; flex-shrink: 0; padding: 16px; background: #0a0a0f; border-left: 1px solid #1a1a1a; max-height: calc(100vh - 60px); overflow-y: auto; position: sticky; top: 60px; }
+.player-right::-webkit-scrollbar { width: 4px; }
+.player-right::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+.player-right-title { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.player-right-title svg { color: var(--blue-light); }
+
+.video-wrapper { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; }
+.video-wrapper video { width: 100%; height: 100%; object-fit: contain; }
+
+.video-info { padding: 20px 24px; }
+.video-info h1 { font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
+.video-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.video-meta .rating { color: #f59e0b; font-weight: 700; font-size: 0.9rem; }
+.video-meta span { font-size: 0.85rem; color: var(--text-muted); }
+.video-meta .premium-badge { background: linear-gradient(135deg, #f59e0b, #f97316); color: #000; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+.video-meta .quality-badge { background: rgba(37,99,235,0.2); color: var(--blue-light); padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(37,99,235,0.3); }
+.video-desc { color: var(--text-secondary); line-height: 1.7; font-size: 0.9rem; margin-bottom: 16px; }
+.video-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.video-actions .action-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: var(--text-secondary); font-size: 0.8rem; cursor: pointer; transition: var(--transition); }
+.video-actions .action-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.video-actions .action-btn.liked { color: #ef4444; border-color: rgba(239,68,68,0.3); }
+.video-actions .action-btn svg { flex-shrink: 0; }
+
+.episodes-section { padding: 20px 24px; border-top: 1px solid #1a1a1a; }
+.episodes-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.episodes-header h2 { font-size: 1.1rem; font-weight: 700; color: #fff; }
+.season-tabs { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; }
+.season-tab { padding: 6px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: var(--transition); white-space: nowrap; text-decoration: none; }
+.season-tab.active { background: var(--blue-primary); color: #fff; border-color: var(--blue-primary); }
+.season-tab:hover { border-color: rgba(37,99,235,0.5); color: #fff; }
+.episode-card { display: flex; gap: 14px; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; margin-bottom: 8px; transition: var(--transition); cursor: pointer; text-decoration: none; color: inherit; }
+.episode-card:hover { background: rgba(255,255,255,0.08); border-color: rgba(37,99,235,0.3); }
+.episode-card.active { background: rgba(37,99,235,0.1); border-color: rgba(37,99,235,0.4); }
+.episode-thumb { width: 160px; height: 90px; border-radius: 8px; overflow: hidden; flex-shrink: 0; position: relative; background: #111; }
+.episode-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.episode-thumb .ep-num { position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.8); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+.episode-thumb .ep-now { position: absolute; top: 6px; right: 6px; background: var(--blue-primary); color: #fff; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+.episode-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.episode-info h4 { font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.episode-info p { font-size: 0.8rem; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5; }
+.episode-info .ep-duration { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; }
+
+.recommended-section { padding: 20px 24px; border-top: 1px solid #1a1a1a; }
+.rec-scroll { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 8px; }
+.rec-scroll::-webkit-scrollbar { height: 4px; }
+.rec-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+.rec-card { min-width: 200px; flex-shrink: 0; text-decoration: none; color: inherit; }
+.rec-card .rec-thumb { width: 200px; height: 112px; border-radius: 8px; overflow: hidden; position: relative; background: #111; }
+.rec-card .rec-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+.rec-card:hover .rec-thumb img { transform: scale(1.05); }
+.rec-card .rec-play { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); opacity: 0; transition: var(--transition); }
+.rec-card:hover .rec-play { opacity: 1; }
+.rec-card .rec-info { padding: 8px 0; }
+.rec-card .rec-info h4 { font-size: 0.8rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rec-card .rec-info p { font-size: 0.75rem; color: var(--text-muted); }
+
+.share-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: none; align-items: center; justify-content: center; }
+.share-modal.active { display: flex; }
+.share-box { background: #111; border: 1px solid #222; border-radius: 16px; padding: 28px; max-width: 420px; width: 90%; }
+.share-box h3 { color: #fff; margin-bottom: 16px; font-size: 1.1rem; }
+.share-link { display: flex; gap: 8px; margin-bottom: 16px; }
+.share-link input { flex: 1; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.85rem; }
+.share-link button { background: var(--blue-primary); color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; cursor: pointer; }
+.share-people { display: flex; gap: 12px; flex-wrap: wrap; }
+.share-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--blue-primary), #7c3aed); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; color: #fff; cursor: pointer; transition: var(--transition); }
+.share-avatar:hover { transform: scale(1.1); }
+.share-close { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.5rem; float: right; }
+
+@media (max-width: 1024px) {
+  .player-main { flex-direction: column; }
+  .player-right { width: 100%; max-height: none; position: static; border-left: none; border-top: 1px solid #1a1a1a; }
+  .episode-thumb { width: 120px; height: 68px; }
+}
+@media (max-width: 600px) {
+  .video-actions { gap: 6px; }
+  .video-actions .action-btn { padding: 6px 10px; font-size: 0.75rem; }
+  .episode-thumb { width: 100px; height: 56px; }
+  .rec-card { min-width: 160px; }
+  .rec-card .rec-thumb { width: 160px; height: 90px; }
+}
+</style>
+
 <main class="main-content player-page">
-  <div class="player-wrapper">
-    <div class="player-container" id="playerContainer">
-      <video id="videoPlayer" poster="<%= item.backdrop %>" preload="metadata">
-        <source src="<%= item.videoUrl %>" type="video/mp4">
-      </video>
+  <div class="player-main">
+    <!-- LEFT: Video + Info + Episodes -->
+    <div class="player-left">
+      <div class="player-container" id="playerContainer">
+        <div class="video-wrapper">
+          <video id="videoPlayer" poster="<%= item.backdrop %>" preload="metadata" playsinline>
+            <% if (currentEpisode) { %>
+            <source src="<%= currentEpisode.videoUrl %>" type="video/mp4">
+            <% } else { %>
+            <source src="<%= item.videoUrl %>" type="video/mp4">
+            <% } %>
+          </video>
 
-      <div class="player-overlay" id="playerOverlay">
-        <button class="big-play-btn" id="bigPlayBtn">
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-        </button>
-      </div>
+          <div class="player-overlay" id="playerOverlay">
+            <button class="big-play-btn" id="bigPlayBtn">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+          </div>
 
-      <div class="player-controls" id="playerControls">
-        <div class="progress-track" id="progressTrack">
-          <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-        </div>
-        <div class="controls-row">
-          <div class="controls-left">
-            <button class="player-btn" id="playPauseBtn">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="white" id="playIcon"><path d="M8 5v14l11-7z"/></svg>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="white" id="pauseIcon" style="display:none"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
-            </button>
-            <button class="player-btn" id="rewindBtn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12.5 8C9.85 8 7.45 9.01 5.6 10.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
-            </button>
-            <button class="player-btn" id="forwardBtn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M11.5 8C14.15 8 16.55 9.01 18.4 10.6L22 7v9h-9l3.62-3.62c-1.39-1.16-3.16-1.88-5.12-1.88-3.54 0-6.55 2.31-7.6 5.5l-2.37-.78C2.92 11.03 6.85 8 11.5 8z"/></svg>
-            </button>
-            <div class="volume-control">
-              <button class="player-btn" id="muteBtn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="white" id="volumeIcon"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="white" id="muteIcon" style="display:none"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
-              </button>
-              <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.1" value="1">
+          <div class="player-controls" id="playerControls">
+            <div class="progress-track" id="progressTrack">
+              <div class="progress-fill" id="progressFill" style="width: 0%"></div>
             </div>
-            <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
-          </div>
-          <div class="controls-right">
-            <button class="player-btn" id="pipBtn" title="Picture in Picture">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z"/></svg>
-            </button>
-            <button class="player-btn" id="fullscreenBtn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="player-info">
-      <h1><%= item.title %></h1>
-      <div class="hero-meta">
-        <span class="rating">★ <%= item.rating %></span>
-        <span><%= item.year %></span>
-        <span><%= item.genre %></span>
-        <% if (item.duration) { %><span><%= item.duration %></span><% } %>
-      </div>
-      <p style="color: var(--text-secondary); margin-top: 12px; line-height: 1.7;"><%= item.description %></p>
-    </div>
-  </div>
-
-  <% if (related && related.length > 0) { %>
-  <section class="section">
-    <div class="section-header">
-      <h2 class="section-title">More <span class="accent">Like This</span></h2>
-    </div>
-    <div class="content-row">
-      <% related.forEach(r => { %>
-      <a href="/watch/<%= type %>/<%= r.id %>" class="content-card">
-        <div class="card-image">
-          <img src="<%= r.poster %>" alt="<%= r.title %>" loading="lazy">
-          <div class="card-overlay">
-            <div class="play-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            <div class="controls-row">
+              <div class="controls-left">
+                <button class="player-btn" id="playPauseBtn">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="white" id="playIcon"><path d="M8 5v14l11-7z"/></svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="white" id="pauseIcon" style="display:none"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+                </button>
+                <button class="player-btn" id="rewindBtn" title="Rewind 10s">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12.5 8C9.85 8 7.45 9.01 5.6 10.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+                </button>
+                <button class="player-btn" id="forwardBtn" title="Forward 10s">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M11.5 8C14.15 8 16.55 9.01 18.4 10.6L22 7v9h-9l3.62-3.62c-1.39-1.16-3.16-1.88-5.12-1.88-3.54 0-6.55 2.31-7.6 5.5l-2.37-.78C2.92 11.03 6.85 8 11.5 8z"/></svg>
+                </button>
+                <div class="volume-control">
+                  <button class="player-btn" id="muteBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white" id="volumeIcon"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white" id="muteIcon" style="display:none"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+                  </button>
+                  <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.1" value="1">
+                </div>
+                <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
+              </div>
+              <div class="controls-right">
+                <button class="player-btn" id="pipBtn" title="Picture in Picture">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z"/></svg>
+                </button>
+                <button class="player-btn" id="fullscreenBtn" title="Fullscreen">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
-        <div class="card-info">
-          <div class="card-title"><%= r.title %></div>
-          <div class="card-meta">
-            <span class="rating">★ <%= r.rating %></span>
-            <span class="dot"></span>
-            <span><%= r.genre %></span>
-          </div>
+      </div>
+
+      <!-- Video Info -->
+      <div class="video-info">
+        <h1><%= item.title %><% if (currentEpisode) { %> - E<%= currentEpisode.number %>: <%= currentEpisode.title %><% } %></h1>
+        <div class="video-meta">
+          <span class="rating">★ <%= item.rating %></span>
+          <span><%= item.year %></span>
+          <span><%= item.genre %></span>
+          <% if (currentEpisode) { %><span><%= currentEpisode.duration %></span><% } else if (item.duration) { %><span><%= item.duration %></span><% } %>
+          <% if (item.premium) { %><span class="premium-badge">PREMIUM</span><% } %>
+          <span class="quality-badge">HD 1080p</span>
+          <% if (item.cast) { %><span><%= item.cast %></span><% } %>
         </div>
-      </a>
-      <% }) %>
+        <p class="video-desc"><%= currentEpisode ? currentEpisode.description : item.description %></p>
+        <div class="video-actions">
+          <button class="action-btn" onclick="this.classList.toggle('liked')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+            Like
+          </button>
+          <button class="action-btn" onclick="this.classList.toggle('liked')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            Share
+          </button>
+          <button class="action-btn" onclick="document.getElementById('shareModal').classList.add('active')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Watch Together
+          </button>
+          <form action="/watchlist/add" method="POST" style="display:inline">
+            <input type="hidden" name="id" value="<%= item.id %>">
+            <button type="submit" class="action-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              Watchlist
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Episodes Section (Series/Anime) -->
+      <% if (episodes.length > 0) { %>
+      <div class="episodes-section">
+        <div class="episodes-header">
+          <h2>Episodes</h2>
+        </div>
+        <% if (totalSeasons > 1) { %>
+        <div class="season-tabs">
+          <% for (let s = 1; s <= totalSeasons; s++) { %>
+          <a href="?season=<%= s %>&ep=1" class="season-tab <%= s === currentSeason ? 'active' : '' %>">Season <%= s %></a>
+          <% } %>
+        </div>
+        <% } %>
+        <% episodes.forEach(e => { %>
+        <a href="/watch/<%= type %>/<%= item.id %>?ep=<%= e.number %>" class="episode-card <%= e.number === ep ? 'active' : '' %>">
+          <div class="episode-thumb">
+            <img src="<%= item.poster %>" alt="<%= e.title %>" loading="lazy">
+            <span class="ep-num">E<%= e.number %></span>
+            <% if (e.number === ep) { %><span class="ep-now">NOW</span><% } %>
+          </div>
+          <div class="episode-info">
+            <h4><%= e.title %></h4>
+            <p><%= e.description %></p>
+            <span class="ep-duration"><%= e.duration %></span>
+          </div>
+        </a>
+        <% }) %>
+      </div>
+      <% } %>
+
+      <!-- Recommended For You -->
+      <% if (related.length > 0) { %>
+      <div class="recommended-section">
+        <div class="episodes-header">
+          <h2>More Like This</h2>
+        </div>
+        <div class="rec-scroll">
+          <% related.forEach(r => { %>
+          <a href="/<%= type === 'movie' ? 'movies' : 'series' %>/<%= r.id %>" class="rec-card">
+            <div class="rec-thumb">
+              <img src="<%= r.poster %>" alt="<%= r.title %>" loading="lazy">
+              <div class="rec-play">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="white" opacity="0.9"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+            </div>
+            <div class="rec-info">
+              <h4><%= r.title %></h4>
+              <p>★ <%= r.rating %> • <%= r.genre %></p>
+            </div>
+          </a>
+          <% }) %>
+        </div>
+      </div>
+      <% } %>
+
+      <!-- Trending Now -->
+      <% if (trending.length > 0) { %>
+      <div class="recommended-section" style="border-top: 1px solid #1a1a1a;">
+        <div class="episodes-header">
+          <h2>Trending Now</h2>
+        </div>
+        <div class="rec-scroll">
+          <% trending.forEach(t => { %>
+          <a href="/<%= t.seasons ? 'series' : 'movies' %>/<%= t.id %>" class="rec-card">
+            <div class="rec-thumb">
+              <img src="<%= t.poster %>" alt="<%= t.title %>" loading="lazy">
+              <div class="rec-play">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="white" opacity="0.9"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+            </div>
+            <div class="rec-info">
+              <h4><%= t.title %></h4>
+              <p>★ <%= t.rating %> • <%= t.genre %></p>
+            </div>
+          </a>
+          <% }) %>
+        </div>
+      </div>
+      <% } %>
     </div>
-  </section>
-  <% } %>
+
+    <!-- RIGHT: Up Next / Queue -->
+    <div class="player-right">
+      <div class="player-right-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        Up Next
+      </div>
+      <% if (episodes.length > 0) { %>
+        <% const nextEp = episodes.find(e => e.number === ep + 1); %>
+        <% if (nextEp) { %>
+        <a href="/watch/<%= type %>/<%= item.id %>?ep=<%= nextEp.number %>" class="episode-card" style="margin-bottom: 12px;">
+          <div class="episode-thumb" style="width:120px;height:68px;">
+            <img src="<%= item.poster %>" alt="<%= nextEp.title %>" loading="lazy">
+            <span class="ep-num">E<%= nextEp.number %></span>
+          </div>
+          <div class="episode-info">
+            <h4><%= nextEp.title %></h4>
+            <p><%= nextEp.duration %></p>
+          </div>
+        </a>
+        <% } %>
+        <% const remainEps = episodes.filter(e => e.number > ep).slice(1, 6); %>
+        <% remainEps.forEach(e => { %>
+        <a href="/watch/<%= type %>/<%= item.id %>?ep=<%= e.number %>" class="episode-card">
+          <div class="episode-thumb" style="width:120px;height:68px;">
+            <img src="<%= item.poster %>" alt="<%= e.title %>" loading="lazy">
+            <span class="ep-num">E<%= e.number %></span>
+          </div>
+          <div class="episode-info">
+            <h4><%= e.title %></h4>
+            <p><%= e.duration %></p>
+          </div>
+        </a>
+        <% }) %>
+      <% } else { %>
+        <% related.slice(0, 6).forEach(r => { %>
+        <a href="/watch/<%= type %>/<%= r.id %>" class="episode-card">
+          <div class="episode-thumb" style="width:120px;height:68px;">
+            <img src="<%= r.poster %>" alt="<%= r.title %>" loading="lazy">
+          </div>
+          <div class="episode-info">
+            <h4><%= r.title %></h4>
+            <p>★ <%= r.rating %></p>
+          </div>
+        </a>
+        <% }) %>
+      <% } %>
+    </div>
+  </div>
 </main>
+
+<!-- Share / Watch Together Modal -->
+<div class="share-modal" id="shareModal">
+  <div class="share-box">
+    <button class="share-close" onclick="document.getElementById('shareModal').classList.remove('active')">&times;</button>
+    <h3>Watch Together</h3>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">Share this link with friends to watch together</p>
+    <div class="share-link">
+      <input type="text" id="shareUrl" value="<%= shareUrl %>" readonly>
+      <button onclick="var inp=document.getElementById('shareUrl');inp.select();document.execCommand('copy');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)">Copy</button>
+    </div>
+    <div class="share-people">
+      <div class="share-avatar" title="Share on WhatsApp" style="background:#25D366" onclick="window.open('https://wa.me/?text=Watch+<%= encodeURIComponent(item.title) %>+on+STREAMX')">W</div>
+      <div class="share-avatar" title="Share on Telegram" style="background:#0088cc" onclick="window.open('https://t.me/share/url?url='+encodeURIComponent(window.location.href)+'&text=Watch+<%= encodeURIComponent(item.title) %>+')">T</div>
+      <div class="share-avatar" title="Share on Twitter" style="background:#1DA1F2" onclick="window.open('https://twitter.com/intent/tweet?text=Watch+<%= encodeURIComponent(item.title) %>&url='+encodeURIComponent(window.location.href))">X</div>
+      <div class="share-avatar" title="Copy Link" style="background:#555" onclick="navigator.clipboard.writeText(window.location.href);this.textContent='✓'">🔗</div>
+    </div>
+  </div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -119,6 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const forwardBtn = document.getElementById('forwardBtn');
 
   function formatTime(s) {
+    if (isNaN(s)) return '0:00';
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
     return m + ':' + (sec < 10 ? '0' : '') + sec;
@@ -142,18 +378,36 @@ document.addEventListener('DOMContentLoaded', () => {
       timeDisplay.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video.duration);
     }
   });
-  video.addEventListener('ended', () => { overlay.style.opacity = '1'; overlay.style.pointerEvents = 'auto'; });
+  video.addEventListener('ended', () => {
+    overlay.style.opacity = '1'; overlay.style.pointerEvents = 'auto';
+    // Auto play next episode
+    var nextLink = document.querySelector('.episode-card.active + .episode-card');
+    if (nextLink) { setTimeout(() => { window.location.href = nextLink.href; }, 2000); }
+  });
 
   bigPlayBtn.addEventListener('click', togglePlay);
   playPauseBtn.addEventListener('click', togglePlay);
   overlay.addEventListener('click', togglePlay);
+  video.addEventListener('click', togglePlay);
   rewindBtn.addEventListener('click', () => { video.currentTime -= 10; });
   forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
 
+  // Progress bar hover preview
   progressTrack.addEventListener('click', (e) => {
     const rect = progressTrack.getBoundingClientRect();
     video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
   });
+
+  // Drag progress
+  let isDragging = false;
+  progressTrack.addEventListener('mousedown', (e) => { isDragging = true; });
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const rect = progressTrack.getBoundingClientRect();
+    const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    video.currentTime = pct * video.duration;
+  });
+  document.addEventListener('mouseup', () => { isDragging = false; });
 
   volumeSlider.addEventListener('input', (e) => {
     video.volume = e.target.value;
@@ -177,11 +431,27 @@ document.addEventListener('DOMContentLoaded', () => {
     else await video.requestPictureInPicture(); } catch(e) {}
   });
 
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT') return;
+    switch(e.key) {
+      case ' ': e.preventDefault(); togglePlay(); break;
+      case 'f': case 'F': fullscreenBtn.click(); break;
+      case 'm': case 'M': muteBtn.click(); break;
+      case 'ArrowLeft': video.currentTime -= 10; break;
+      case 'ArrowRight': video.currentTime += 10; break;
+      case 'ArrowUp': e.preventDefault(); video.volume = Math.min(1, video.volume + 0.1); volumeSlider.value = video.volume; break;
+      case 'ArrowDown': e.preventDefault(); video.volume = Math.max(0, video.volume - 0.1); volumeSlider.value = video.volume; break;
+    }
+  });
+
+  // Auto hide controls
   let controlsTimeout;
   container.addEventListener('mousemove', () => {
     controls.style.opacity = '1';
+    container.style.cursor = 'default';
     clearTimeout(controlsTimeout);
-    if (!video.paused) controlsTimeout = setTimeout(() => { controls.style.opacity = '0'; }, 3000);
+    if (!video.paused) controlsTimeout = setTimeout(() => { controls.style.opacity = '0'; container.style.cursor = 'none'; }, 3000);
   });
 });
 </script>

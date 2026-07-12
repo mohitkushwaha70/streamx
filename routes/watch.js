@@ -1,8 +1,17 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
+const fs = require('fs');
 const { movies: sampleMovies, series: sampleSeries } = require('../data/sample');
 const { fetchMovies, fetchSeries } = require('../services/tmdb');
 const { getStreamingInfo, getSourceIcon, getSourceColor } = require('../services/watchmode');
+
+let videoConfig = {};
+try {
+  videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {};
+} catch (e) {
+  console.error('Could not load videos.json:', e.message);
+}
 
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 const TMDB_IMG = 'https://image.tmdb.org/t/p';
@@ -57,6 +66,17 @@ router.get('/:type/:id', async (req, res) => {
   if (type === 'movie') item = allMovies.find(m => m.id === itemId || m.tmdbId === itemId);
   else item = allSeries.find(s => s.id === itemId || s.tmdbId === itemId);
   if (!item) return res.redirect('/');
+
+  const itemTmdbId = item.tmdbId || item.id;
+  const videoCfg = videoConfig[String(itemTmdbId)];
+  if (videoCfg && videoCfg.sources) {
+    const firstSource = Object.values(videoCfg.sources)[0];
+    const match = firstSource.match(/\/resolve\/main\/(.+)/);
+    if (match) {
+      item.videoUrl = `/stream/${match[1]}`;
+      item.videoType = 'mp4';
+    }
+  }
 
   if (!req.session.continueWatching) req.session.continueWatching = [];
   const existing = req.session.continueWatching.find(w => w.id === itemId && w.type === type);

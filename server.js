@@ -87,6 +87,14 @@ app.use((err, req, res, next) => {
   res.status(500).send('Server Error: ' + err.message);
 });
 
+if (!process.env.TMDB_READ_ACCESS_TOKEN) {
+  console.error('!!! CRITICAL: TMDB_READ_ACCESS_TOKEN is not set !!!');
+  console.error('Set it in Render Dashboard > Environment tab.');
+  console.error('TMDB API calls will fail with 401 Unauthorized.');
+} else {
+  console.log('TMDB_READ_ACCESS_TOKEN loaded (length:', process.env.TMDB_READ_ACCESS_TOKEN.length, ')');
+}
+
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`streamX running on port ${PORT}`);
 });

@@ -10,7 +10,7 @@ const TMDB_IMG = 'https://image.tmdb.org/t/p';
 function headers() {
   return {
     'Authorization': `Bearer ${process.env.TMDB_READ_ACCESS_TOKEN}`,
-    'accept': 'application/json'
+    'Accept': 'application/json'
   };
 }
 

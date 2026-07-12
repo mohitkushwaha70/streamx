@@ -4,16 +4,22 @@ const TMDB_IMG = 'https://image.tmdb.org/t/p';
 const cache = { movies: null, series: null, anime: null, trending: null, lastFetch: 0 };
 const CACHE_TTL = 30 * 60 * 1000;
 
+const TMDB_TOKEN = process.env.TMDB_READ_ACCESS_TOKEN;
+
 function headers() {
   return {
-    'Authorization': `Bearer ${process.env.TMDB_READ_ACCESS_TOKEN}`,
-    'accept': 'application/json'
+    'Authorization': `Bearer ${TMDB_TOKEN}`,
+    'Accept': 'application/json'
   };
 }
 
 async function fetchJSON(url) {
   const res = await fetch(url, { headers: headers() });
-  if (!res.ok) throw new Error(`TMDB ${res.status}`);
+  if (!res.ok) {
+    const body = await res.text().catch(() => 'unable to read body');
+    console.error(`TMDB API Error: ${res.status} ${res.statusText} | URL: ${url} | Body: ${body}`);
+    throw new Error(`TMDB ${res.status}: ${url} - ${body.substring(0, 200)}`);
+  }
   return res.json();
 }
 

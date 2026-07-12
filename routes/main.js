@@ -10,7 +10,9 @@ router.get('/', async (req, res) => {
   const allMovies = tmdbMovies || [];
   const allSeries = tmdbSeries || [];
 
-  const heroMovie = allMovies[Math.floor(Math.random() * Math.min(allMovies.length, 10))];
+  const heroMovie = allMovies.length > 0
+    ? allMovies[Math.floor(Math.random() * Math.min(allMovies.length, 10))]
+    : { id: '', title: 'streamX', genre: '', year: 2026, rating: 0, duration: '', description: 'Your favorite streaming platform.', poster: '', backdrop: '', premium: false };
   const trending = allMovies.slice(0, 10);
   const newReleases = allMovies.filter(m => m.badge === 'new').slice(0, 8);
   const topRated = [...allMovies].sort((a, b) => b.rating - a.rating).slice(0, 10);

@@ -7,6 +7,8 @@
 .hero-slide.active { opacity: 1; pointer-events: auto; }
 .hero-slide .hero-bg { position: absolute; inset: 0; background-size: cover; background-position: center top; }
 .hero-slide .hero-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.1) 100%), linear-gradient(to top, #0a0a0f 0%, transparent 30%); }
+.hero-slide .hero-content { position: absolute; bottom: 80px; left: 48px; z-index: 2; max-width: 600px; }
+@media (max-width: 768px) { .hero-slide .hero-content { left: 20px; right: 20px; bottom: 60px; max-width: none; } }
 .hero-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; }
 .hero-arrow:hover { background: rgba(37,99,235,0.7); border-color: rgba(37,99,235,0.8); }
 .hero-prev { left: 20px; }

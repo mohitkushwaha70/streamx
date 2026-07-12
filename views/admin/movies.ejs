@@ -48,6 +48,9 @@
               </td>
             </tr>
             <% }) %>
+            <% if (movies.length === 0) { %>
+            <tr><td colspan="7" style="text-align:center;color:#555;padding:40px;">No movies yet. Movies are loaded from TMDB API or added manually.</td></tr>
+            <% } %>
           </tbody>
         </table>
       </div>

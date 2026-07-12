@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const { users, getNextUserId } = require('../data/sample');
+const { users, getNextUserId, addLog } = require('../data/sample');
 
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser((id, done) => {
@@ -65,6 +65,7 @@ router.post('/register', (req, res) => {
   const hash = bcrypt.hashSync(password, 10);
   const newUser = { id: getNextUserId(), name, email, password: hash, role: 'user', avatar: name.charAt(0).toUpperCase(), plan: 'free' };
   users.push(newUser);
+  addLog('user', `New user registered: ${name} (${email})`, 'System');
   req.session.user = { id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role, avatar: newUser.avatar, plan: newUser.plan };
   res.redirect('/');
 });

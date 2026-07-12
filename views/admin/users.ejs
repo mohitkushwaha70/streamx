@@ -1,20 +1,103 @@
-<%- include('../partials/header', { pageTitle: 'Manage Users' }) %>
+<%- include('../partials/header', { pageTitle: 'Manage Users - STREAMX Admin' }) %>
 
 <div class="admin-layout">
   <%- include('../partials/admin-sidebar') %>
   <main class="admin-main">
     <div class="admin-header">
-      <h1>Manage Users</h1>
-      <span class="admin-count"><%= users.length %> users</span>
+      <div>
+        <h1>Manage Users</h1>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Total <%= totalCount %> users registered</p>
+      </div>
+      <div class="admin-header-right">
+        <span class="admin-count"><%= users.length %> shown</span>
+      </div>
     </div>
 
     <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+
+    <!-- User Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number"><%= stats.total %></span>
+          <span class="stat-label">Total Users</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon gold">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number"><%= stats.premium %></span>
+          <span class="stat-label">Premium</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number"><%= stats.free %></span>
+          <span class="stat-label">Free Users</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number"><%= stats.admins %></span>
+          <span class="stat-label">Admins</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="admin-card" style="margin-bottom: 20px;">
+      <div style="padding: 16px 20px;">
+        <form method="GET" action="/admin/users" class="filter-form">
+          <div class="filter-row">
+            <div class="filter-search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" name="search" placeholder="Search by name or email..." value="<%= search %>" class="form-input" style="background:transparent;border:none;padding:0;">
+            </div>
+            <select name="role" class="form-input filter-select">
+              <option value="">All Roles</option>
+              <option value="admin" <%= roleFilter === 'admin' ? 'selected' : '' %>>Admin</option>
+              <option value="user" <%= roleFilter === 'user' ? 'selected' : '' %>>User</option>
+            </select>
+            <select name="plan" class="form-input filter-select">
+              <option value="">All Plans</option>
+              <option value="premium" <%= planFilter === 'premium' ? 'selected' : '' %>>Premium</option>
+              <option value="free" <%= planFilter === 'free' ? 'selected' : '' %>>Free</option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <% if (search || roleFilter || planFilter) { %>
+              <a href="/admin/users" class="btn btn-outline btn-sm">Clear</a>
+            <% } %>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <div class="admin-card">
       <div class="admin-table-wrap">
         <table class="admin-table">
           <thead>
-            <tr><th>#</th><th>User</th><th>Email</th><th>Role</th><th>Plan</th><th>Actions</th></tr>
+            <tr>
+              <th>#</th>
+              <th>User</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Plan</th>
+              <th>Watch Time</th>
+              <th>Devices</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
           </thead>
           <tbody>
             <% users.forEach((u, i) => { %>
@@ -22,18 +105,35 @@
               <td><%= i + 1 %></td>
               <td>
                 <div class="user-cell">
-                  <div class="avatar-sm"><%= u.avatar %></div>
-                  <strong><%= u.name %></strong>
+                  <div class="avatar-sm" style="<%= u.plan === 'premium' ? 'background: linear-gradient(135deg, #f59e0b, #f97316);' : '' %>"><%= u.avatar %></div>
+                  <div>
+                    <strong><%= u.name %></strong>
+                    <% if (u.banned) { %>
+                      <span class="table-badge" style="background:rgba(239,68,68,0.15);color:#ef4444;margin-left:6px;">Banned</span>
+                    <% } %>
+                  </div>
                 </div>
               </td>
               <td style="color: var(--text-muted)"><%= u.email %></td>
-              <td><span class="table-badge <%= u.role %>"><%= u.role %></span></td>
+              <td>
+                <% if (u.role === 'admin') { %>
+                  <span class="table-badge admin">Admin</span>
+                <% } else { %>
+                  <span class="table-badge">User</span>
+                <% } %>
+              </td>
               <td><span class="plan-badge <%= u.plan %>"><%= u.plan %></span></td>
+              <td style="color: var(--text-muted);"><%= u.watchTime ? Math.floor(u.watchTime / 60) + 'h ' + (u.watchTime % 60) + 'm' : '0m' %></td>
+              <td style="color: var(--text-muted);"><%= u.devices || 1 %></td>
+              <td style="color: var(--text-muted); font-size: 0.75rem;"><%= u.joinedAt ? new Date(u.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' %></td>
               <td>
                 <div class="action-btns">
                   <% if (u.role !== 'admin') { %>
                   <a href="/admin/users/toggle/<%= u.id %>" class="btn btn-sm <%= u.plan === 'premium' ? 'btn-outline' : 'btn-primary' %>" onclick="return confirm('Toggle premium for <%= u.name %>?')">
                     <%= u.plan === 'premium' ? 'Remove Premium' : 'Make Premium' %>
+                  </a>
+                  <a href="/admin/users/ban/<%= u.id %>" class="btn-icon-sm <%= u.banned ? '' : 'danger' %>" title="<%= u.banned ? 'Unban' : 'Ban' %>" onclick="return confirm('<%= u.banned ? 'Unban' : 'Ban' %> <%= u.name %>?')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                   </a>
                   <% } else { %>
                   <span style="color: var(--text-muted); font-size: 0.8rem;">Admin</span>
@@ -48,5 +148,3 @@
     </div>
   </main>
 </div>
-
-

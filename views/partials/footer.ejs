@@ -40,5 +40,23 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script src="/js/app.js"></script>
+<script>
+(function() {
+  var evtSource = new EventSource('/events');
+  evtSource.onmessage = function(e) {
+    try {
+      var data = JSON.parse(e.data);
+      if (data.type === 'movie' || data.type === 'series') {
+        if (data.action === 'add' || data.action === 'delete') {
+          window.location.reload();
+        }
+      }
+    } catch(err) {}
+  };
+  evtSource.onerror = function() {
+    setTimeout(function() { evtSource.close(); }, 5000);
+  };
+})();
+</script>
 </body>
 </html>

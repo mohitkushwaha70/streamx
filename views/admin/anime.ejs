@@ -51,6 +51,9 @@
               </td>
             </tr>
             <% }) %>
+            <% if (anime.length === 0) { %>
+            <tr><td colspan="7" style="text-align:center;color:#555;padding:40px;">No anime content found. Anime titles from TMDB with Animation genre will appear here.</td></tr>
+            <% } %>
           </tbody>
         </table>
       </div>

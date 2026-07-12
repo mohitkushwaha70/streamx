@@ -6,10 +6,10 @@
     <div class="admin-header">
       <div>
         <h1>Dashboard</h1>
-        <p style="color: var(--text-muted); font-size: 0.85rem;">Welcome back, <%= user.name %>. Here's your overview.</p>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Welcome back, <%= user.name %>. Here's your platform overview.</p>
       </div>
       <div class="admin-header-right">
-        <span class="plan-badge premium">⭐ Premium Admin</span>
+        <span class="plan-badge premium">Premium Admin</span>
         <div class="avatar"><%= user.avatar %></div>
       </div>
     </div>
@@ -17,8 +17,9 @@
     <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
     <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
 
+    <!-- Main Stats -->
     <div class="stats-grid">
-      <div class="stat-card">
+      <div class="stat-card stat-card-blue">
         <div class="stat-icon blue">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
         </div>
@@ -27,7 +28,7 @@
           <span class="stat-label">Total Movies</span>
         </div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card stat-card-purple">
         <div class="stat-icon purple">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
         </div>
@@ -36,7 +37,7 @@
           <span class="stat-label">Total Series</span>
         </div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card stat-card-green">
         <div class="stat-icon green">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
@@ -45,7 +46,7 @@
           <span class="stat-label">Total Users</span>
         </div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card stat-card-gold">
         <div class="stat-icon gold">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </div>
@@ -56,7 +57,8 @@
       </div>
     </div>
 
-    <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <!-- Secondary Stats -->
+    <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
       <div class="stat-card">
         <div class="stat-icon blue">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
@@ -71,7 +73,7 @@
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         </div>
         <div class="stat-info">
-          <span class="stat-number">₹48.5L</span>
+          <span class="stat-number"><%= stats.revenue %></span>
           <span class="stat-label">Revenue</span>
         </div>
       </div>
@@ -80,11 +82,48 @@
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </div>
         <div class="stat-info">
-          <span class="stat-number">2.4M</span>
+          <span class="stat-number"><%= stats.totalViews %></span>
           <span class="stat-label">Total Views</span>
         </div>
       </div>
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number">★ <%= stats.avgRating %></span>
+          <span class="stat-label">Avg Rating</span>
+        </div>
+      </div>
     </div>
+
+    <!-- Trending from TMDB -->
+    <% if (trendingContent && trendingContent.length > 0) { %>
+    <div class="admin-card" style="margin-bottom: 20px;">
+      <div class="admin-card-header">
+        <h3>Trending on TMDB</h3>
+        <span class="admin-count">Live Data</span>
+      </div>
+      <div style="padding: 16px 20px;">
+        <div class="trending-scroll">
+          <% trendingContent.forEach(item => { %>
+          <div class="trending-item">
+            <div class="trending-poster">
+              <img src="<%= item.poster %>" alt="<%= item.title %>" onerror="this.style.display='none'">
+              <div class="trending-overlay">
+                <span class="trending-type"><%= item.mediaType === 'movie' ? 'Movie' : 'TV' %></span>
+              </div>
+            </div>
+            <div class="trending-info">
+              <h4><%= item.title %></h4>
+              <span class="trending-rating">★ <%= item.rating %></span>
+            </div>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+    <% } %>
 
     <div class="admin-grid">
       <div class="admin-card">
@@ -104,6 +143,9 @@
                 <td><span class="plan-badge <%= m.premium ? 'premium' : 'free' %>"><%= m.premium ? 'Premium' : 'Free' %></span></td>
               </tr>
               <% }) %>
+              <% if (recentMovies.length === 0) { %>
+              <tr><td colspan="4" style="text-align:center;color:#555;">No movies yet</td></tr>
+              <% } %>
             </tbody>
           </table>
         </div>
@@ -130,7 +172,58 @@
         </div>
       </div>
     </div>
+
+    <!-- Activity & Revenue -->
+    <div class="admin-grid" style="margin-top: 20px;">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3>Recent Activity</h3>
+          <a href="/admin/logs" class="btn btn-sm btn-outline">View All</a>
+        </div>
+        <div style="padding: 16px 20px;">
+          <% if (recentActivity && recentActivity.length > 0) { %>
+            <% recentActivity.forEach(log => { %>
+            <div class="activity-item">
+              <div class="activity-dot activity-dot-<%= log.type %>"></div>
+              <div class="activity-content">
+                <span><%= log.message %></span>
+                <small><%= log.timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %> &middot; <%= log.admin %></small>
+              </div>
+            </div>
+            <% }) %>
+          <% } else { %>
+            <p style="color:#555;text-align:center;padding:20px;">No activity yet</p>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3>Revenue Overview</h3>
+          <a href="/admin/payments" class="btn btn-sm btn-outline">Details</a>
+        </div>
+        <div style="padding: 16px 20px;">
+          <div class="revenue-stat-row">
+            <span class="revenue-label">Total Revenue</span>
+            <span class="revenue-value"><%= revenue.total > 0 ? '₹' + revenue.total.toLocaleString() : '₹0' %></span>
+          </div>
+          <div class="revenue-stat-row">
+            <span class="revenue-label">Monthly Revenue</span>
+            <span class="revenue-value text-green"><%= revenue.monthly > 0 ? '₹' + revenue.monthly.toLocaleString() : '₹0' %></span>
+          </div>
+          <div class="revenue-stat-row">
+            <span class="revenue-label">Yearly Revenue</span>
+            <span class="revenue-value text-blue"><%= revenue.yearly > 0 ? '₹' + revenue.yearly.toLocaleString() : '₹0' %></span>
+          </div>
+          <div class="revenue-bar">
+            <div class="revenue-bar-fill" style="width: <%= Math.min(100, (revenue.monthly / (revenue.total || 1)) * 100) %>%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;">
+            <span style="font-size:0.7rem;color:#666;">Monthly</span>
+            <span style="font-size:0.7rem;color:#666;">Yearly</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 </div>
-
-

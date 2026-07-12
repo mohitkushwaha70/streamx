@@ -44,6 +44,28 @@ const animeRoutes = require('./routes/anime');
 const profileRoutes = require('./routes/profile');
 const watchlistRoutes = require('./routes/watchlist');
 
+const { changeEmitter } = require('./data/sample');
+
+// SSE endpoint for real-time sync
+app.get('/events', (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no'
+  });
+  res.write('\n');
+
+  const onChange = (data) => {
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+  changeEmitter.on('change', onChange);
+
+  req.on('close', () => {
+    changeEmitter.removeListener('change', onChange);
+  });
+});
+
 app.use('/', mainRoutes);
 app.use('/auth', authRoutes);
 app.use('/movies', moviesRoutes);
@@ -55,8 +77,12 @@ app.use('/profile', profileRoutes);
 app.use('/watchlist', watchlistRoutes);
 
 app.use((err, req, res, next) => {
-  console.error('Error:', err.message);
-  res.status(500).send('Server Error');
+  console.error('=== ERROR ===');
+  console.error('URL:', req.method, req.originalUrl);
+  console.error('Message:', err.message);
+  console.error('Stack:', err.stack);
+  console.error('=============');
+  res.status(500).send('Server Error: ' + err.message);
 });
 
 const server = app.listen(PORT, '0.0.0.0', () => {

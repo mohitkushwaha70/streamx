@@ -55,15 +55,28 @@
     </div>
   </section>
 
-  <% if (item.episodes) { %>
-  <!-- Episodes -->
+  <% if (item.episodes && item.episodes.length > 0) { %>
   <section class="section">
     <div class="section-header">
       <h2 class="section-title">Episodes</h2>
+      <% if (item.seasonsList && item.seasonsList.length > 1) { %>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <% item.seasonsList.filter(s => s.season_number > 0).forEach(s => { %>
+        <a href="/series/<%= item.id %>?season=<%= s.season_number %>" class="btn btn-sm btn-outline" style="<%= (typeof currentSeason !== 'undefined' && currentSeason === s.season_number) ? 'background:var(--accent);color:#fff;' : '' %>">
+          Season <%= s.season_number %>
+        </a>
+        <% }) %>
+      </div>
+      <% } %>
     </div>
     <div class="episodes-list">
       <% item.episodes.forEach(ep => { %>
-      <a href="/watch/series/<%= item.id %>?ep=<%= ep.number %>" class="episode-card">
+      <a href="/watch/series/<%= item.id %>?ep=<%= ep.number %><%= typeof currentSeason !== 'undefined' ? '&season=' + currentSeason : '' %>" class="episode-card">
+        <% if (ep.poster) { %>
+        <div style="width:120px;height:68px;border-radius:6px;overflow:hidden;flex-shrink:0;">
+          <img src="<%= ep.poster %>" alt="<%= ep.title %>" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
+        </div>
+        <% } %>
         <div class="ep-number"><%= ep.number %></div>
         <div class="ep-info">
           <h4><%= ep.title %></h4>

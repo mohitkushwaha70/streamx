@@ -1,116 +1,67 @@
-let movies = [
-  { id: 1, title: "The Dark Horizon", genre: "Sci-Fi", year: 2026, rating: 8.7, duration: "2h 18m", premium: true, badge: "new", description: "A team of astronauts discovers a mysterious signal from deep space that leads them to an uncharted galaxy filled with wonders and terrors beyond imagination.", poster: "https://picsum.photos/seed/movie1/400/600", backdrop: "https://picsum.photos/seed/movie1bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", cast: "Chris Evans, Scarlett Johansson", director: "James Cameron", language: "English" },
-  { id: 2, title: "Midnight Shadows", genre: "Thriller", year: 2025, rating: 8.2, duration: "1h 54m", premium: false, badge: "hot", description: "A detective haunted by his past takes on a case that blurs the line between reality and nightmare, uncovering secrets that threaten everything he knows.", poster: "https://picsum.photos/seed/movie2/400/600", backdrop: "https://picsum.photos/seed/movie2bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", cast: "Robert Downey Jr., Zendaya", director: "Christopher Nolan", language: "English" },
-  { id: 3, title: "Neon Samurai", genre: "Action", year: 2026, rating: 8.9, duration: "2h 5m", premium: true, badge: "new", description: "In a cyberpunk Tokyo, a lone swordsman must protect the last remaining AI consciousness from corporate overlords who want to weaponize it.", poster: "https://picsum.photos/seed/movie3/400/600", backdrop: "https://picsum.photos/seed/movie3bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", cast: "Keanu Reeves, Ana de Armas", director: "Denis Villeneuve", language: "English" },
-  { id: 4, title: "Love in Paris", genre: "Romance", year: 2025, rating: 7.8, duration: "1h 48m", premium: false, badge: "", description: "Two strangers meet at a Parisian cafe and embark on a whirlwind romance across the city of love, discovering that destiny has surprising plans.", poster: "https://picsum.photos/seed/movie4/400/600", backdrop: "https://picsum.photos/seed/movie4bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4", cast: "Timothée Chalamet, Florence Pugh", director: "Greta Gerwig", language: "English" },
-  { id: 5, title: "The Last Kingdom", genre: "Drama", year: 2026, rating: 9.1, duration: "2h 32m", premium: true, badge: "top", description: "An epic tale of betrayal and redemption set in medieval Europe, where a fallen knight must reclaim his honor and save his people from invasion.", poster: "https://picsum.photos/seed/movie5/400/600", backdrop: "https://picsum.photos/seed/movie5bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4", cast: "Henry Cavill, Anya Chalotra", director: "Ridley Scott", language: "English" },
-  { id: 6, title: "Comedy Nights", genre: "Comedy", year: 2025, rating: 7.5, duration: "1h 35m", premium: false, badge: "", description: "A group of friends accidentally book the wrong vacation rental and find themselves in the most chaotic weekend of their lives.", poster: "https://picsum.photos/seed/movie6/400/600", backdrop: "https://picsum.photos/seed/movie6bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4", cast: "Ryan Reynolds, Melissa McCarthy", director: "Taika Waititi", language: "English" },
-  { id: 7, title: "Deep Blue", genre: "Documentary", year: 2026, rating: 8.8, duration: "1h 42m", premium: false, badge: "new", description: "A breathtaking journey into the deepest parts of our ocean, revealing ecosystems and creatures never before captured on film.", poster: "https://picsum.photos/seed/movie7/400/600", backdrop: "https://picsum.photos/seed/movie7bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4", cast: "David Attenborough", director: "James Cameron", language: "English" },
-  { id: 8, title: "Phantom Code", genre: "Thriller", year: 2025, rating: 8.4, duration: "2h 1m", premium: true, badge: "hot", description: "A hacker discovers a government conspiracy hidden in encrypted files and must race against time to expose the truth before being silenced.", poster: "https://picsum.photos/seed/movie8/400/600", backdrop: "https://picsum.photos/seed/movie8bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", cast: "Tom Holland, Zendaya", director: "David Fincher", language: "English" },
-  { id: 9, title: "Wild Spirit", genre: "Adventure", year: 2026, rating: 8.0, duration: "2h 10m", premium: false, badge: "", description: "A wildlife photographer ventures deep into the Amazon rainforest and must survive both nature's fury and human greed.", poster: "https://picsum.photos/seed/movie9/400/600", backdrop: "https://picsum.photos/seed/movie9bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", cast: "Gal Gadot, Oscar Isaac", director: "Alfonso Cuarón", language: "English" },
-  { id: 10, title: "Quantum Break", genre: "Sci-Fi", year: 2025, rating: 8.6, duration: "2h 22m", premium: true, badge: "top", description: "When a physics experiment goes wrong, reality starts fracturing and only one scientist can piece together what's left of the world.", poster: "https://picsum.photos/seed/movie10/400/600", backdrop: "https://picsum.photos/seed/movie10bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", cast: "Benedict Cumberbatch", director: "Steven Spielberg", language: "English" },
-  { id: 11, title: "Silent Witness", genre: "Crime", year: 2026, rating: 8.3, duration: "1h 58m", premium: false, badge: "new", description: "A forensic expert is drawn into a web of crime when evidence from her latest case connects to a series of unsolved murders spanning decades.", poster: "https://picsum.photos/seed/movie11/400/600", backdrop: "https://picsum.photos/seed/movie11bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4", cast: "Natalie Portman", director: "Martin Scorsese", language: "English" },
-  { id: 12, title: "Dragon's Gate", genre: "Fantasy", year: 2026, rating: 8.5, duration: "2h 28m", premium: true, badge: "new", description: "A young warrior must journey through a magical portal to save her kingdom from an ancient dragon that has awakened after a thousand years.", poster: "https://picsum.photos/seed/movie12/400/600", backdrop: "https://picsum.photos/seed/movie12bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4", cast: "Florence Pugh, Tom Hardy", director: "Peter Jackson", language: "English" },
-  { id: 13, title: "Demon Slayer: Infinity Train", genre: "Anime", year: 2026, rating: 9.4, duration: "1h 57m", premium: true, badge: "new", description: "Tanjiro and his friends board the Infinity Train to face a demon with the power to control dreams, testing their courage like never before.", poster: "https://picsum.photos/seed/anime1/400/600", backdrop: "https://picsum.photos/seed/anime1bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", cast: "Natsuki Hanae, Satoshi Hino", director: "Haruo Sotozaki", language: "Japanese" },
-  { id: 14, title: "Jujutsu Kaisen: Cursed Empire", genre: "Anime", year: 2026, rating: 9.2, duration: "2h 10m", premium: true, badge: "top", description: "Yuji Itadori enters a deadly tournament of cursed spirits where the fate of humanity hangs on the strength of his willpower.", poster: "https://picsum.photos/seed/anime2/400/600", backdrop: "https://picsum.photos/seed/anime2bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", cast: "Junya Enoki, Yūichi Nakamura", director: "Sunghoo Park", language: "Japanese" },
-  { id: 15, title: "One Piece: Final Saga", genre: "Anime", year: 2026, rating: 9.6, duration: "2h 20m", premium: true, badge: "new", description: "Luffy and his crew finally reach the Grand Line's ultimate island, where the legendary One Piece treasure awaits its true owner.", poster: "https://picsum.photos/seed/anime3/400/600", backdrop: "https://picsum.photos/seed/anime3bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", cast: "Mayumi Tanaka, Kazuya Nakai", director: "Eiichiro Oda", language: "Japanese" },
-  { id: 16, title: "Spy x Family: Code White", genre: "Anime", year: 2025, rating: 8.8, duration: "1h 50m", premium: false, badge: "", description: "Loid, Yor, and Anya embark on a chaotic family vacation that quickly spirals into an international incident.", poster: "https://picsum.photos/seed/anime4/400/600", backdrop: "https://picsum.photos/seed/anime4bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4", cast: "Takuya Eguchi, Saori Hayami", director: "Kazuhiro Furuhashi", language: "Japanese" },
-  { id: 17, title: "Attack on Titan: Final War", genre: "Anime", year: 2026, rating: 9.8, duration: "2h 35m", premium: true, badge: "top", description: "In the climactic final battle, Eren faces the combined forces of humanity and Marley in an apocalyptic war for the fate of all life.", poster: "https://picsum.photos/seed/anime5/400/600", backdrop: "https://picsum.photos/seed/anime5bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4", cast: "Yuki Kaji, Yui Ishikawa", director: "Hajime Isayama", language: "Japanese" }
-];
+const EventEmitter = require('events');
+const changeEmitter = new EventEmitter();
+changeEmitter.setMaxListeners(20);
 
-let series = [
-  { id: 1, title: "Cyber Nexus", genre: "Sci-Fi", year: 2026, rating: 9.2, seasons: 2, episodes: 16, premium: true, badge: "new", description: "In 2087, an elite team of hackers uncovers a digital conspiracy that threatens to merge the virtual and physical worlds forever.", poster: "https://picsum.photos/seed/series1/400/600", backdrop: "https://picsum.photos/seed/series1bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    episodeList: [
-      { season: 1, number: 1, title: "The Breach", duration: "45m", description: "The team discovers a massive data breach.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-      { season: 1, number: 2, title: "Ghost Protocol", duration: "42m", description: "A mysterious hacker goes by the name Ghost.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
-      { season: 1, number: 3, title: "Digital Siege", duration: "44m", description: "The team is trapped inside a virtual world.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-      { season: 1, number: 4, title: "Neural Link", duration: "46m", description: "A neural interface reveals hidden memories.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
-      { season: 1, number: 5, title: "The Firewall", duration: "43m", description: "Breaking through the ultimate digital defense.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
-      { season: 1, number: 6, title: "Cyber War", duration: "48m", description: "All-out war in cyberspace begins.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
-      { season: 1, number: 7, title: "Phantom Signal", duration: "41m", description: "A signal from a dead network comes alive.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
-      { season: 1, number: 8, title: "Zero Day", duration: "50m", description: "The final battle for cyberspace freedom.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }
-    ] },
-  { id: 2, title: "The Crown's Shadow", genre: "Drama", year: 2025, rating: 9.0, seasons: 3, episodes: 24, premium: true, badge: "hot", description: "Behind the palace walls, a family torn by power struggles fights for control of the throne in this gripping royal drama.", poster: "https://picsum.photos/seed/series2/400/600", backdrop: "https://picsum.photos/seed/series2bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-    episodeList: [
-      { season: 1, number: 1, title: "The Coronation", duration: "52m", description: "A new king takes the throne amid unrest.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
-      { season: 1, number: 2, title: "Blood Ties", duration: "48m", description: "Family bonds are tested by ambition.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-      { season: 1, number: 3, title: "The Banquet", duration: "50m", description: "A royal banquet turns deadly.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-      { season: 1, number: 4, title: "Secret Alliance", duration: "47m", description: "A secret alliance threatens the crown.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
-      { season: 1, number: 5, title: "The Trial", duration: "51m", description: "The queen faces a public trial.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
-      { season: 1, number: 6, title: "Rebellion", duration: "55m", description: "A rebellion rises from the ashes.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" }
-    ] },
-  { id: 3, title: "Street Fight", genre: "Action", year: 2026, rating: 8.7, seasons: 1, episodes: 8, premium: false, badge: "", description: "A retired martial arts champion is pulled back into the underground fighting world when a friend goes missing.", poster: "https://picsum.photos/seed/series3/400/600", backdrop: "https://picsum.photos/seed/series3bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    episodeList: [
-      { season: 1, number: 1, title: "The Comeback", duration: "40m", description: "A retired fighter gets a mysterious call.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-      { season: 1, number: 2, title: "Underground", duration: "42m", description: "Discovering the underground fight ring.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
-      { season: 1, number: 3, title: "First Bout", duration: "38m", description: "The first fight that changes everything.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
-      { season: 1, number: 4, title: "Rival", duration: "41m", description: "A dangerous rival emerges.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
-      { season: 1, number: 5, title: "Training", duration: "39m", description: "Intense training for the final fight.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
-      { season: 1, number: 6, title: "Betrayal", duration: "44m", description: "A friend turns out to be an enemy.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-      { season: 1, number: 7, title: "The Final Round", duration: "46m", description: "The ultimate showdown begins.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
-      { season: 1, number: 8, title: "Champion", duration: "48m", description: "Only one fighter walks away.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" }
-    ] },
-  { id: 4, title: "Laugh Track", genre: "Comedy", year: 2025, rating: 8.1, seasons: 2, episodes: 20, premium: false, badge: "", description: "A behind-the-scenes look at a fictional sitcom where the real drama happens when the cameras stop rolling.", poster: "https://picsum.photos/seed/series4/400/600", backdrop: "https://picsum.photos/seed/series4bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-    episodeList: [
-      { season: 1, number: 1, title: "Pilot Episode", duration: "30m", description: "Behind every joke, there's a story.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
-      { season: 1, number: 2, title: "The Writer's Room", duration: "28m", description: "Writers battle creative differences.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
-      { season: 1, number: 3, title: "Live Show", duration: "32m", description: "Things go wrong during a live taping.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" }
-    ] },
-  { id: 5, title: "Dark Matter", genre: "Thriller", year: 2026, rating: 9.3, seasons: 1, episodes: 10, premium: true, badge: "top", description: "A physicist wakes up in a parallel universe where nothing is as it seems, and the only way home is through a maze of impossible choices.", poster: "https://picsum.photos/seed/series5/400/600", backdrop: "https://picsum.photos/seed/series5bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-    episodeList: [
-      { season: 1, number: 1, title: "Awakening", duration: "55m", description: "Dr. Reynolds wakes up in another world.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
-      { season: 1, number: 2, title: "Parallel Lives", duration: "48m", description: "Meeting his alternate self.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-      { season: 1, number: 3, title: "The Maze", duration: "50m", description: "Navigating a impossible labyrinth.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
-      { season: 1, number: 4, title: "Quantum Choice", duration: "52m", description: "One choice changes everything.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
-      { season: 1, number: 5, title: "Collapse", duration: "49m", description: "Both realities begin to collapse.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }
-    ] },
-  { id: 6, title: "Foodie Adventures", genre: "Reality", year: 2025, rating: 7.9, seasons: 4, episodes: 40, premium: false, badge: "", description: "Travel the world with top chefs as they explore street food, hidden gems, and culinary traditions across every continent.", poster: "https://picsum.photos/seed/series6/400/600", backdrop: "https://picsum.photos/seed/series6bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
-    episodeList: [
-      { season: 1, number: 1, title: "Tokyo Nights", duration: "35m", description: "Exploring Tokyo's street food scene.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
-      { season: 1, number: 2, title: "Mumbai Magic", duration: "33m", description: "Spices and flavors of Mumbai.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
-      { season: 1, number: 3, title: "Italian Classics", duration: "36m", description: "Traditional Italian cooking.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" }
-    ] },
-  { id: 7, title: "Code Red", genre: "Medical", year: 2026, rating: 8.8, seasons: 2, episodes: 18, premium: true, badge: "new", description: "A brilliant but reckless surgeon and her diverse team navigate life-and-death situations in a high-stakes urban hospital.", poster: "https://picsum.photos/seed/series7/400/600", backdrop: "https://picsum.photos/seed/series7bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
-    episodeList: [
-      { season: 1, number: 1, title: "First Incision", duration: "44m", description: "A new surgeon joins the ER.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
-      { season: 1, number: 2, title: "Code Blue", duration: "42m", description: "A patient flatlines on the table.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-      { season: 1, number: 3, title: "Triage", duration: "45m", description: "Mass casualty event overwhelms the hospital.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" }
-    ] },
-  { id: 8, title: "The Explorer", genre: "Documentary", year: 2025, rating: 8.9, seasons: 1, episodes: 6, premium: false, badge: "", description: "Follow extreme adventurer Maya Chen as she attempts to become the first person to traverse the entire Arctic circle solo.", poster: "https://picsum.photos/seed/series8/400/600", backdrop: "https://picsum.photos/seed/series8bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    episodeList: [
-      { season: 1, number: 1, title: "Departure", duration: "50m", description: "Maya begins her Arctic journey.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-      { season: 1, number: 2, title: "Frozen Wastes", duration: "48m", description: "Surviving the harshest conditions on Earth.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
-      { season: 1, number: 3, title: "The Storm", duration: "52m", description: "A massive blizzard threatens everything.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" }
-    ] },
-  { id: 9, title: "Solo Leveling: Awakening", genre: "Anime", year: 2026, rating: 9.5, seasons: 2, episodes: 24, premium: true, badge: "new", description: "Sung Jinwoo continues to grow as the world's strongest hunter, facing ancient dungeons that hold secrets beyond human comprehension.", poster: "https://picsum.photos/seed/animes1/400/600", backdrop: "https://picsum.photos/seed/animes1bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    episodeList: [
-      { season: 1, number: 1, title: "The Weakest Hunter", duration: "24m", description: "Sung Jinwoo enters a double dungeon.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-      { season: 1, number: 2, title: "The System", duration: "23m", description: "A mysterious leveling system awakens.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
-      { season: 1, number: 3, title: "First Quest", duration: "24m", description: "Jinwoo completes his first quest.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-      { season: 1, number: 4, title: "Shadow Army", duration: "25m", description: "Summoning the shadow soldiers.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
-      { season: 1, number: 5, title: "S-Rank Mission", duration: "24m", description: "The hardest mission begins.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
-      { season: 1, number: 6, title: "Awakening", duration: "26m", description: "Jinwoo reaches his final form.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" }
-    ] },
-  { id: 10, title: "Chainsaw Man: Blood War", genre: "Anime", year: 2026, rating: 9.1, seasons: 2, episodes: 20, premium: true, badge: "top", description: "Denji faces the most dangerous devils yet as he searches for a way to live a normal life amid constant demonic chaos.", poster: "https://picsum.photos/seed/animes2/400/600", backdrop: "https://picsum.photos/seed/animes2bg/1200/600", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-    episodeList: [
-      { season: 1, number: 1, title: "Chainsaw Heart", duration: "24m", description: "Denji makes a deal with the devil.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
-      { season: 1, number: 2, title: "Devil Hunter", duration: "23m", description: "Denji's first day as a devil hunter.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-      { season: 1, number: 3, title: "Blood Pact", duration: "25m", description: "A blood pact changes everything.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-      { season: 1, number: 4, title: "Eternity Devil", duration: "24m", description: "Trapped in an infinite hotel.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
-      { season: 1, number: 5, title: "Gun Devil", duration: "26m", description: "The most powerful devil awakens.", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" }
-    ] }
-];
+let movies = [];
+
+let series = [];
 
 let users = [
-  { id: 1, name: "Admin", email: "admin@streamx.com", password: "$2a$10$2Sy/ikC7QwA8f3/y0oS0MeCtZFP/tWIg9QtrDeM47DQCwiXEDX.zy", role: "admin", avatar: "A", plan: "premium" },
-  { id: 2, name: "Mohit", email: "mohit@streamx.com", password: "$2a$10$2Sy/ikC7QwA8f3/y0oS0MeCtZFP/tWIg9QtrDeM47DQCwiXEDX.zy", role: "admin", avatar: "M", plan: "premium" },
-  { id: 3, name: "Rahul Kumar", email: "rahul@email.com", password: "$2a$10$2Sy/ikC7QwA8f3/y0oS0MeCtZFP/tWIg9QtrDeM47DQCwiXEDX.zy", role: "user", avatar: "R", plan: "free" },
-  { id: 4, name: "Priya Sharma", email: "priya@email.com", password: "$2a$10$2Sy/ikC7QwA8f3/y0oS0MeCtZFP/tWIg9QtrDeM47DQCwiXEDX.zy", role: "user", avatar: "P", plan: "free" },
-  { id: 5, name: "Amit Singh", email: "amit@email.com", password: "$2a$10$2Sy/ikC7QwA8f3/y0oS0MeCtZFP/tWIg9QtrDeM47DQCwiXEDX.zy", role: "user", avatar: "A", plan: "premium" }
+  { id: 1, name: "Admin", email: "admin@streamx.com", password: "$2a$10$2Sy/ikC7QwA8f3/y0oS0MeCtZFP/tWIg9QtrDeM47DQCwiXEDX.zy", role: "admin", avatar: "A", plan: "premium", joinedAt: new Date('2025-01-15'), lastActive: new Date(), watchTime: 0, devices: 1 }
 ];
 
-let nextMovieId = movies.length + 1;
-let nextSeriesId = series.length + 1;
-let nextUserId = users.length + 1;
+let payments = [];
 
-module.exports = { movies, series, users, getNextMovieId: () => nextMovieId++, getNextSeriesId: () => nextSeriesId++, getNextUserId: () => nextUserId++ };
+let nextMovieId = 1000;
+let nextSeriesId = 1000;
+let nextUserId = users.length + 1;
+let nextPaymentId = payments.length + 1;
+
+let activityLogs = [];
+
+let reports = [];
+
+function addLog(type, message, adminName) {
+  activityLogs.unshift({
+    id: activityLogs.length + 1,
+    type,
+    message,
+    admin: adminName || 'System',
+    timestamp: new Date()
+  });
+  if (activityLogs.length > 100) activityLogs.length = 100;
+}
+
+function addReport(type, content, reason, reportedBy) {
+  reports.unshift({
+    id: reports.length + 1,
+    type,
+    content,
+    reason,
+    reportedBy: reportedBy || 'System',
+    status: 'pending',
+    timestamp: new Date()
+  });
+}
+
+function addPayment(userId, amount, plan, method, status) {
+  payments.unshift({
+    id: nextPaymentId++,
+    userId,
+    amount,
+    plan,
+    method: method || 'UPI',
+    status: status || 'completed',
+    date: new Date(),
+    transactionId: 'TXN' + String(nextPaymentId).padStart(3, '0')
+  });
+}
+
+module.exports = {
+  movies, series, users, payments, activityLogs, reports,
+  getNextMovieId: () => nextMovieId++,
+  getNextSeriesId: () => nextSeriesId++,
+  getNextUserId: () => nextUserId++,
+  getNextPaymentId: () => nextPaymentId++,
+  changeEmitter, addLog, addReport, addPayment
+};

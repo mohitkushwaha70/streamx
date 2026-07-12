@@ -81,3 +81,6 @@ router.post('/continue/remove', (req, res) => {
 });
 
 module.exports = router;
+module.exports.watchlists = watchlists;
+module.exports.favorites = favorites;
+module.exports.saved = saved;

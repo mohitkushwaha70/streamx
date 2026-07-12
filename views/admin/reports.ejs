@@ -13,33 +13,53 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon gold"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-        <div class="stat-info"><span class="stat-number">3</span><span class="stat-label">Pending Reports</span></div>
+        <div class="stat-info"><span class="stat-number"><%= pendingCount %></span><span class="stat-label">Pending Reports</span></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon green"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-        <div class="stat-info"><span class="stat-number">28</span><span class="stat-label">Resolved</span></div>
+        <div class="stat-info"><span class="stat-number"><%= resolvedCount %></span><span class="stat-label">Resolved</span></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-        <div class="stat-info"><span class="stat-number">12</span><span class="stat-label">Feedback</span></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></div>
-        <div class="stat-info"><span class="stat-number">1</span><span class="stat-label">Urgent</span></div>
+        <div class="stat-info"><span class="stat-number"><%= reports.length %></span><span class="stat-label">Total Reports</span></div>
       </div>
     </div>
 
     <div class="admin-card">
-      <div class="admin-card-header"><h3>Recent Reports</h3></div>
+      <div class="admin-card-header"><h3>All Reports</h3></div>
       <div class="admin-table-wrap">
         <table class="admin-table">
           <thead><tr><th>Type</th><th>Reported By</th><th>Content</th><th>Reason</th><th>Date</th><th>Status</th></tr></thead>
           <tbody>
-            <tr><td><span class="table-badge" style="background:rgba(239,68,68,0.15);color:#ef4444;">Copyright</span></td><td>User #3</td><td>Movie: Midnight Shadows</td><td>Copyright claim from studio</td><td>Jul 10, 2026</td><td><span class="table-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b;">Pending</span></td></tr>
-            <tr><td><span class="table-badge" style="background:rgba(168,85,247,0.15);color:#a855f7;">Bug</span></td><td>User #4</td><td>Video Player</td><td>Buffering issue on mobile</td><td>Jul 9, 2026</td><td><span class="table-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b;">Pending</span></td></tr>
-            <tr><td><span class="table-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6;">Content</span></td><td>User #5</td><td>Series: Street Fight</td><td>Inaccurate subtitles</td><td>Jul 8, 2026</td><td><span class="table-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b;">Pending</span></td></tr>
-            <tr><td><span class="table-badge" style="background:rgba(34,197,94,0.15);color:#22c55e;">Resolved</span></td><td>User #2</td><td>Login Page</td><td>Google sign-in error</td><td>Jul 5, 2026</td><td><span class="table-badge" style="background:rgba(34,197,94,0.15);color:#22c55e;">Fixed</span></td></tr>
-            <tr><td><span class="table-badge" style="background:rgba(34,197,94,0.15);color:#22c55e;">Resolved</span></td><td>User #1</td><td>Payment Gateway</td><td>UPI timeout error</td><td>Jul 3, 2026</td><td><span class="table-badge" style="background:rgba(34,197,94,0.15);color:#22c55e;">Fixed</span></td></tr>
+            <% reports.forEach(r => { %>
+              <tr>
+                <td>
+                  <% if (r.type === 'copyright') { %>
+                    <span class="table-badge" style="background:rgba(239,68,68,0.15);color:#ef4444;">Copyright</span>
+                  <% } else if (r.type === 'bug') { %>
+                    <span class="table-badge" style="background:rgba(168,85,247,0.15);color:#a855f7;">Bug</span>
+                  <% } else if (r.type === 'content') { %>
+                    <span class="table-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6;">Content</span>
+                  <% } else { %>
+                    <span class="table-badge"><%= r.type %></span>
+                  <% } %>
+                </td>
+                <td><%= r.reportedBy %></td>
+                <td><%= r.content %></td>
+                <td><%= r.reason %></td>
+                <td><%= r.timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></td>
+                <td>
+                  <% if (r.status === 'pending') { %>
+                    <span class="table-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b;">Pending</span>
+                  <% } else { %>
+                    <span class="table-badge" style="background:rgba(34,197,94,0.15);color:#22c55e;">Fixed</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+            <% if (reports.length === 0) { %>
+              <tr><td colspan="6" style="text-align:center;color:#555;">No reports yet</td></tr>
+            <% } %>
           </tbody>
         </table>
       </div>

@@ -6,141 +6,216 @@
     <div class="admin-header">
       <div>
         <h1>Analytics</h1>
-        <p style="color:#555;font-size:0.85rem;">Platform performance and user insights</p>
-      </div>
-      <div class="admin-header-right">
-        <select class="form-input" style="width:auto;padding:8px 16px;background:#0a0a0a;border-color:#1a1a1a;font-size:0.8rem;">
-          <option>Last 7 days</option><option selected>Last 30 days</option><option>Last 90 days</option><option>This Year</option>
-        </select>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Platform performance and content insights from TMDB</p>
       </div>
     </div>
 
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
-        <div class="stat-info"><span class="stat-number">2.4M</span><span class="stat-label">Total Views</span></div>
+        <div class="stat-info"><span class="stat-number"><%= totalViews.toLocaleString() %></span><span class="stat-label">Total Views</span></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon green"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
-        <div class="stat-info"><span class="stat-number">18.5K</span><span class="stat-label">Active Users</span></div>
+        <div class="stat-info"><span class="stat-number"><%= activeUsers %></span><span class="stat-label">Active Users</span></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-        <div class="stat-info"><span class="stat-number">42m</span><span class="stat-label">Avg. Watch Time</span></div>
+        <div class="stat-info"><span class="stat-number"><%= avgWatchTime %></span><span class="stat-label">Avg. Watch Time</span></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon gold"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg></div>
-        <div class="stat-info"><span class="stat-number">+24%</span><span class="stat-label">Growth</span></div>
+        <div class="stat-info"><span class="stat-number"><%= growthPercent %>%</span><span class="stat-label">Premium Ratio</span></div>
       </div>
     </div>
 
-    <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
-      <div class="admin-card">
-        <div class="admin-card-header"><h3>Views (Last 7 Days)</h3></div>
-        <div class="admin-form" style="padding: 20px;">
-          <div style="display:flex;align-items:flex-end;gap:8px;height:150px;padding:10px 0;">
-            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
-              <div style="width:100%;background:var(--gradient-blue);border-radius:4px 4px 0 0;height:60%;"></div>
-              <span style="font-size:0.65rem;color:#555;">Mon</span>
-            </div>
-            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
-              <div style="width:100%;background:var(--gradient-blue);border-radius:4px 4px 0 0;height:80%;"></div>
-              <span style="font-size:0.65rem;color:#555;">Tue</span>
-            </div>
-            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
-              <div style="width:100%;background:var(--gradient-blue);border-radius:4px 4px 0 0;height:45%;"></div>
-              <span style="font-size:0.65rem;color:#555;">Wed</span>
-            </div>
-            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
-              <div style="width:100%;background:var(--gradient-blue);border-radius:4px 4px 0 0;height:90%;"></div>
-              <span style="font-size:0.65rem;color:#555;">Thu</span>
-            </div>
-            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
-              <div style="width:100%;background:var(--gradient-blue);border-radius:4px 4px 0 0;height:70%;"></div>
-              <span style="font-size:0.65rem;color:#555;">Fri</span>
-            </div>
-            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
-              <div style="width:100%;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:4px 4px 0 0;height:100%;"></div>
-              <span style="font-size:0.65rem;color:#f59e0b;">Sat</span>
-            </div>
-            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
-              <div style="width:100%;background:var(--gradient-blue);border-radius:4px 4px 0 0;height:85%;"></div>
-              <span style="font-size:0.65rem;color:#555;">Sun</span>
-            </div>
-          </div>
+    <!-- Content Stats -->
+    <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number"><%= totalContent %></span>
+          <span class="stat-label">Total Content</span>
         </div>
       </div>
-      <div class="admin-card">
-        <div class="admin-card-header"><h3>Top Genres</h3></div>
-        <div class="admin-form" style="padding: 20px;">
-          <div style="padding:8px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center;">
-            <span style="color:#ccc;font-size:0.85rem;">Action</span>
-            <div style="flex:1;margin:0 16px;height:6px;background:#1a1a1a;border-radius:3px;"><div style="width:85%;height:100%;background:var(--gradient-blue);border-radius:3px;"></div></div>
-            <span style="color:#3b82f6;font-weight:700;font-size:0.85rem;">85%</span>
-          </div>
-          <div style="padding:8px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center;">
-            <span style="color:#ccc;font-size:0.85rem;">Sci-Fi</span>
-            <div style="flex:1;margin:0 16px;height:6px;background:#1a1a1a;border-radius:3px;"><div style="width:72%;height:100%;background:var(--gradient-blue);border-radius:3px;"></div></div>
-            <span style="color:#3b82f6;font-weight:700;font-size:0.85rem;">72%</span>
-          </div>
-          <div style="padding:8px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center;">
-            <span style="color:#ccc;font-size:0.85rem;">Anime</span>
-            <div style="flex:1;margin:0 16px;height:6px;background:#1a1a1a;border-radius:3px;"><div style="width:68%;height:100%;background:linear-gradient(135deg,#a855f7,#ec4899);border-radius:3px;"></div></div>
-            <span style="color:#a855f7;font-weight:700;font-size:0.85rem;">68%</span>
-          </div>
-          <div style="padding:8px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center;">
-            <span style="color:#ccc;font-size:0.85rem;">Drama</span>
-            <div style="flex:1;margin:0 16px;height:6px;background:#1a1a1a;border-radius:3px;"><div style="width:54%;height:100%;background:var(--gradient-blue);border-radius:3px;"></div></div>
-            <span style="color:#3b82f6;font-weight:700;font-size:0.85rem;">54%</span>
-          </div>
-          <div style="padding:8px 0;display:flex;justify-content:space-between;align-items:center;">
-            <span style="color:#ccc;font-size:0.85rem;">Comedy</span>
-            <div style="flex:1;margin:0 16px;height:6px;background:#1a1a1a;border-radius:3px;"><div style="width:41%;height:100%;background:var(--gradient-blue);border-radius:3px;"></div></div>
-            <span style="color:#3b82f6;font-weight:700;font-size:0.85rem;">41%</span>
-          </div>
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number"><%= totalMovies %></span>
+          <span class="stat-label">Movies</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number"><%= totalSeries %></span>
+          <span class="stat-label">Series</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon gold">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number">★ <%= avgRating %></span>
+          <span class="stat-label">Avg Rating</span>
         </div>
       </div>
     </div>
 
+    <div class="admin-grid">
+      <!-- Genre Breakdown -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h3>Content by Genre</h3></div>
+        <div style="padding: 20px;">
+          <% if (genreBreakdown.length === 0) { %>
+            <p style="color:#555;text-align:center;padding:20px;">No content available</p>
+          <% } else { %>
+            <% genreBreakdown.forEach(g => { %>
+              <div class="genre-bar-row">
+                <span class="genre-bar-name"><%= g.genre %></span>
+                <div class="genre-bar-track">
+                  <div class="genre-bar-fill" style="width: <%= g.percent %>%"></div>
+                </div>
+                <span class="genre-bar-count"><%= g.count %></span>
+                <span class="genre-bar-pct"><%= g.percent %>%</span>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Rating Distribution -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h3>Rating Distribution</h3></div>
+        <div style="padding: 20px;">
+          <% const maxRating = Math.max(...Object.values(ratingDistribution), 1); %>
+          <% Object.entries(ratingDistribution).forEach(([range, count]) => { %>
+          <div class="rating-dist-row">
+            <span class="rating-dist-label"><%= range %></span>
+            <div class="rating-dist-bar-track">
+              <div class="rating-dist-bar-fill" style="width: <%= (count / maxRating) * 100 %>%"></div>
+            </div>
+            <span class="rating-dist-count"><%= count %></span>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Rated Content -->
+    <div class="admin-card" style="margin-top: 20px;">
+      <div class="admin-card-header"><h3>Top Rated Content</h3></div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>#</th><th>Title</th><th>Genre</th><th>Rating</th><th>Est. Views</th><th>Completion</th></tr></thead>
+          <tbody>
+            <% mostWatched.forEach((m, i) => { %>
+              <tr>
+                <td><%= i + 1 %></td>
+                <td><strong><%= m.title %></strong></td>
+                <td><span class="table-badge"><%= m.genre %></span></td>
+                <td style="color:#f59e0b;">★ <%= m.rating %></td>
+                <td><%= m.views.toLocaleString() %></td>
+                <td>
+                  <div class="completion-bar">
+                    <div class="completion-fill" style="width: <%= m.completion %>%"></div>
+                    <span class="completion-text"><%= m.completion %>%</span>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+            <% if (mostWatched.length === 0) { %>
+              <tr><td colspan="6" style="text-align:center;color:#555;">No content yet</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- User Growth Chart -->
+    <div class="admin-card" style="margin-top: 20px;">
+      <div class="admin-card-header"><h3>User Growth</h3></div>
+      <div style="padding: 20px;">
+        <% const maxGrowth = Math.max(...monthlyGrowth.map(m => m.users), 1); %>
+        <div class="chart-bars" style="height: 180px;">
+          <% monthlyGrowth.forEach(m => { %>
+          <div class="chart-bar-col">
+            <div class="chart-bar-wrapper">
+              <div class="chart-bar blue-bar" style="height: <%= (m.users / maxGrowth) * 100 %>%">
+                <span class="chart-bar-value"><%= m.users %></span>
+              </div>
+            </div>
+            <span class="chart-bar-label"><%= m.month %></span>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Platform Insights -->
     <div class="admin-grid" style="margin-top: 20px;">
       <div class="admin-card">
-        <div class="admin-card-header"><h3>Most Watched</h3></div>
-        <div class="admin-table-wrap">
-          <table class="admin-table">
-            <thead><tr><th>Title</th><th>Views</th><th>Completion</th></tr></thead>
-            <tbody>
-              <tr><td><strong>Attack on Titan: Final War</strong></td><td>284K</td><td style="color:#22c55e;">92%</td></tr>
-              <tr><td><strong>Cyber Nexus</strong></td><td>256K</td><td style="color:#22c55e;">88%</td></tr>
-              <tr><td><strong>The Dark Horizon</strong></td><td>198K</td><td style="color:#22c55e;">85%</td></tr>
-              <tr><td><strong>Demon Slayer</strong></td><td>187K</td><td style="color:#22c55e;">90%</td></tr>
-              <tr><td><strong>Dark Matter</strong></td><td>165K</td><td style="color:#3b82f6;">79%</td></tr>
-            </tbody>
-          </table>
+        <div class="admin-card-header"><h3>Platform Insights</h3></div>
+        <div style="padding: 20px;">
+          <div class="insight-row">
+            <div class="insight-icon blue">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/></svg>
+            </div>
+            <div class="insight-content">
+              <span class="insight-title">Movies vs Series</span>
+              <span class="insight-value"><%= totalMovies %> movies, <%= totalSeries %> series</span>
+            </div>
+          </div>
+          <div class="insight-row">
+            <div class="insight-icon green">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            </div>
+            <div class="insight-content">
+              <span class="insight-title">Avg Rating</span>
+              <span class="insight-value">★ <%= avgRating %> across all content</span>
+            </div>
+          </div>
+          <div class="insight-row">
+            <div class="insight-icon purple">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+            </div>
+            <div class="insight-content">
+              <span class="insight-title">Genre Coverage</span>
+              <span class="insight-value"><%= genreBreakdown.length %> genres available</span>
+            </div>
+          </div>
+          <div class="insight-row">
+            <div class="insight-icon gold">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+            <div class="insight-content">
+              <span class="insight-title">User Engagement</span>
+              <span class="insight-value"><%= activeUsers %> active users</span>
+            </div>
+          </div>
         </div>
       </div>
+
       <div class="admin-card">
-        <div class="admin-card-header"><h3>User Activity</h3></div>
-        <div class="admin-form" style="padding: 20px;">
-          <div style="padding:10px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;">
-            <span style="color:#888;font-size:0.85rem;">Peak Hours</span>
-            <span style="color:#fff;font-weight:600;font-size:0.85rem;">8 PM - 11 PM</span>
+        <div class="admin-card-header"><h3>Top Genres</h3></div>
+        <div style="padding: 20px;">
+          <% topGenres.forEach((g, i) => { %>
+          <div class="top-genre-row">
+            <span class="top-genre-rank">#<%= i + 1 %></span>
+            <span class="top-genre-name"><%= g.genre %></span>
+            <div class="top-genre-bar-track">
+              <div class="top-genre-bar-fill" style="width: <%= g.percent %>%"></div>
+            </div>
+            <span class="top-genre-count"><%= g.count %> titles</span>
           </div>
-          <div style="padding:10px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;">
-            <span style="color:#888;font-size:0.85rem;">Most Active Day</span>
-            <span style="color:#fff;font-weight:600;font-size:0.85rem;">Saturday</span>
-          </div>
-          <div style="padding:10px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;">
-            <span style="color:#888;font-size:0.85rem;">Mobile Users</span>
-            <span style="color:#fff;font-weight:600;font-size:0.85rem;">64%</span>
-          </div>
-          <div style="padding:10px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;">
-            <span style="color:#888;font-size:0.85rem;">Desktop Users</span>
-            <span style="color:#fff;font-weight:600;font-size:0.85rem;">28%</span>
-          </div>
-          <div style="padding:10px 0;display:flex;justify-content:space-between;">
-            <span style="color:#888;font-size:0.85rem;">TV Users</span>
-            <span style="color:#fff;font-weight:600;font-size:0.85rem;">8%</span>
-          </div>
+          <% }) %>
         </div>
       </div>
     </div>

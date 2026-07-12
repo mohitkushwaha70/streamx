@@ -6,81 +6,189 @@
     <div class="admin-header">
       <div>
         <h1>Payments & Revenue</h1>
-        <p style="color:#555;font-size:0.85rem;">Track all payments and revenue</p>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Track all payments, transactions and revenue</p>
       </div>
     </div>
 
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon gold"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-        <div class="stat-info"><span class="stat-number">₹48.5L</span><span class="stat-label">Total Revenue</span></div>
+        <div class="stat-info"><span class="stat-number"><%= paymentData.totalRevenue %></span><span class="stat-label">Total Revenue</span></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon green"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg></div>
-        <div class="stat-info"><span class="stat-number">₹4.2L</span><span class="stat-label">This Month</span></div>
+        <div class="stat-info"><span class="stat-number"><%= paymentData.thisMonth %></span><span class="stat-label">Monthly Revenue</span></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
-        <div class="stat-info"><span class="stat-number">142</span><span class="stat-label">Transactions</span></div>
+        <div class="stat-info"><span class="stat-number"><%= paymentData.completedTransactions %></span><span class="stat-label">Completed</span></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
-        <div class="stat-info"><span class="stat-number">₹2,999</span><span class="stat-label">Avg. Transaction</span></div>
+        <div class="stat-info"><span class="stat-number"><%= paymentData.avgTransaction %></span><span class="stat-label">Avg. per User</span></div>
       </div>
     </div>
 
-    <div class="admin-card">
+    <!-- Transaction Status -->
+    <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 20px;">
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number"><%= paymentData.completedTransactions %></span>
+          <span class="stat-label">Completed</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(239,68,68,0.12);color:#ef4444;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number"><%= paymentData.failedTransactions %></span>
+          <span class="stat-label">Failed</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(245,158,11,0.12);color:#f59e0b;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number"><%= paymentData.refundedTransactions %></span>
+          <span class="stat-label">Refunded</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-grid">
+      <!-- Revenue Chart (6 months) -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h3>Revenue Trend (6 Months)</h3></div>
+        <div style="padding: 20px;">
+          <% const maxRevenue = Math.max(...paymentData.last6Months.map(m => m.revenue), 1); %>
+          <div class="chart-bars">
+            <% paymentData.last6Months.forEach(m => { %>
+            <div class="chart-bar-col">
+              <div class="chart-bar-wrapper">
+                <div class="chart-bar" style="height: <%= (m.revenue / maxRevenue) * 100 %>%">
+                  <span class="chart-bar-value">₹<%= m.revenue.toLocaleString() %></span>
+                </div>
+              </div>
+              <span class="chart-bar-label"><%= m.month %></span>
+            </div>
+            <% }) %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Methods -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h3>Payment Methods</h3></div>
+        <div style="padding: 20px;">
+          <% const methods = Object.entries(paymentData.methodBreakdown); %>
+          <% const totalMethods = methods.reduce((sum, [, count]) => sum + count, 0) || 1; %>
+          <% methods.forEach(([method, count]) => { %>
+          <div class="method-row">
+            <div class="method-info">
+              <span class="method-name"><%= method %></span>
+              <span class="method-count"><%= count %> transactions</span>
+            </div>
+            <div class="method-bar-wrapper">
+              <div class="method-bar" style="width: <%= (count / totalMethods) * 100 %>%"></div>
+            </div>
+            <span class="method-percent"><%= Math.round((count / totalMethods) * 100) %>%</span>
+          </div>
+          <% }) %>
+          <% if (methods.length === 0) { %>
+          <p style="color:#555;text-align:center;padding:20px;">No payment data</p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Revenue by Plan -->
+    <div class="admin-card" style="margin-top: 20px;">
+      <div class="admin-card-header"><h3>Revenue by Plan</h3></div>
+      <div style="padding: 20px;">
+        <div class="plan-revenue-grid">
+          <div class="plan-revenue-card">
+            <div class="plan-revenue-icon" style="background:rgba(59,130,246,0.12);color:#3b82f6;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </div>
+            <div class="plan-revenue-info">
+              <span class="plan-revenue-label">Premium Monthly</span>
+              <span class="plan-revenue-value"><%= paymentData.revenueByPlan.monthly %></span>
+              <span class="plan-revenue-sub">₹299/user/month</span>
+            </div>
+          </div>
+          <div class="plan-revenue-card">
+            <div class="plan-revenue-icon" style="background:rgba(34,197,94,0.12);color:#22c55e;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </div>
+            <div class="plan-revenue-info">
+              <span class="plan-revenue-label">Premium Yearly</span>
+              <span class="plan-revenue-value"><%= paymentData.revenueByPlan.yearly %></span>
+              <span class="plan-revenue-sub">₹2,999/user/year</span>
+            </div>
+          </div>
+          <div class="plan-revenue-card">
+            <div class="plan-revenue-icon" style="background:rgba(100,116,139,0.12);color:#64748b;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            </div>
+            <div class="plan-revenue-info">
+              <span class="plan-revenue-label">Free Users</span>
+              <span class="plan-revenue-value">₹0</span>
+              <span class="plan-revenue-sub"><%= paymentData.freeUsers.length %> users</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="admin-card" style="margin-top: 20px;">
       <div class="admin-card-header">
         <h3>Recent Transactions</h3>
+        <span class="admin-count"><%= paymentData.recentPayments.length %> latest</span>
       </div>
       <div class="admin-table-wrap">
         <table class="admin-table">
-          <thead><tr><th>User</th><th>Plan</th><th>Amount</th><th>Method</th><th>Date</th><th>Status</th></tr></thead>
+          <thead><tr><th>ID</th><th>User</th><th>Amount</th><th>Plan</th><th>Method</th><th>Date</th><th>Status</th></tr></thead>
           <tbody>
-            <tr><td><div class="user-cell"><div class="avatar-sm">A</div><strong>Admin</strong></div></td><td>Premium Yearly</td><td style="color:#22c55e">₹2,999</td><td>UPI</td><td>Jul 11, 2026</td><td><span class="plan-badge premium">Paid</span></td></tr>
-            <tr><td><div class="user-cell"><div class="avatar-sm">M</div><strong>Mohit</strong></div></td><td>Premium Monthly</td><td style="color:#22c55e">₹299</td><td>Card</td><td>Jul 10, 2026</td><td><span class="plan-badge premium">Paid</span></td></tr>
-            <tr><td><div class="user-cell"><div class="avatar-sm">A</div><strong>Amit Singh</strong></div></td><td>Premium Yearly</td><td style="color:#22c55e">₹2,999</td><td>UPI</td><td>Jul 9, 2026</td><td><span class="plan-badge premium">Paid</span></td></tr>
-            <tr><td><div class="user-cell"><div class="avatar-sm">R</div><strong>Rahul Kumar</strong></div></td><td>Free</td><td style="color:#666">₹0</td><td>-</td><td>Jul 8, 2026</td><td><span class="plan-badge free">Free</span></td></tr>
-            <tr><td><div class="user-cell"><div class="avatar-sm">P</div><strong>Priya Sharma</strong></div></td><td>Free</td><td style="color:#666">₹0</td><td>-</td><td>Jul 7, 2026</td><td><span class="plan-badge free">Free</span></td></tr>
+            <% paymentData.recentPayments.forEach(p => { %>
+              <% const payUser = users.find(u => u.id === p.userId); %>
+              <tr>
+                <td style="color: var(--text-muted); font-family: monospace;"><%= p.transactionId %></td>
+                <td>
+                  <div class="user-cell">
+                    <% if (payUser) { %>
+                    <div class="avatar-sm"><%= payUser.avatar %></div>
+                    <strong><%= payUser.name %></strong>
+                    <% } else { %>
+                    <span style="color: var(--text-muted);">Unknown</span>
+                    <% } %>
+                  </div>
+                </td>
+                <td style="font-weight: 600;">₹<%= p.amount.toLocaleString() %></td>
+                <td><span class="table-badge"><%= p.plan %></span></td>
+                <td style="color: var(--text-muted);"><%= p.method %></td>
+                <td style="color: var(--text-muted); font-size: 0.75rem;"><%= new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></td>
+                <td>
+                  <% if (p.status === 'completed') { %>
+                    <span class="table-badge" style="background:rgba(34,197,94,0.12);color:#22c55e;">Completed</span>
+                  <% } else if (p.status === 'failed') { %>
+                    <span class="table-badge" style="background:rgba(239,68,68,0.12);color:#ef4444;">Failed</span>
+                  <% } else { %>
+                    <span class="table-badge" style="background:rgba(245,158,11,0.12);color:#f59e0b;">Refunded</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+            <% if (paymentData.recentPayments.length === 0) { %>
+              <tr><td colspan="7" style="text-align:center;color:#555;">No transactions yet</td></tr>
+            <% } %>
           </tbody>
         </table>
-      </div>
-    </div>
-
-    <div class="admin-grid" style="margin-top: 20px;">
-      <div class="admin-card">
-        <div class="admin-card-header"><h3>Revenue by Plan</h3></div>
-        <div class="admin-form" style="padding: 20px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #1a1a1a;">
-            <span style="color:#ccc;font-size:0.85rem;">Premium Monthly (₹299/mo)</span>
-            <span style="color:#22c55e;font-weight:700;">₹1.8L</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #1a1a1a;">
-            <span style="color:#ccc;font-size:0.85rem;">Premium Yearly (₹2,999/yr)</span>
-            <span style="color:#22c55e;font-weight:700;">₹30.5L</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;">
-            <span style="color:#ccc;font-size:0.85rem;">Free Users</span>
-            <span style="color:#666;font-weight:700;">₹0</span>
-          </div>
-        </div>
-      </div>
-      <div class="admin-card">
-        <div class="admin-card-header"><h3>Payment Methods</h3></div>
-        <div class="admin-form" style="padding: 20px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #1a1a1a;">
-            <span style="color:#ccc;font-size:0.85rem;">UPI</span>
-            <span style="color:#3b82f6;font-weight:700;">68%</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #1a1a1a;">
-            <span style="color:#ccc;font-size:0.85rem;">Credit/Debit Card</span>
-            <span style="color:#3b82f6;font-weight:700;">24%</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;">
-            <span style="color:#ccc;font-size:0.85rem;">Net Banking</span>
-            <span style="color:#3b82f6;font-weight:700;">8%</span>
-          </div>
-        </div>
       </div>
     </div>
   </main>

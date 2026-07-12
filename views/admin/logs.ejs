@@ -9,45 +9,40 @@
         <p style="color:#555;font-size:0.85rem;">Track all platform activity and admin actions</p>
       </div>
       <div class="admin-header-right">
-        <select class="form-input" style="width:auto;padding:8px 16px;background:#0a0a0a;border-color:#1a1a1a;font-size:0.8rem;">
-          <option selected>All Activity</option><option>User Actions</option><option>Admin Actions</option><option>System</option>
-        </select>
+        <span class="admin-count"><%= logs.length %> entries</span>
       </div>
     </div>
 
     <div class="admin-card">
       <div class="admin-card-header"><h3>Recent Activity</h3></div>
       <div style="padding: 20px;">
-        <div style="display:flex;gap:16px;padding:14px 0;border-bottom:1px solid #111;align-items:flex-start;">
-          <div style="width:36px;height:36px;border-radius:50%;background:rgba(34,197,94,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div>
-          <div style="flex:1;"><div style="color:#ccc;font-size:0.85rem;"><strong style="color:#fff;">New user registered</strong> - Rahul Kumar (rahul@email.com)</div><div style="color:#555;font-size:0.75rem;margin-top:2px;">Jul 11, 2026 14:23</div></div>
-          <span class="table-badge" style="background:rgba(34,197,94,0.12);color:#22c55e;">User</span>
-        </div>
-        <div style="display:flex;gap:16px;padding:14px 0;border-bottom:1px solid #111;align-items:flex-start;">
-          <div style="width:36px;height:36px;border-radius:50%;background:rgba(245,158,11,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-          <div style="flex:1;"><div style="color:#ccc;font-size:0.85rem;"><strong style="color:#fff;">Premium upgrade</strong> - Amit Singh upgraded to Premium Yearly</div><div style="color:#555;font-size:0.75rem;margin-top:2px;">Jul 11, 2026 13:45</div></div>
-          <span class="table-badge" style="background:rgba(245,158,11,0.12);color:#f59e0b;">Payment</span>
-        </div>
-        <div style="display:flex;gap:16px;padding:14px 0;border-bottom:1px solid #111;align-items:flex-start;">
-          <div style="width:36px;height:36px;border-radius:50%;background:rgba(37,99,235,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/></svg></div>
-          <div style="flex:1;"><div style="color:#ccc;font-size:0.85rem;"><strong style="color:#fff;">Movie added</strong> - "Dragon's Gate" added to catalog by Admin</div><div style="color:#555;font-size:0.75rem;margin-top:2px;">Jul 11, 2026 11:20</div></div>
-          <span class="table-badge" style="background:rgba(37,99,235,0.12);color:#3b82f6;">Content</span>
-        </div>
-        <div style="display:flex;gap:16px;padding:14px 0;border-bottom:1px solid #111;align-items:flex-start;">
-          <div style="width:36px;height:36px;border-radius:50%;background:rgba(168,85,247,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-          <div style="flex:1;"><div style="color:#ccc;font-size:0.85rem;"><strong style="color:#fff;">Settings updated</strong> - Platform settings modified by Admin</div><div style="color:#555;font-size:0.75rem;margin-top:2px;">Jul 10, 2026 18:30</div></div>
-          <span class="table-badge" style="background:rgba(168,85,247,0.12);color:#a855f7;">Admin</span>
-        </div>
-        <div style="display:flex;gap:16px;padding:14px 0;border-bottom:1px solid #111;align-items:flex-start;">
-          <div style="width:36px;height:36px;border-radius:50%;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
-          <div style="flex:1;"><div style="color:#ccc;font-size:0.85rem;"><strong style="color:#fff;">Report filed</strong> - Copyright claim on "Midnight Shadows"</div><div style="color:#555;font-size:0.75rem;margin-top:2px;">Jul 10, 2026 09:15</div></div>
-          <span class="table-badge" style="background:rgba(239,68,68,0.12);color:#ef4444;">Report</span>
-        </div>
-        <div style="display:flex;gap:16px;padding:14 0;align-items:flex-start;">
-          <div style="width:36px;height:36px;border-radius:50%;background:rgba(37,99,235,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-          <div style="flex:1;"><div style="color:#ccc;font-size:0.85rem;"><strong style="color:#fff;">System backup</strong> - Automated daily backup completed</div><div style="color:#555;font-size:0.75rem;margin-top:2px;">Jul 10, 2026 03:00</div></div>
-          <span class="table-badge" style="background:rgba(37,99,235,0.12);color:#3b82f6;">System</span>
-        </div>
+        <% if (logs.length === 0) { %>
+          <p style="color:#555;text-align:center;padding:40px;">No activity yet</p>
+        <% } %>
+        <% logs.forEach(log => { %>
+          <div style="display:flex;gap:16px;padding:14px 0;border-bottom:1px solid #111;align-items:flex-start;">
+            <% if (log.type === 'user') { %>
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(34,197,94,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div>
+              <span class="table-badge" style="background:rgba(34,197,94,0.12);color:#22c55e;">User</span>
+            <% } else if (log.type === 'content') { %>
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(37,99,235,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/></svg></div>
+              <span class="table-badge" style="background:rgba(37,99,235,0.12);color:#3b82f6;">Content</span>
+            <% } else if (log.type === 'admin') { %>
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(168,85,247,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+              <span class="table-badge" style="background:rgba(168,85,247,0.12);color:#a855f7;">Admin</span>
+            <% } else if (log.type === 'report') { %>
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
+              <span class="table-badge" style="background:rgba(239,68,68,0.12);color:#ef4444;">Report</span>
+            <% } else { %>
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(37,99,235,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+              <span class="table-badge" style="background:rgba(37,99,235,0.12);color:#3b82f6;">System</span>
+            <% } %>
+            <div style="flex:1;">
+              <div style="color:#ccc;font-size:0.85rem;"><strong style="color:#fff;"><%= log.message %></strong></div>
+              <div style="color:#555;font-size:0.75rem;margin-top:2px;"><%= log.timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %> <%= log.timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %> &middot; by <%= log.admin %></div>
+            </div>
+          </div>
+        <% }) %>
       </div>
     </div>
   </main>

@@ -6,84 +6,177 @@
     <div class="admin-header">
       <div>
         <h1>Subscriptions</h1>
-        <p style="color:#555;font-size:0.85rem;">Manage premium plans and subscriptions</p>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Manage premium plans and subscription analytics</p>
       </div>
     </div>
 
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon gold"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-        <div class="stat-info"><span class="stat-number"><%= premiumUsers %></span><span class="stat-label">Premium Users</span></div>
+        <div class="stat-info"><span class="stat-number"><%= premiumUsers.length %></span><span class="stat-label">Premium Users</span></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-        <div class="stat-info"><span class="stat-number">89%</span><span class="stat-label">Retention Rate</span></div>
+        <div class="stat-info"><span class="stat-number"><%= retentionRate %>%</span><span class="stat-label">Premium Ratio</span></div>
       </div>
       <div class="stat-card">
         <div class="stat-icon green"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg></div>
-        <div class="stat-info"><span class="stat-number">+12%</span><span class="stat-label">Growth Rate</span></div>
+        <div class="stat-info"><span class="stat-number"><%= freeUsers.length %></span><span class="stat-label">Free Users</span></div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
-        <div class="stat-info"><span class="stat-number">14.2 mo</span><span class="stat-label">Avg. Duration</span></div>
+        <div class="stat-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <div class="stat-info"><span class="stat-number"><%= totalUsers %></span><span class="stat-label">Total Users</span></div>
       </div>
     </div>
 
-    <div class="admin-card">
-      <div class="admin-card-header"><h3>Active Subscriptions</h3></div>
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead><tr><th>User</th><th>Plan</th><th>Amount</th><th>Start</th><th>Expires</th><th>Status</th></tr></thead>
-          <tbody>
-            <tr><td><div class="user-cell"><div class="avatar-sm">A</div><strong>Admin</strong></div></td><td>Premium Yearly</td><td>₹2,999/yr</td><td>Jan 1, 2026</td><td>Jan 1, 2027</td><td><span class="plan-badge premium">Active</span></td></tr>
-            <tr><td><div class="user-cell"><div class="avatar-sm">M</div><strong>Mohit</strong></div></td><td>Premium Monthly</td><td>₹299/mo</td><td>Jul 1, 2026</td><td>Aug 1, 2026</td><td><span class="plan-badge premium">Active</span></td></tr>
-            <tr><td><div class="user-cell"><div class="avatar-sm">A</div><strong>Amit Singh</strong></div></td><td>Premium Yearly</td><td>₹2,999/yr</td><td>Mar 15, 2026</td><td>Mar 15, 2027</td><td><span class="plan-badge premium">Active</span></td></tr>
-            <tr><td><div class="user-cell"><div class="avatar-sm">R</div><strong>Rahul Kumar</strong></div></td><td>Free</td><td>-</td><td>-</td><td>-</td><td><span class="plan-badge free">Free</span></td></tr>
-            <tr><td><div class="user-cell"><div class="avatar-sm">P</div><strong>Priya Sharma</strong></div></td><td>Free</td><td>-</td><td>-</td><td>-</td><td><span class="plan-badge free">Free</span></td></tr>
-          </tbody>
-        </table>
+    <!-- Subscription Breakdown -->
+    <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 20px;">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(245,158,11,0.12);color:#f59e0b;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number"><%= monthlySubs.length %></span>
+          <span class="stat-label">Monthly Subs</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(34,197,94,0.12);color:#22c55e;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number"><%= yearlySubs.length %></span>
+          <span class="stat-label">Yearly Subs</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number"><%= avgWatchTime %>m</span>
+          <span class="stat-label">Avg Watch Time</span>
+        </div>
       </div>
     </div>
 
-    <div class="admin-card" style="margin-top: 20px;">
-      <div class="admin-card-header"><h3>Plan Pricing</h3></div>
-      <div class="admin-form" style="padding: 24px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">
-          <div style="background:#080808;border:1px solid #1a1a1a;border-radius:12px;padding:24px;text-align:center;">
-            <div style="font-size:0.7rem;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Free</div>
-            <div style="font-size:1.8rem;font-weight:900;color:#fff;">₹0</div>
-            <div style="font-size:0.8rem;color:#555;margin-top:4px;">Forever</div>
-            <div style="margin-top:16px;font-size:0.8rem;color:#888;text-align:left;">
-              <div style="padding:4px 0;">Limited content</div>
-              <div style="padding:4px 0;">Ads included</div>
-              <div style="padding:4px 0;">1 device</div>
-              <div style="padding:4px 0;">HD quality</div>
+    <div class="admin-grid">
+      <!-- Subscription Split -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h3>Subscription Split</h3></div>
+        <div style="padding: 20px;">
+          <div class="donut-chart">
+            <div class="donut-center">
+              <span class="donut-number"><%= totalUsers %></span>
+              <span class="donut-label">Total</span>
             </div>
           </div>
-          <div style="background:#080808;border:1px solid #f59e0b;border-radius:12px;padding:24px;text-align:center;position:relative;">
-            <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#f59e0b,#f97316);color:white;padding:2px 12px;border-radius:99px;font-size:0.6rem;font-weight:700;">POPULAR</div>
-            <div style="font-size:0.7rem;color:#f59e0b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Premium Monthly</div>
-            <div style="font-size:1.8rem;font-weight:900;color:#fff;">₹299</div>
-            <div style="font-size:0.8rem;color:#555;margin-top:4px;">/month</div>
-            <div style="margin-top:16px;font-size:0.8rem;color:#888;text-align:left;">
-              <div style="padding:4px 0;">All content</div>
-              <div style="padding:4px 0;">No ads</div>
-              <div style="padding:4px 0;">3 devices</div>
-              <div style="padding:4px 0;">4K quality</div>
+          <div class="donut-legend">
+            <div class="donut-legend-item">
+              <div class="donut-dot" style="background: linear-gradient(135deg, #f59e0b, #f97316);"></div>
+              <span>Premium (<%= premiumUsers.length %>)</span>
+            </div>
+            <div class="donut-legend-item">
+              <div class="donut-dot" style="background: #333;"></div>
+              <span>Free (<%= freeUsers.length %>)</span>
             </div>
           </div>
-          <div style="background:#080808;border:1px solid #22c55e;border-radius:12px;padding:24px;text-align:center;">
-            <div style="font-size:0.7rem;color:#22c55e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Premium Yearly</div>
-            <div style="font-size:1.8rem;font-weight:900;color:#fff;">₹2,999</div>
-            <div style="font-size:0.8rem;color:#555;margin-top:4px;">/year (Save 17%)</div>
-            <div style="margin-top:16px;font-size:0.8rem;color:#888;text-align:left;">
-              <div style="padding:4px 0;">All content</div>
-              <div style="padding:4px 0;">No ads</div>
-              <div style="padding:4px 0;">5 devices</div>
-              <div style="padding:4px 0;">4K + HDR</div>
+          <div class="split-bar">
+            <div class="split-fill premium-fill" style="width: <%= retentionRate %>%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;">
+            <span style="font-size:0.7rem;color:#666;">Premium <%= retentionRate %>%</span>
+            <span style="font-size:0.7rem;color:#666;">Free <%= 100 - retentionRate %>%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Plan Features Comparison -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h3>Plan Features</h3></div>
+        <div style="padding: 20px;">
+          <div class="plan-compare-grid">
+            <div class="plan-compare-col">
+              <div class="plan-compare-header" style="color:#666;">Free</div>
+              <div class="plan-price">₹0</div>
+              <ul class="plan-features">
+                <li>Limited content</li>
+                <li>Ads included</li>
+                <li>1 device</li>
+                <li>HD quality</li>
+              </ul>
+            </div>
+            <div class="plan-compare-col featured">
+              <div class="plan-compare-header" style="color:#f59e0b;">Premium</div>
+              <div class="plan-price">₹299<span>/mo</span></div>
+              <ul class="plan-features">
+                <li>All content</li>
+                <li>No ads</li>
+                <li>3 devices</li>
+                <li>4K quality</li>
+              </ul>
+            </div>
+            <div class="plan-compare-col">
+              <div class="plan-compare-header" style="color:#22c55e;">Yearly</div>
+              <div class="plan-price">₹2,999<span>/yr</span></div>
+              <ul class="plan-features">
+                <li>All content</li>
+                <li>No ads</li>
+                <li>5 devices</li>
+                <li>4K + HDR</li>
+              </ul>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- User Growth -->
+    <div class="admin-card" style="margin-top: 20px;">
+      <div class="admin-card-header"><h3>User Growth</h3></div>
+      <div style="padding: 20px;">
+        <% const months = Object.entries(joinedByMonth); %>
+        <% const maxJoined = Math.max(...months.map(([, c]) => c), 1); %>
+        <div class="chart-bars" style="height: 150px;">
+          <% months.forEach(([month, count]) => { %>
+          <div class="chart-bar-col">
+            <div class="chart-bar-wrapper">
+              <div class="chart-bar green-bar" style="height: <%= (count / maxJoined) * 100 %>%">
+                <span class="chart-bar-value"><%= count %></span>
+              </div>
+            </div>
+            <span class="chart-bar-label"><%= month %></span>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Premium Users Table -->
+    <div class="admin-card" style="margin-top: 20px;">
+      <div class="admin-card-header">
+        <h3>Premium Users</h3>
+        <span class="admin-count"><%= premiumUsers.length %> users</span>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>User</th><th>Email</th><th>Watch Time</th><th>Devices</th><th>Joined</th><th>Status</th></tr></thead>
+          <tbody>
+            <% premiumUsers.forEach(u => { %>
+              <tr>
+                <td><div class="user-cell"><div class="avatar-sm" style="background: linear-gradient(135deg, #f59e0b, #f97316);"><%= u.avatar %></div><strong><%= u.name %></strong></div></td>
+                <td style="color:var(--text-muted)"><%= u.email %></td>
+                <td style="color:var(--text-muted);"><%= u.watchTime ? Math.floor(u.watchTime / 60) + 'h ' + (u.watchTime % 60) + 'm' : '0m' %></td>
+                <td style="color:var(--text-muted);"><%= u.devices || 1 %></td>
+                <td style="color:var(--text-muted); font-size: 0.75rem;"><%= new Date(u.joinedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) %></td>
+                <td><span class="plan-badge premium">Active</span></td>
+              </tr>
+            <% }) %>
+            <% if (premiumUsers.length === 0) { %>
+              <tr><td colspan="6" style="text-align:center;color:#555;">No premium users</td></tr>
+            <% } %>
+          </tbody>
+        </table>
       </div>
     </div>
   </main>

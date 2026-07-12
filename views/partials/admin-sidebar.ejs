@@ -63,3 +63,19 @@
     </a>
   </nav>
 </aside>
+<script>
+(function() {
+  var evtSource = new EventSource('/events');
+  evtSource.onmessage = function(e) {
+    try {
+      var data = JSON.parse(e.data);
+      if (data.type === 'movie' || data.type === 'series' || data.type === 'user') {
+        window.location.reload();
+      }
+    } catch(err) {}
+  };
+  evtSource.onerror = function() {
+    setTimeout(function() { evtSource.close(); }, 5000);
+  };
+})();
+</script>

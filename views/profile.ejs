@@ -3,7 +3,6 @@
 
 <main class="main-content page-content">
   <div class="profile-page">
-    <!-- Profile Header -->
     <div class="profile-header">
       <div class="profile-cover"></div>
       <div class="profile-info-bar">
@@ -19,7 +18,6 @@
       </div>
     </div>
 
-    <!-- Profile Tabs -->
     <div class="section">
       <div class="profile-tabs">
         <button class="profile-tab active" onclick="showTab('overview')">Overview</button>
@@ -27,69 +25,51 @@
         <button class="profile-tab" onclick="showTab('settings')">Settings</button>
       </div>
 
-      <!-- Overview -->
       <div class="profile-section" id="tab-overview">
         <div class="stats-row">
           <div class="profile-stat">
-            <span class="stat-num">12</span>
-            <span class="stat-label">Watched</span>
+            <span class="stat-num"><%= continueWatching.length %></span>
+            <span class="stat-label">Continue Watching</span>
           </div>
           <div class="profile-stat">
-            <span class="stat-num">5</span>
+            <span class="stat-num"><%= userWatchlist.length %></span>
             <span class="stat-label">Watchlist</span>
           </div>
           <div class="profile-stat">
-            <span class="stat-num">8</span>
+            <span class="stat-num"><%= userFavorites.length %></span>
             <span class="stat-label">Favorites</span>
           </div>
           <div class="profile-stat">
-            <span class="stat-num">3</span>
+            <span class="stat-num"><%= userSaved.length %></span>
             <span class="stat-label">Saved</span>
           </div>
         </div>
+
+        <% if (continueWatching.length > 0) { %>
         <h3 style="margin-bottom: 16px;">Continue Watching</h3>
         <div class="content-row">
-          <a href="/watch/movie/1" class="content-card">
-            <div class="card-image"><img src="https://picsum.photos/seed/movie1/400/600" alt="movie" loading="lazy"><div class="card-overlay"><div class="play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div></div></div>
-            <div class="card-info"><div class="card-title">The Dark Horizon</div><div class="card-meta"><span class="rating">★ 8.7</span><span class="dot"></span><span>Sci-Fi</span></div></div>
-          </a>
-          <a href="/watch/movie/3" class="content-card">
-            <div class="card-image"><img src="https://picsum.photos/seed/movie3/400/600" alt="movie" loading="lazy"><div class="card-overlay"><div class="play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div></div></div>
-            <div class="card-info"><div class="card-title">Neon Samurai</div><div class="card-meta"><span class="rating">★ 8.9</span><span class="dot"></span><span>Action</span></div></div>
-          </a>
+          <% continueWatching.forEach(item => { %>
+          <div class="continue-card">
+            <a href="/watch/<%= item.type %>/<%= item.id %>" class="thumb">
+              <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">
+              <div class="progress-bar"><div class="fill" style="width: <%= item.progress %>%"></div></div>
+              <span class="progress-pct"><%= item.progress %>%</span>
+            </a>
+            <div class="info">
+              <h4><%= item.title %></h4>
+              <p><%= item.genre %><% if (item.duration) { %> • <%= item.duration %><% } %></p>
+            </div>
+          </div>
+          <% }) %>
         </div>
+        <% } else { %>
+        <div style="text-align:center;padding:40px;color:var(--text-muted);">
+          <p>No content being watched yet. Start watching!</p>
+          <a href="/movies" class="btn btn-primary btn-sm" style="margin-top:12px;">Browse Movies</a>
+        </div>
+        <% } %>
       </div>
 
-      <!-- Watchlist -->
-      <div class="profile-section" id="tab-watchlist" style="display:none">
-        <h3 style="margin-bottom: 16px;">My Watchlist</h3>
-        <div class="content-grid">
-          <a href="/movies/1" class="content-card"><div class="card-image"><img src="https://picsum.photos/seed/movie1/400/600" alt="" loading="lazy"><div class="card-overlay"><div class="play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div></div></div><div class="card-info"><div class="card-title">The Dark Horizon</div><div class="card-meta"><span class="rating">★ 8.7</span></div></div></a>
-          <a href="/movies/5" class="content-card"><div class="card-image"><img src="https://picsum.photos/seed/movie5/400/600" alt="" loading="lazy"><div class="card-overlay"><div class="play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div></div></div><div class="card-info"><div class="card-title">The Last Kingdom</div><div class="card-meta"><span class="rating">★ 9.1</span></div></div></a>
-          <a href="/series/1" class="content-card"><div class="card-image"><img src="https://picsum.photos/seed/series1/400/600" alt="" loading="lazy"><div class="card-overlay"><div class="play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div></div></div><div class="card-info"><div class="card-title">Cyber Nexus</div><div class="card-meta"><span class="rating">★ 9.2</span></div></div></a>
-        </div>
-      </div>
-
-      <!-- Favorites -->
-      <div class="profile-section" id="tab-favorites" style="display:none">
-        <h3 style="margin-bottom: 16px;">My Favorites</h3>
-        <div class="content-grid">
-          <a href="/movies/3" class="content-card"><div class="card-image"><img src="https://picsum.photos/seed/movie3/400/600" alt="" loading="lazy"><div class="card-overlay"><div class="play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div></div></div><div class="card-info"><div class="card-title">Neon Samurai</div><div class="card-meta"><span class="rating">★ 8.9</span></div></div></a>
-          <a href="/movies/13" class="content-card"><div class="card-image"><img src="https://picsum.photos/seed/anime1/400/600" alt="" loading="lazy"><div class="card-overlay"><div class="play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div></div></div><div class="card-info"><div class="card-title">Demon Slayer</div><div class="card-meta"><span class="rating">★ 9.4</span></div></div></a>
-          <a href="/movies/17" class="content-card"><div class="card-image"><img src="https://picsum.photos/seed/anime5/400/600" alt="" loading="lazy"><div class="card-overlay"><div class="play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div></div></div><div class="card-info"><div class="card-title">Attack on Titan</div><div class="card-meta"><span class="rating">★ 9.8</span></div></div></a>
-        </div>
-      </div>
-
-      <!-- Saved -->
-      <div class="profile-section" id="tab-saved" style="display:none">
-        <h3 style="margin-bottom: 16px;">Saved for Later</h3>
-        <div class="content-grid">
-          <a href="/movies/8" class="content-card"><div class="card-image"><img src="https://picsum.photos/seed/movie8/400/600" alt="" loading="lazy"><div class="card-overlay"><div class="play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div></div></div><div class="card-info"><div class="card-title">Phantom Code</div><div class="card-meta"><span class="rating">★ 8.4</span></div></div></a>
-          <a href="/movies/11" class="content-card"><div class="card-image"><img src="https://picsum.photos/seed/movie11/400/600" alt="" loading="lazy"><div class="card-overlay"><div class="play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div></div></div><div class="card-info"><div class="card-title">Silent Witness</div><div class="card-meta"><span class="rating">★ 8.3</span></div></div></a>
-        </div>
-      </div>
-
-      <!-- Settings -->
       <div class="profile-section" id="tab-settings" style="display:none">
         <h3 style="margin-bottom: 16px;">Account Settings</h3>
         <div class="settings-form">

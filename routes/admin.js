@@ -597,7 +597,6 @@ function reloadVideoConfig() {
   } catch (e) {}
 }
 
-const TMDB_IMG = 'https://image.tmdb.org/t/p';
 
 router.get('/upload', (req, res) => {
   reloadVideoConfig();

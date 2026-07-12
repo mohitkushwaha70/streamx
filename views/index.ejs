@@ -1,46 +1,98 @@
 <%- include('partials/header', { pageTitle: 'Home' }) %>
 <%- include('partials/navbar', { active: 'home' }) %>
 
+<style>
+.hero-slider { position: relative; width: 100%; height: 80vh; min-height: 500px; overflow: hidden; }
+.hero-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.8s ease; pointer-events: none; }
+.hero-slide.active { opacity: 1; pointer-events: auto; }
+.hero-slide .hero-bg { position: absolute; inset: 0; background-size: cover; background-position: center top; }
+.hero-slide .hero-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.1) 100%), linear-gradient(to top, #0a0a0f 0%, transparent 30%); }
+.hero-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; }
+.hero-arrow:hover { background: rgba(37,99,235,0.7); border-color: rgba(37,99,235,0.8); }
+.hero-prev { left: 20px; }
+.hero-next { right: 20px; }
+.hero-dots { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 10; }
+.hero-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.3); border: none; cursor: pointer; transition: all 0.3s; }
+.hero-dot.active { background: var(--blue-primary, #2563eb); transform: scale(1.3); }
+@media (max-width: 768px) { .hero-slider { height: 60vh; min-height: 400px; } .hero-arrow { width: 36px; height: 36px; } }
+</style>
+
 <main class="main-content">
-  <!-- Hero -->
-  <section class="hero">
-    <div class="hero-bg" style="background-image: url('<%= heroMovie.backdrop || '' %>')"></div>
-    <div class="hero-content">
-      <div class="hero-badge">
-        <% if (heroMovie.premium) { %>⭐ PREMIUM<% } else { %>🔥 TRENDING<% } %>
-      </div>
-      <h1 class="hero-title"><%= heroMovie.title %></h1>
-      <div class="hero-meta">
-        <span class="rating">★ <%= heroMovie.rating %></span>
-        <span><%= heroMovie.year %></span>
-        <span><%= heroMovie.duration %></span>
-        <span><%= heroMovie.genre %></span>
-      </div>
-      <p class="hero-desc"><%= heroMovie.description %></p>
-      <div class="hero-actions">
-        <% if (heroMovie.id) { %>
-        <a href="/watch/movie/<%= heroMovie.id %>" class="btn btn-primary btn-lg">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          Watch Now
-        </a>
-        <% if (user) { %>
-        <form action="/watchlist/add" method="POST" style="display:inline">
-          <input type="hidden" name="id" value="<%= heroMovie.id %>">
-          <button type="submit" class="btn btn-primary btn-lg" style="background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.3);box-shadow:none;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-            Watchlist
-          </button>
-        </form>
-        <% } else { %>
-        <button class="btn btn-primary btn-lg" style="background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.3);box-shadow:none;" onclick="document.getElementById('authModal') && document.getElementById('authModal').classList.add('active')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-          Watchlist
-        </button>
-        <% } %>
-        <% } %>
+  <!-- Hero Slider -->
+  <section class="hero-slider">
+    <% heroMovies.forEach((m, i) => { %>
+    <div class="hero-slide <%= i === 0 ? 'active' : '' %>" data-index="<%= i %>">
+      <div class="hero-bg" style="background-image: url('<%= m.backdrop || m.poster || '' %>')"></div>
+      <div class="hero-content">
+        <div class="hero-badge">
+          <% if (m.premium) { %>⭐ PREMIUM<% } else { %>🔥 TRENDING<% } %>
+        </div>
+        <h1 class="hero-title"><%= m.title %></h1>
+        <div class="hero-meta">
+          <span class="rating">★ <%= m.rating %></span>
+          <span><%= m.year %></span>
+          <span><%= m.duration %></span>
+          <span><%= m.genre %></span>
+        </div>
+        <p class="hero-desc"><%= m.description %></p>
+        <div class="hero-actions">
+          <% if (m.id) { %>
+          <a href="/watch/movie/<%= m.id %>" class="btn btn-primary btn-lg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            Watch Now
+          </a>
+          <% if (user) { %>
+          <form action="/watchlist/add" method="POST" style="display:inline">
+            <input type="hidden" name="id" value="<%= m.id %>">
+            <button type="submit" class="btn btn-primary btn-lg" style="background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.3);box-shadow:none;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              Watchlist
+            </button>
+          </form>
+          <% } %>
+          <% } %>
+        </div>
       </div>
     </div>
+    <% }) %>
+
+    <button class="hero-arrow hero-prev" onclick="heroSlide(-1)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <button class="hero-arrow hero-next" onclick="heroSlide(1)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
+
+    <div class="hero-dots">
+      <% heroMovies.forEach((m, i) => { %>
+      <button class="hero-dot <%= i === 0 ? 'active' : '' %>" onclick="heroGoTo(<%= i %>)"></button>
+      <% }) %>
+    </div>
   </section>
+
+  <script>
+  (function() {
+    let current = 0;
+    const slides = document.querySelectorAll('.hero-slide');
+    const dots = document.querySelectorAll('.hero-dot');
+    const total = slides.length;
+    if (total <= 1) return;
+
+    function showSlide(n) {
+      slides.forEach(s => s.classList.remove('active'));
+      dots.forEach(d => d.classList.remove('active'));
+      current = (n + total) % total;
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+    }
+
+    window.heroSlide = function(dir) { showSlide(current + dir); resetTimer(); };
+    window.heroGoTo = function(i) { showSlide(i); resetTimer(); };
+
+    let timer = setInterval(() => showSlide(current + 1), 5000);
+    function resetTimer() { clearInterval(timer); timer = setInterval(() => showSlide(current + 1), 5000); }
+  })();
+  </script>
 
   <!-- Continue Watching -->
   <% if (user) { %>

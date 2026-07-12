@@ -35,9 +35,12 @@ router.get('/', async (req, res) => {
     }
   }
 
-  const heroMovie = allMovies.length > 0
-    ? allMovies[Math.floor(Math.random() * Math.min(allMovies.length, 10))]
-    : { id: '', title: 'streamX', genre: '', year: 2026, rating: 0, duration: '', description: 'Your favorite streaming platform.', poster: '', backdrop: '', premium: false };
+  const heroMovies = allMovies.length > 0
+    ? allMovies.slice(0, 5).map(m => ({
+        ...m,
+        backdrop: m.backdrop || (m.poster ? m.poster.replace('w500', 'original') : ''),
+      }))
+    : [{ id: '', title: 'streamX', genre: '', year: 2026, rating: 0, duration: '', description: 'Your favorite streaming platform.', poster: '', backdrop: '', premium: false }];
   const trending = allMovies.slice(0, 10);
   const newReleases = allMovies.filter(m => m.badge === 'new').slice(0, 8);
   const topRated = [...allMovies].sort((a, b) => b.rating - a.rating).slice(0, 10);
@@ -48,7 +51,7 @@ router.get('/', async (req, res) => {
   const top10 = [...allMovies].sort((a, b) => b.rating - a.rating).slice(0, 10);
   const trendingSeries = allSeries.slice(0, 8);
 
-  res.render('index', { heroMovie, trending, newReleases, topRated, continueWatching, top10, trendingSeries, movies: allMovies, allSeries, TMDB_IMG });
+  res.render('index', { heroMovies, heroMovie: heroMovies[0], trending, newReleases, topRated, continueWatching, top10, trendingSeries, movies: allMovies, allSeries, TMDB_IMG });
 });
 
 router.get('/pricing', (req, res) => {

@@ -118,8 +118,9 @@ router.get('/:type/:id', async (req, res) => {
 
   function toProxyUrl(url) {
     if (!url) return url;
-    const match = url.match(/\/resolve\/main\/(.+)/);
-    if (match) return `/stream/${match[1]}`;
+    let match = url.match(/\/resolve\/main\/(.+)/);
+    if (!match) match = url.match(/\/resolve\/(.+)/);
+    if (match) return `/stream/${decodeURIComponent(match[1])}`;
     return url;
   }
   if (item.videoUrl && item.videoUrl.includes('huggingface.co')) {

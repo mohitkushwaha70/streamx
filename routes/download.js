@@ -14,8 +14,9 @@ try {
 
 function toProxyUrl(hfUrl) {
   if (!hfUrl) return '';
-  const match = hfUrl.match(/\/resolve\/main\/(.+)/);
-  if (match) return `/stream/${match[1]}`;
+  let match = hfUrl.match(/\/resolve\/main\/(.+)/);
+  if (!match) match = hfUrl.match(/\/resolve\/(.+)/);
+  if (match) return `/stream/${decodeURIComponent(match[1])}`;
   return hfUrl;
 }
 

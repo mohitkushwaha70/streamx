@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useUser } from '@/hooks/use-user';
 import {
   Home,
@@ -97,7 +98,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       >
         <div className="flex items-center justify-between px-5 h-16 border-b border-border">
           <Link href="/admin" className="flex items-center gap-2">
-            <span className="text-xl font-bold text-[#e50914]">StreamX</span>
+            <Image src="/images/logo.png" alt="StreamX" width={32} height={32} className="h-8 w-auto" />
             <span className="text-xs font-medium text-muted bg-border px-1.5 py-0.5 rounded">Admin</span>
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 text-muted hover:text-white">

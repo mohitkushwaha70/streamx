@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { Search, Menu, X, User, LogOut, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -60,9 +61,15 @@ export function Header() {
     >
       <nav className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 lg:px-8">
         <div className="flex items-center gap-8">
-          <Link href="/" className="text-xl font-bold tracking-tight">
-            <span className="text-accent">Stream</span>
-            <span className="text-white">X</span>
+          <Link href="/" className="flex items-center gap-2 text-xl font-bold tracking-tight">
+            <Image
+              src="/images/logo.png"
+              alt="StreamX"
+              width={40}
+              height={40}
+              className="h-9 w-auto"
+              priority
+            />
           </Link>
 
           <ul className="hidden items-center gap-1 md:flex">

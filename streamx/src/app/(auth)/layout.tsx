@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function AuthLayout({
   children,
@@ -13,10 +14,9 @@ export default function AuthLayout({
       </div>
 
       <div className="relative z-10 w-full max-w-md">
-        <div className="mb-8 text-center">
-          <Link href="/" className="inline-block text-3xl font-bold tracking-tight">
-            <span className="text-accent">Stream</span>
-            <span className="text-white">X</span>
+        <div className="mb-8 flex justify-center">
+          <Link href="/">
+            <Image src="/images/logo.png" alt="StreamX" width={120} height={48} className="h-12 w-auto" priority />
           </Link>
         </div>
 

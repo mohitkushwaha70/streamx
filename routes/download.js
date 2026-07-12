@@ -10,7 +10,6 @@ function reloadVideoConfig() {
   try { videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {}; } catch (e) {}
 }
 reloadVideoConfig();
-}
 
 function toProxyUrl(hfUrl) {
   if (!hfUrl) return '';

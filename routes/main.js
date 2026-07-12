@@ -1,14 +1,39 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
+const fs = require('fs');
 const { movies, series } = require('../data/sample');
 const { fetchMovies, fetchSeries, searchMovies: tmdbSearch, TMDB_IMG } = require('../services/tmdb');
+
+let videoConfig = {};
+try {
+  videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {};
+} catch (e) {}
 
 router.get('/', async (req, res) => {
   const tmdbMovies = await fetchMovies().catch(() => null);
   const tmdbSeries = await fetchSeries().catch(() => null);
 
-  const allMovies = tmdbMovies || [];
-  const allSeries = tmdbSeries || [];
+  let allMovies = tmdbMovies || [];
+  let allSeries = tmdbSeries || [];
+
+  const videoTmdbIds = Object.keys(videoConfig).filter(k => !isNaN(k)).map(Number);
+  for (const tmdbId of videoTmdbIds) {
+    const cfg = videoConfig[tmdbId];
+    const existing = allMovies.find(m => (m.tmdbId || m.id) === tmdbId);
+    if (!existing) {
+      allMovies.push({
+        id: tmdbId, tmdbId,
+        title: cfg.title || `Movie ${tmdbId}`,
+        genre: 'Unknown', year: 2024, rating: 7.0, duration: '2h',
+        poster: `https://picsum.photos/seed/${tmdbId}/400/600`,
+        backdrop: '', description: '',
+        premium: false, badge: 'new',
+        videoUrl: '/stream/' + Object.values(cfg.sources)[0].split('/resolve/main/')[1],
+        videoType: 'mp4'
+      });
+    }
+  }
 
   const heroMovie = allMovies.length > 0
     ? allMovies[Math.floor(Math.random() * Math.min(allMovies.length, 10))]

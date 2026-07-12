@@ -1,34 +1,10 @@
 {
-  "note": "HF dataset: mohit8287kushwaha/Mohit8287kushwahaStreamxvedios",
+  "note": "HF dataset: mohit8287kushwaha/Mohit8287kushwahaStreamxvedios - Upload movies and add TMDB ID",
   "videos": {
-    "550": {
-      "title": "Fight Club (1999)",
-      "sources": {
-        "1080p": "https://huggingface.co/datasets/mohit8287kushwaha/Mohit8287kushwahaStreamxvedios/resolve/main/Fight%20Club%20%281999%29%20%5BBluRay%5D%20%5B1080p%5D%20%5Bx265%5D%20%5BAAC%5D.mp4"
-      }
-    },
-    "811941": {
-      "title": "Devara Part 1 (2024)",
-      "sources": {
-        "1080p": "https://huggingface.co/datasets/mohit8287kushwaha/Mohit8287kushwahaStreamxvedios/resolve/main/Devara%20Part%201%20%282024%29%20%5BHindi%20%28Original%29%5D%20%5B1080p%5D%20%5Bx265%5D%20%5BHEVC%5D%20%5BAAC5.1%5D%20%5B5.1%5D%20%5BJZ%5D.mkv"
-      }
-    },
-    "629278": {
-      "title": "Hellaro (2019)",
-      "sources": {
-        "1080p": "https://huggingface.co/datasets/mohit8287kushwaha/Mohit8287kushwahaStreamxvedios/resolve/main/Hellaro%20%282019%29%20%5BGujarati%5D%20%5B1080p%5D%20%5Bx265%5D%20%5BAAC%205.1%5D%20%5B5.1%5D.mkv"
-      }
-    },
-    "857598": {
-      "title": "Pushpa 2 The Rule (2024)",
-      "sources": {
-        "1080p": "https://huggingface.co/datasets/mohit8287kushwaha/Mohit8287kushwahaStreamxvedios/resolve/main/Pushpa%202%20The%20Rule%20%282024%29%20%5BHindi%20%28Original%29%5D%20%5B1080p%5D%20%5Bx265%5D%20%5BHEVC%5D%20%5BAAC%205.1%5D%20%5B5.1%5D%20%5BJZ%5D.mkv"
-      }
-    },
     "1303331": {
       "title": "Dhamaal 4 (2026)",
       "sources": {
-        "1080p": "https://huggingface.co/buckets/mohit8287kushwaha/streamx/resolve/Dhamaal%204%202026%20Hindi%201080p%20HQ%20HDTC.mkv"
+        "1080p": "https://huggingface.co/datasets/mohit8287kushwaha/Mohit8287kushwahaStreamxvedios/resolve/main/Dhamaal%204%202026%20Hindi%201080p%20HQ%20HDTC.mkv"
       }
     }
   }

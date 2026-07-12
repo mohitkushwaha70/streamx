@@ -1,9 +1,32 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
+const fs = require('fs');
 const { movies: sampleMovies, series: sampleSeries } = require('../data/sample');
 const { fetchMovies, fetchSeries } = require('../services/tmdb');
 
-const VIDEO_STORAGE_BASE = process.env.VIDEO_STORAGE_URL || '';
+let videoConfig = {};
+try {
+  videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {};
+} catch (e) {
+  console.error('Could not load videos.json:', e.message);
+}
+
+function getVideoSources(type, tmdbId) {
+  const key = String(tmdbId);
+  if (videoConfig[key]) return videoConfig[key];
+
+  const storageBase = process.env.VIDEO_STORAGE_BASE || '';
+  if (storageBase) {
+    return {
+      sources: {
+        '1080p': `${storageBase}/${type}/${tmdbId}-1080p.mp4`,
+        '720p': `${storageBase}/${type}/${tmdbId}-720p.mp4`
+      }
+    };
+  }
+  return null;
+}
 
 async function findItem(type, id) {
   const itemId = parseInt(id);
@@ -25,19 +48,22 @@ router.get('/:type/:id', async (req, res) => {
   const item = await findItem(type, id);
   if (!item) return res.redirect('/');
 
+  const tmdbId = item.tmdbId || item.id;
+  const videoInfo = getVideoSources(type, tmdbId);
+
   const qualities = [
-    { label: '4K Ultra HD', resolution: '2160p', size: '~8 GB', tag: 'ultra', available: false },
-    { label: 'Full HD', resolution: '1080p', size: '~2.5 GB', tag: 'hd', available: false },
-    { label: 'HD', resolution: '720p', size: '~1.2 GB', tag: '720', available: false },
-    { label: 'SD', resolution: '480p', size: '~600 MB', tag: 'sd', available: false },
+    { label: '4K Ultra HD', resolution: '2160p', size: '~8 GB', tag: 'ultra', available: false, url: '' },
+    { label: 'Full HD', resolution: '1080p', size: '~2.5 GB', tag: 'hd', available: false, url: '' },
+    { label: 'HD', resolution: '720p', size: '~1.2 GB', tag: '720', available: false, url: '' },
+    { label: 'SD', resolution: '480p', size: '~600 MB', tag: 'sd', available: false, url: '' },
   ];
 
-  const storageUrl = item.videoStorageUrl || item.videoUrl || '';
-  if (storageUrl) {
-    qualities[1].available = true;
-    qualities[1].url = storageUrl;
-    qualities[3].available = true;
-    qualities[3].url = storageUrl;
+  if (videoInfo && videoInfo.sources) {
+    const src = videoInfo.sources;
+    if (src['2160p'] || src['4k']) { qualities[0].available = true; qualities[0].url = src['2160p'] || src['4k']; }
+    if (src['1080p']) { qualities[1].available = true; qualities[1].url = src['1080p']; }
+    if (src['720p']) { qualities[2].available = true; qualities[2].url = src['720p']; }
+    if (src['480p']) { qualities[3].available = true; qualities[3].url = src['480p']; }
   }
 
   const episodes = [];
@@ -45,7 +71,12 @@ router.get('/:type/:id', async (req, res) => {
     for (let s = 1; s <= (item.seasons || 1); s++) {
       const eps = item.episodeList || [];
       eps.filter(e => e.season === s).forEach(ep => {
-        episodes.push({ ...ep, season: s });
+        const epKey = `${tmdbId}-s${s}e${ep.number}`;
+        const epVideo = videoConfig[epKey];
+        episodes.push({
+          ...ep, season: s,
+          downloadUrl: epVideo?.sources?.['1080p'] || epVideo?.sources?.['720p'] || ''
+        });
       });
     }
   }

@@ -131,8 +131,8 @@
           <span class="ep-num">E<%= ep.number %></span>
           <span class="ep-title"><%= ep.title %></span>
           <span style="font-size:0.75rem;color:var(--text-muted);"><%= ep.duration || '' %></span>
-          <% if (ep.videoUrl) { %>
-          <a href="<%= ep.videoUrl %>" download class="dl-btn outline" target="_blank" style="margin-left:12px;">
+          <% if (ep.downloadUrl) { %>
+          <a href="<%= ep.downloadUrl %>" download class="dl-btn outline" target="_blank" style="margin-left:12px;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           </a>
           <% } else { %>

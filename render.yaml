@@ -9,3 +9,5 @@ services:
         value: "22"
       - key: SESSION_SECRET
         value: "streamx_super_secret_key_2026"
+      - key: VIDEO_STORAGE_BASE
+        sync: false

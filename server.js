@@ -43,8 +43,6 @@ const adminRoutes = require('./routes/admin');
 const animeRoutes = require('./routes/anime');
 const profileRoutes = require('./routes/profile');
 const watchlistRoutes = require('./routes/watchlist');
-const freeRoutes = require('./routes/free');
-
 const { changeEmitter } = require('./data/sample');
 
 // SSE endpoint for real-time sync
@@ -76,8 +74,6 @@ app.use('/anime', animeRoutes);
 app.use('/admin', adminRoutes);
 app.use('/profile', profileRoutes);
 app.use('/watchlist', watchlistRoutes);
-app.use('/free-movies', freeRoutes);
-
 app.use((err, req, res, next) => {
   console.error('=== ERROR ===');
   console.error('URL:', req.method, req.originalUrl);

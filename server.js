@@ -7,6 +7,8 @@ const compression = require('compression');
 
 try { require('dotenv').config(); } catch(e) {}
 
+const db = require('./services/database');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -47,6 +49,7 @@ const profileRoutes = require('./routes/profile');
 const watchlistRoutes = require('./routes/watchlist');
 const downloadRoutes = require('./routes/download');
 const videoProxyRoutes = require('./routes/video-proxy');
+const searchRoutes = require('./routes/search');
 const { changeEmitter } = require('./data/sample');
 
 changeEmitter.setMaxListeners(100);
@@ -81,6 +84,7 @@ app.use('/profile', profileRoutes);
 app.use('/watchlist', watchlistRoutes);
 app.use('/download', downloadRoutes);
 app.use('/stream', videoProxyRoutes);
+app.use('/api/search', searchRoutes);
 app.use((err, req, res, next) => {
   console.error('=== ERROR ===');
   console.error('URL:', req.method, req.originalUrl);
@@ -93,20 +97,31 @@ app.use((err, req, res, next) => {
 if (!process.env.TMDB_READ_ACCESS_TOKEN) {
   console.error('!!! CRITICAL: TMDB_READ_ACCESS_TOKEN is not set !!!');
   console.error('Set it in Render Dashboard > Environment tab.');
-  console.error('TMDB API calls will fail with 401 Unauthorized.');
 } else {
   console.log('TMDB_READ_ACCESS_TOKEN loaded (length:', process.env.TMDB_READ_ACCESS_TOKEN.length, ')');
 }
 
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`streamX running on port ${PORT}`);
+async function start() {
+  await db.init();
+  console.log('Database initialized');
+
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`streamX running on port ${PORT}`);
+  });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`Port ${PORT} in use, trying ${PORT + 1}`);
+      app.listen(PORT + 1, '0.0.0.0', () => {
+        console.log(`streamX running on port ${PORT + 1}`);
+      });
+    }
+  });
+}
+
+start().catch(err => {
+  console.error('Failed to start:', err);
+  process.exit(1);
 });
 
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.log(`Port ${PORT} in use, trying ${PORT + 1}`);
-    app.listen(PORT + 1, '0.0.0.0', () => {
-      console.log(`streamX running on port ${PORT + 1}`);
-    });
-  }
-});
+module.exports = app;

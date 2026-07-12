@@ -39,7 +39,7 @@
             <% } %>
             <div style="flex:1;">
               <div style="color:#ccc;font-size:0.85rem;"><strong style="color:#fff;"><%= log.message %></strong></div>
-              <div style="color:#555;font-size:0.75rem;margin-top:2px;"><%= log.timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %> <%= log.timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %> &middot; by <%= log.admin %></div>
+              <div style="color:#555;font-size:0.75rem;margin-top:2px;"><%= new Date(log.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %> <%= new Date(log.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %> &middot; by <%= log.admin %></div>
             </div>
           </div>
         <% }) %>

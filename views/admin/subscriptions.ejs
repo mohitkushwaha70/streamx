@@ -166,9 +166,9 @@
               <tr>
                 <td><div class="user-cell"><div class="avatar-sm" style="background: linear-gradient(135deg, #f59e0b, #f97316);"><%= u.avatar %></div><strong><%= u.name %></strong></div></td>
                 <td style="color:var(--text-muted)"><%= u.email %></td>
-                <td style="color:var(--text-muted);"><%= u.watchTime ? Math.floor(u.watchTime / 60) + 'h ' + (u.watchTime % 60) + 'm' : '0m' %></td>
+                <td style="color:var(--text-muted);"><%= u.watch_time ? Math.floor(u.watch_time / 60) + 'h ' + (u.watch_time % 60) + 'm' : '0m' %></td>
                 <td style="color:var(--text-muted);"><%= u.devices || 1 %></td>
-                <td style="color:var(--text-muted); font-size: 0.75rem;"><%= new Date(u.joinedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) %></td>
+                <td style="color:var(--text-muted); font-size: 0.75rem;"><%= new Date(u.joined_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) %></td>
                 <td><span class="plan-badge premium">Active</span></td>
               </tr>
             <% }) %>

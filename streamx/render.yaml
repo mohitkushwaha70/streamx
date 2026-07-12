@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: streamx
+    runtime: node
+    plan: free
+    buildCommand: npm install && npx prisma generate && npx next build
+    startCommand: npx next start
+    envVars:
+      - NODE_ENV
+      - DATABASE_URL
+      - JWT_SECRET
+      - HF_TOKEN
+      - HF_BUCKET
+      - TMDB_READ_ACCESS_TOKEN
+      - CLOUDINARY_CLOUD_NAME
+      - CLOUDINARY_API_KEY
+      - CLOUDINARY_API_SECRET

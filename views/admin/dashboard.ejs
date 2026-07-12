@@ -187,7 +187,7 @@
               <div class="activity-dot activity-dot-<%= log.type %>"></div>
               <div class="activity-content">
                 <span><%= log.message %></span>
-                <small><%= log.timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %> &middot; <%= log.admin %></small>
+                <small><%= new Date(log.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %> &middot; <%= log.admin %></small>
               </div>
             </div>
             <% }) %>

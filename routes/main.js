@@ -3,11 +3,50 @@ const router = express.Router();
 const { movies, series } = require('../data/sample');
 const { fetchMovies, fetchSeries, searchMovies: tmdbSearch, TMDB_IMG } = require('../services/tmdb');
 const videoConfig = require('../services/video-config');
+const db = require('../services/database');
+
+async function syncTmdbToDb(tmdbItems, type) {
+  if (!tmdbItems) return;
+  for (const m of tmdbItems) {
+    try {
+      db.content.upsert({
+        tmdb_id: m.id,
+        title: m.title || 'Untitled',
+        type: m.seasons ? 'series' : type,
+        genre: m.genre || '',
+        genres: m.genres || [],
+        year: m.year || 0,
+        rating: m.rating || 0,
+        vote_count: m.voteCount || 0,
+        duration: m.duration || '',
+        description: m.description || '',
+        poster: m.poster || '',
+        backdrop: m.backdrop || '',
+        video_url: m.videoUrl || '',
+        video_type: m.videoType || 'mp4',
+        trailer_key: m.trailerKey || '',
+        cast: m.cast || '',
+        director: m.director || '',
+        language: m.language || 'en',
+        popularity: m.popularity || 0,
+        release_date: m.releaseDate || '',
+        seasons: m.seasons || 0,
+        episodes_count: m.episodes || 0,
+        premium: m.premium ? 1 : 0,
+        badge: m.badge || ''
+      });
+    } catch (e) {}
+  }
+}
 
 router.get('/', async (req, res) => {
   const videoConfigData = videoConfig.get();
   const tmdbMovies = await fetchMovies().catch(() => null);
   const tmdbSeries = await fetchSeries().catch(() => null);
+
+  // Sync to database in background
+  syncTmdbToDb(tmdbMovies, 'movie');
+  syncTmdbToDb(tmdbSeries, 'series');
 
   let allMovies = tmdbMovies || [];
   let allSeries = tmdbSeries || [];
@@ -44,9 +83,10 @@ router.get('/', async (req, res) => {
   const newReleases = allMovies.filter(m => m.badge === 'new').slice(0, 8);
   const topRated = [...allMovies].sort((a, b) => b.rating - a.rating).slice(0, 10);
 
-  let continueWatching = (req.session.continueWatching || [])
-    .sort((a, b) => b.lastWatched - a.lastWatched)
-    .slice(0, 8);
+  let continueWatching = [];
+  if (req.session.user) {
+    continueWatching = db.continueWatching.get(req.session.user.id).slice(0, 8);
+  }
   const top10 = topRated;
   const trendingSeries = allSeries.slice(0, 8);
 
@@ -61,21 +101,40 @@ router.get('/search', async (req, res) => {
   const q = req.query.q || '';
   let results = [];
   if (q) {
-    const { searchMovies: tmdbSearch } = require('../services/tmdb');
-    const tmdbResults = await tmdbSearch(q).catch(() => []);
-    results = tmdbResults.map(r => ({
-      id: r.id,
-      title: r.title || r.name,
-      genre: r.genre_ids?.[0] ? '' : '',
-      year: (r.release_date || r.first_air_date || '').slice(0, 4),
-      rating: r.vote_average ? parseFloat(r.vote_average.toFixed(1)) : 0,
-      poster: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : '',
-      backdrop: r.backdrop_path ? `https://image.tmdb.org/t/p/original${r.backdrop_path}` : '',
-      type: r.media_type || 'movie',
-      description: r.overview || ''
+    // Search database first
+    const dbResults = db.content.search(q, 20);
+    results = dbResults.map(r => ({
+      id: r.id, tmdb_id: r.tmdb_id,
+      title: r.title,
+      genre: r.genre,
+      year: r.year,
+      rating: r.rating,
+      poster: r.poster,
+      backdrop: r.backdrop,
+      type: r.type,
+      description: r.description
     }));
-    if (results.length === 0) {
-      results = [];
+
+    // Also search TMDB
+    if (results.length < 5) {
+      try {
+        const tmdbResults = await tmdbSearch(q).catch(() => []);
+        const existingIds = new Set(results.map(r => r.tmdb_id));
+        const tmdbMapped = tmdbResults
+          .filter(r => !existingIds.has(r.id))
+          .map(r => ({
+            id: null, tmdb_id: r.id,
+            title: r.title || r.name,
+            genre: '',
+            year: (r.release_date || r.first_air_date || '').slice(0, 4),
+            rating: r.vote_average ? parseFloat(r.vote_average.toFixed(1)) : 0,
+            poster: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : '',
+            backdrop: r.backdrop_path ? `https://image.tmdb.org/t/p/original${r.backdrop_path}` : '',
+            type: r.media_type || 'movie',
+            description: r.overview || ''
+          }));
+        results = [...results, ...tmdbMapped];
+      } catch (e) {}
     }
   }
   res.render('search', { query: q, results });

@@ -4,6 +4,7 @@ const { movies: sampleMovies, series: sampleSeries } = require('../data/sample')
 const { fetchMovies, fetchSeries, fetchSeasonEpisodes } = require('../services/tmdb');
 const { getStreamingInfo, getSourceIcon, getSourceColor } = require('../services/watchmode');
 const videoConfig = require('../services/video-config');
+const db = require('../services/database');
 
 router.get('/:type/:id', async (req, res) => {
   if (!req.session.user) {
@@ -67,20 +68,8 @@ router.get('/:type/:id', async (req, res) => {
     }
   }
 
-  if (!req.session.continueWatching) req.session.continueWatching = [];
-  const existing = req.session.continueWatching.find(w => w.id === itemId && w.type === type);
-  if (existing) {
-    existing.progress = Math.min(existing.progress + Math.floor(Math.random() * 15) + 5, 95);
-    existing.lastWatched = Date.now();
-  } else {
-    req.session.continueWatching.push({
-      id: itemId, type: type, title: item.title, poster: item.poster,
-      genre: item.genre, duration: item.duration || (item.seasons ? item.seasons + ' Seasons' : ''),
-      progress: Math.floor(Math.random() * 30) + 10, lastWatched: Date.now()
-    });
-  }
-  if (req.session.continueWatching.length > 10) {
-    req.session.continueWatching = req.session.continueWatching.slice(-10);
+  if (req.session.user) {
+    db.continueWatching.upsert(req.session.user.id, itemId, type, item.title, item.poster, item.genre, item.duration || (item.seasons ? item.seasons + ' Seasons' : ''), Math.floor(Math.random() * 30) + 10);
   }
 
   let episodes = [];

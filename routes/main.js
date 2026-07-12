@@ -6,11 +6,13 @@ const { movies, series } = require('../data/sample');
 const { fetchMovies, fetchSeries, searchMovies: tmdbSearch, TMDB_IMG } = require('../services/tmdb');
 
 let videoConfig = {};
-try {
-  videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {};
-} catch (e) {}
+function reloadVideoConfig() {
+  try { videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {}; } catch (e) {}
+}
+reloadVideoConfig();
 
 router.get('/', async (req, res) => {
+  reloadVideoConfig();
   const tmdbMovies = await fetchMovies().catch(() => null);
   const tmdbSeries = await fetchSeries().catch(() => null);
 

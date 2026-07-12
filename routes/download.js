@@ -6,10 +6,10 @@ const { movies: sampleMovies, series: sampleSeries } = require('../data/sample')
 const { fetchMovies, fetchSeries } = require('../services/tmdb');
 
 let videoConfig = {};
-try {
-  videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {};
-} catch (e) {
-  console.error('Could not load videos.json:', e.message);
+function reloadVideoConfig() {
+  try { videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {}; } catch (e) {}
+}
+reloadVideoConfig();
 }
 
 function toProxyUrl(hfUrl) {
@@ -49,7 +49,13 @@ async function findItem(type, id) {
   const itemId = parseInt(id);
   if (type === 'movie') {
     const tmdbMovies = await fetchMovies().catch(() => null);
-    const allMovies = [...(tmdbMovies || []), ...sampleMovies];
+    let allMovies = [...(tmdbMovies || []), ...sampleMovies];
+    for (const tmdbId of Object.keys(videoConfig).filter(k => !isNaN(k)).map(Number)) {
+      if (!allMovies.find(m => (m.tmdbId || m.id) === tmdbId)) {
+        const cfg = videoConfig[tmdbId];
+        allMovies.push({ id: tmdbId, tmdbId, title: cfg.title, genre: cfg.genre, year: cfg.year, poster: cfg.poster, premium: false });
+      }
+    }
     return allMovies.find(m => m.id === itemId || m.tmdbId === itemId) || null;
   } else {
     const tmdbSeries = await fetchSeries().catch(() => null);
@@ -59,6 +65,7 @@ async function findItem(type, id) {
 }
 
 router.get('/:type/:id', async (req, res) => {
+  reloadVideoConfig();
   const { type, id } = req.params;
   if (type !== 'movie' && type !== 'series') return res.redirect('/');
 

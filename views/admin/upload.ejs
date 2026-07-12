@@ -1,0 +1,130 @@
+<%- include('../partials/header', { pageTitle: 'Upload from HuggingFace' }) %>
+
+<div class="admin-layout">
+  <%- include('../partials/admin-sidebar') %>
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1>Upload from HuggingFace</h1>
+      <p style="color:#888;margin-top:4px;">Paste HF URL + TMDB ID → movie appears instantly on website</p>
+    </div>
+
+    <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+    <% if (error) { %><div class="alert alert-danger"><%= error %></div><% } %>
+
+    <div class="admin-card" style="max-width:700px;">
+      <h3 style="margin-bottom:16px;">Add New Movie / Anime / Series</h3>
+      <form id="uploadForm" method="POST" action="/admin/upload">
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="display:block;color:#ccc;margin-bottom:4px;font-size:13px;">TMDB ID *</label>
+          <div style="display:flex;gap:8px;">
+            <input type="number" id="tmdbIdInput" name="tmdbId" placeholder="e.g. 1303331" required
+              style="flex:1;padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;">
+            <button type="button" id="fetchBtn" class="btn btn-primary" style="white-space:nowrap;">
+              Auto-Fill Details
+            </button>
+          </div>
+          <small style="color:#666;display:block;margin-top:4px;">Go to <a href="https://www.themoviedb.org" target="_blank" style="color:#e50914;">TMDB</a> → search movie → copy ID from URL</small>
+        </div>
+
+        <div id="preview" style="display:none;margin-bottom:16px;padding:14px;background:#0f0f23;border-radius:8px;border:1px solid #222;">
+          <div style="display:flex;gap:14px;">
+            <img id="previewImg" src="" style="width:100px;height:150px;object-fit:cover;border-radius:6px;">
+            <div>
+              <h4 id="previewTitle" style="margin:0 0 4px;color:#fff;"></h4>
+              <p id="previewMeta" style="color:#888;margin:0 0 4px;font-size:13px;"></p>
+              <p id="previewDesc" style="color:#aaa;margin:0;font-size:12px;line-height:1.4;"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="display:block;color:#ccc;margin-bottom:4px;font-size:13px;">HuggingFace File URL *</label>
+          <input type="url" name="hfUrl" required placeholder="https://huggingface.co/datasets/.../resolve/main/filename.mkv"
+            style="width:100%;padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;">
+          <small style="color:#666;display:block;margin-top:4px;">Right-click file on HF → Copy Link Address</small>
+        </div>
+
+        <div class="form-group" style="margin-bottom:20px;">
+          <label style="display:block;color:#ccc;margin-bottom:4px;font-size:13px;">Quality</label>
+          <select name="quality" style="padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;">
+            <option value="1080p">1080p</option>
+            <option value="720p">720p</option>
+            <option value="480p">480p</option>
+            <option value="4K">4K</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;font-size:15px;">
+          Save to Website
+        </button>
+      </form>
+    </div>
+
+    <% if (uploadedMovies && uploadedMovies.length > 0) { %>
+    <div class="admin-card" style="margin-top:20px;">
+      <h3 style="margin-bottom:16px;">Uploaded Movies (<%= uploadedMovies.length %>)</h3>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr><th>#</th><th>Movie</th><th>Genre</th><th>Year</th><th>Rating</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <% uploadedMovies.forEach((m, i) => { %>
+            <tr>
+              <td><%= i + 1 %></td>
+              <td>
+                <div class="user-cell">
+                  <% if (m.poster) { %><img src="<%= m.poster %>" class="table-thumb" alt="<%= m.title %>"><% } %>
+                  <div>
+                    <strong><%= m.title %></strong>
+                    <small style="color:#666;display:block;">TMDB: <%= m.tmdbId %></small>
+                  </div>
+                </div>
+              </td>
+              <td><span class="table-badge"><%= m.genre %></span></td>
+              <td><%= m.year %></td>
+              <td>★ <%= m.rating %></td>
+              <td>
+                <div class="action-btns">
+                  <a href="/watch/movie/<%= m.tmdbId %>" class="btn-icon-sm" title="Watch" target="_blank">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  </a>
+                  <a href="/admin/upload/delete/<%= m.tmdbId %>" class="btn-icon-sm danger" title="Remove" onclick="return confirm('Remove this movie?')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <% } %>
+  </main>
+</div>
+
+<script>
+document.getElementById('fetchBtn').addEventListener('click', async function() {
+  const tmdbId = document.getElementById('tmdbIdInput').value.trim();
+  if (!tmdbId) return alert('Enter TMDB ID first');
+  this.textContent = 'Loading...';
+  this.disabled = true;
+  try {
+    const r = await fetch('/admin/upload/fetch/' + tmdbId);
+    const d = await r.json();
+    if (d.error) { alert(d.error); return; }
+    const preview = document.getElementById('preview');
+    preview.style.display = 'block';
+    document.getElementById('previewImg').src = d.poster || 'https://picsum.photos/seed/' + tmdbId + '/400/600';
+    document.getElementById('previewTitle').textContent = d.title;
+    document.getElementById('previewMeta').textContent = [d.genre, d.year, d.duration].filter(Boolean).join(' • ') + (d.rating ? ' • ★ ' + d.rating : '');
+    document.getElementById('previewDesc').textContent = d.description || 'No description';
+  } catch(e) {
+    alert('Error fetching details: ' + e.message);
+  } finally {
+    document.getElementById('fetchBtn').textContent = 'Auto-Fill Details';
+    document.getElementById('fetchBtn').disabled = false;
+  }
+});
+</script>

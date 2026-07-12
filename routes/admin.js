@@ -590,4 +590,131 @@ router.get('/logs', (req, res) => {
   res.render('admin/logs', { logs: filtered, typeFilter, totalCount: activityLogs.length });
 });
 
+// Upload Movies from HF
+function reloadVideoConfig() {
+  try {
+    videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {};
+  } catch (e) {}
+}
+
+const TMDB_IMG = 'https://image.tmdb.org/t/p';
+
+router.get('/upload', (req, res) => {
+  reloadVideoConfig();
+  const uploadedMovies = Object.entries(videoConfig).map(([id, cfg]) => ({
+    tmdbId: id,
+    title: cfg.title,
+    poster: cfg.poster,
+    genre: cfg.genre,
+    year: cfg.year,
+    rating: cfg.rating,
+    source: Object.values(cfg.sources)[0] || ''
+  }));
+  res.render('admin/upload', { uploadedMovies, success: req.session.success, error: req.session.error });
+});
+
+router.get('/upload/fetch/:tmdbId', async (req, res) => {
+  try {
+    const tmdbId = req.params.tmdbId;
+    const resp = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?language=en-US`, {
+      headers: { 'Authorization': `Bearer ${process.env.TMDB_READ_ACCESS_TOKEN}`, 'Accept': 'application/json' }
+    });
+    if (!resp.ok) {
+      const tvResp = await fetch(`https://api.themoviedb.org/3/tv/${tmdbId}?language=en-US`, {
+        headers: { 'Authorization': `Bearer ${process.env.TMDB_READ_ACCESS_TOKEN}`, 'Accept': 'application/json' }
+      });
+      if (!tvResp.ok) return res.json({ error: 'Not found' });
+      const tv = await tvResp.json();
+      return res.json({
+        title: tv.name, poster: tv.poster_path ? `${TMDB_IMG}/w500${tv.poster_path}` : '',
+        backdrop: tv.backdrop_path ? `${TMDB_IMG}/original${tv.backdrop_path}` : '',
+        genre: tv.genres?.[0]?.name || '', year: (tv.first_air_date || '').substring(0, 4),
+        rating: tv.vote_average || 0, description: tv.overview || '', duration: `${tv.number_of_seasons || 1} Seasons`
+      });
+    }
+    const movie = await resp.json();
+    res.json({
+      title: movie.title, poster: movie.poster_path ? `${TMDB_IMG}/w500${movie.poster_path}` : '',
+      backdrop: movie.backdrop_path ? `${TMDB_IMG}/original${movie.backdrop_path}` : '',
+      genre: movie.genres?.[0]?.name || '', year: (movie.release_date || '').substring(0, 4),
+      rating: movie.vote_average || 0, description: movie.overview || '',
+      duration: movie.runtime ? `${movie.runtime}m` : ''
+    });
+  } catch (e) {
+    res.json({ error: e.message });
+  }
+});
+
+router.post('/upload', async (req, res) => {
+  const { tmdbId, hfUrl, quality } = req.body;
+  if (!tmdbId || !hfUrl) {
+    req.session.error = 'TMDB ID and HF URL are required!';
+    return res.redirect('/admin/upload');
+  }
+  try {
+    const resp = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?language=en-US`, {
+      headers: { 'Authorization': `Bearer ${process.env.TMDB_READ_ACCESS_TOKEN}`, 'Accept': 'application/json' }
+    });
+    let details = {};
+    if (resp.ok) {
+      const movie = await resp.json();
+      details = {
+        title: movie.title,
+        poster: movie.poster_path ? `${TMDB_IMG}/w500${movie.poster_path}` : '',
+        backdrop: movie.backdrop_path ? `${TMDB_IMG}/original${movie.backdrop_path}` : '',
+        genre: movie.genres?.[0]?.name || '',
+        year: (movie.release_date || '').substring(0, 4),
+        rating: movie.vote_average || 0,
+        description: movie.overview || '',
+        duration: movie.runtime ? `${movie.runtime}m` : ''
+      };
+    } else {
+      const tvResp = await fetch(`https://api.themoviedb.org/3/tv/${tmdbId}?language=en-US`, {
+        headers: { 'Authorization': `Bearer ${process.env.TMDB_READ_ACCESS_TOKEN}`, 'Accept': 'application/json' }
+      });
+      if (tvResp.ok) {
+        const tv = await tvResp.json();
+        details = {
+          title: tv.name, poster: tv.poster_path ? `${TMDB_IMG}/w500${tv.poster_path}` : '',
+          backdrop: tv.backdrop_path ? `${TMDB_IMG}/original${tv.backdrop_path}` : '',
+          genre: tv.genres?.[0]?.name || '', year: (tv.first_air_date || '').substring(0, 4),
+          rating: tv.vote_average || 0, description: tv.overview || '',
+          duration: `${tv.number_of_seasons || 1} Seasons`
+        };
+      } else {
+        details = { title: `Movie ${tmdbId}`, poster: '', backdrop: '', genre: '', year: 2024, rating: 0, description: '', duration: '' };
+      }
+    }
+
+    videoConfig[tmdbId] = {
+      ...details,
+      sources: { [quality || '1080p']: hfUrl }
+    };
+
+    const videosData = { note: 'Auto-generated from admin panel', videos: videoConfig };
+    fs.writeFileSync(path.join(__dirname, '..', 'data', 'videos.json'), JSON.stringify(videosData, null, 2));
+
+    addLog('content', `Movie "${details.title}" uploaded from HF`, req.session.user.name);
+    changeEmitter.emit('change', { type: 'movie', action: 'upload' });
+    req.session.success = `"${details.title}" added successfully!`;
+    res.redirect('/admin/upload');
+  } catch (e) {
+    req.session.error = 'Error: ' + e.message;
+    res.redirect('/admin/upload');
+  }
+});
+
+router.get('/upload/delete/:tmdbId', (req, res) => {
+  const tmdbId = req.params.tmdbId;
+  if (videoConfig[tmdbId]) {
+    const title = videoConfig[tmdbId].title;
+    delete videoConfig[tmdbId];
+    const videosData = { note: 'Auto-generated from admin panel', videos: videoConfig };
+    fs.writeFileSync(path.join(__dirname, '..', 'data', 'videos.json'), JSON.stringify(videosData, null, 2));
+    addLog('content', `Movie "${title}" removed`, req.session.user.name);
+    req.session.success = `"${title}" removed!`;
+  }
+  res.redirect('/admin/upload');
+});
+
 module.exports = router;

@@ -7,11 +7,11 @@ const { fetchMovies, fetchSeries } = require('../services/tmdb');
 const { getStreamingInfo, getSourceIcon, getSourceColor } = require('../services/watchmode');
 
 let videoConfig = {};
-try {
-  videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {};
-} catch (e) {
-  console.error('Could not load videos.json:', e.message);
+function reloadVideoConfig() {
+  try { videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {}; } catch (e) {}
 }
+reloadVideoConfig();
+
 
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 const TMDB_IMG = 'https://image.tmdb.org/t/p';
@@ -46,6 +46,7 @@ router.get('/:type/:id', async (req, res) => {
     req.session.error = 'Please sign in to watch content';
     return res.redirect('/auth/login');
   }
+  reloadVideoConfig();
   const { type, id } = req.params;
   const itemId = parseInt(id);
   const ep = parseInt(req.query.ep) || 1;

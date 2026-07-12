@@ -32,7 +32,9 @@
               <td><span class="table-badge"><%= m.genre %></span></td>
               <td><%= m.year %></td>
               <td>★ <%= m.rating %></td>
-              <td><span class="plan-badge <%= m.premium ? 'premium' : 'free' %>"><%= m.premium ? 'Premium' : 'Free' %></span></td>
+              <td><span class="plan-badge <%= m.premium ? 'premium' : 'free' %>"><%= m.premium ? 'Premium' : 'Free' %></span>
+                <% if (m.hasVideo) { %><span class="plan-badge" style="background:#10b981;color:#fff;margin-left:4px;">✓ Video</span><% } %>
+              </td>
               <td>
                 <div class="action-btns">
                   <a href="/admin/movies/edit/<%= m.id %>" class="btn-icon-sm" title="Edit">

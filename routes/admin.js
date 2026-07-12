@@ -38,27 +38,23 @@ async function getAllMovies() {
   const allLocal = [...cleanTmdb, ...movies];
 
   const videoTmdbIds = Object.keys(videoConfig).filter(k => !isNaN(k)).map(Number);
-  const existingIds = new Set(allLocal.map(m => m.tmdbId || m.id));
 
   for (const tmdbId of videoTmdbIds) {
-    if (!existingIds.has(tmdbId)) {
-      const cfg = videoConfig[tmdbId];
-      const tmdbMovie = tmdb.find(m => (m.tmdbId || m.id) === tmdbId);
+    const cfg = videoConfig[tmdbId];
+    const existing = allLocal.find(m => (m.tmdbId || m.id) === tmdbId);
+    if (existing) {
+      existing.videoUrl = existing.videoUrl || ('/stream/' + Object.values(cfg.sources)[0].split('/resolve/main/')[1]);
+      existing.hasVideo = true;
+    } else {
       allLocal.push({
         id: tmdbId, tmdbId,
-        title: cfg.title || (tmdbMovie ? tmdbMovie.title : `Movie ${tmdbId}`),
-        genre: tmdbMovie ? tmdbMovie.genre : 'Unknown',
-        year: tmdbMovie ? tmdbMovie.year : 2024,
-        rating: tmdbMovie ? tmdbMovie.rating : 7.0,
-        duration: tmdbMovie ? tmdbMovie.duration : '2h',
-        poster: tmdbMovie ? tmdbMovie.poster : `https://picsum.photos/seed/${tmdbId}/400/600`,
-        backdrop: tmdbMovie ? tmdbMovie.backdrop : '',
-        description: tmdbMovie ? tmdbMovie.description : '',
-        premium: false,
-        badge: 'new',
+        title: cfg.title || `Movie ${tmdbId}`,
+        genre: 'Unknown', year: 2024, rating: 7.0, duration: '2h',
+        poster: `https://picsum.photos/seed/${tmdbId}/400/600`,
+        backdrop: '', description: '',
+        premium: false, badge: 'new',
         videoUrl: '/stream/' + Object.values(cfg.sources)[0].split('/resolve/main/')[1],
-        videoType: 'mp4',
-        fromVideosJson: true
+        videoType: 'mp4', hasVideo: true
       });
     }
   }

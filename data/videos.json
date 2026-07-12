@@ -1,4 +1,11 @@
 {
-  "note": "Yahan movie/series ID aur unke HF video URLs daalo. Format: { TMDB_ID: { title, sources: { quality: url } } }",
-  "videos": {}
+  "note": "HF dataset: mohit8287kushwaha/Mohit8287kushwahaStreamxvedios - Upload karo aur ID:URL daalo",
+  "videos": {
+    "550": {
+      "title": "Fight Club",
+      "sources": {
+        "1080p": "https://huggingface.co/datasets/mohit8287kushwaha/Mohit8287kushwahaStreamxvedios/resolve/main/fight-club.mp4"
+      }
+    }
+  }
 }

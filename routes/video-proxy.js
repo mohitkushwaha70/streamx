@@ -28,7 +28,13 @@ router.get('/*', async (req, res) => {
       return res.status(upstream.status).send(`Video not found: ${cleanPath}`);
     }
 
-    const contentType = upstream.headers.get('content-type') || 'video/mp4';
+    let contentType = upstream.headers.get('content-type') || '';
+    if (!contentType || contentType === 'application/octet-stream') {
+      if (cleanPath.endsWith('.mkv')) contentType = 'video/x-matroska';
+      else if (cleanPath.endsWith('.mp4')) contentType = 'video/mp4';
+      else if (cleanPath.endsWith('.webm')) contentType = 'video/webm';
+      else contentType = 'video/mp4';
+    }
     const contentLength = upstream.headers.get('content-length');
     const contentRange = upstream.headers.get('content-range');
 

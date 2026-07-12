@@ -102,16 +102,17 @@
             let ytUrl = currentUrl || '';
             const ytMatch = ytUrl.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
             const ytId = ytMatch ? ytMatch[1] : '';
-            const fallbackUrl = item.videoType !== 'youtube' ? item.videoUrl : '';
           %>
-          <div id="ytFallback" style="display:none;width:100%;height:100%;position:absolute;top:0;left:0;background:#000;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="#666"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-            <p style="color:#999;margin:12px 0 16px;font-size:0.9rem;">This video is not available in your region</p>
-            <% if (fallbackUrl) { %>
-            <button onclick="window.__useFallback()" style="padding:10px 24px;background:var(--blue-primary);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Play Trailer Instead</button>
-            <% } %>
+          <div style="width:100%;height:100%;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;">
+            <img src="<%= item.backdrop || item.poster || '' %>" alt="<%= item.title %>" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;opacity:0.4;">
+            <div style="position:relative;z-index:1;text-align:center;">
+              <a href="https://www.youtube.com/watch?v=<%= ytId %>" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:12px;padding:16px 32px;background:rgba(255,0,0,0.9);color:#fff;border:none;border-radius:12px;text-decoration:none;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all 0.3s;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                Watch Trailer on YouTube
+              </a>
+              <p style="color:#999;margin-top:12px;font-size:0.8rem;">Trailer plays on YouTube</p>
+            </div>
           </div>
-          <iframe id="videoPlayer" src="https://www.youtube.com/embed/<%= ytId %>?enablejsapi=1&autoplay=0&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="width:100%;height:100%;border:none;" class="yt-player"></iframe>
           <div class="player-overlay" id="playerOverlay" style="display:none"></div>
           <div class="player-controls" id="playerControls" style="display:none"></div>
           <% } else { %>
@@ -545,53 +546,6 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(controlsTimeout);
     if (!video.paused) controlsTimeout = setTimeout(() => { controls.style.opacity = '0'; container.style.cursor = 'none'; }, 3000);
   });
-
-  // YouTube embed error detection
-  const ytPlayer = document.getElementById('videoPlayer');
-  const ytFallback = document.getElementById('ytFallback');
-  if (ytPlayer && ytPlayer.tagName === 'IFRAME' && ytFallback) {
-    // Load YouTube IFrame API for error detection
-    var tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    document.head.appendChild(tag);
-    window.__ytErrorDetected = false;
-    window.__useFallback = function() {
-      ytFallback.style.display = 'none';
-      ytPlayer.style.display = 'block';
-    };
-    // Check if YouTube iframe loaded properly after 5 seconds
-    setTimeout(() => {
-      try {
-        // If the iframe is still there but YouTube shows an error,
-        // we detect it via postMessage
-        window.addEventListener('message', function ytMsgHandler(e) {
-          if (e.origin && e.origin.indexOf('youtube.com') === -1) return;
-          try {
-            var data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-            if (data && data.event === 'initialDelivery' && data.info && data.info.playerState === -1) {
-              // Player error
-              window.__ytErrorDetected = true;
-              ytFallback.style.display = 'flex';
-              ytPlayer.style.display = 'none';
-            }
-          } catch(err) {}
-        });
-        // Fallback: if after 8 seconds YouTube shows error text in iframe
-        setTimeout(() => {
-          if (!window.__ytErrorDetected) {
-            try {
-              var iframeDoc = ytPlayer.contentDocument || ytPlayer.contentWindow.document;
-              if (iframeDoc && iframeDoc.body && iframeDoc.body.innerText && iframeDoc.body.innerText.includes('error')) {
-                window.__ytErrorDetected = true;
-                ytFallback.style.display = 'flex';
-                ytPlayer.style.display = 'none';
-              }
-            } catch(e) { /* cross-origin, expected */ }
-          }
-        }, 8000);
-      } catch(e) {}
-    }, 3000);
-  }
 });
 </script>
 

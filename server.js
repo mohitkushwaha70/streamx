@@ -44,6 +44,7 @@ const animeRoutes = require('./routes/anime');
 const profileRoutes = require('./routes/profile');
 const watchlistRoutes = require('./routes/watchlist');
 const downloadRoutes = require('./routes/download');
+const videoProxyRoutes = require('./routes/video-proxy');
 const { changeEmitter } = require('./data/sample');
 
 // SSE endpoint for real-time sync
@@ -76,6 +77,7 @@ app.use('/admin', adminRoutes);
 app.use('/profile', profileRoutes);
 app.use('/watchlist', watchlistRoutes);
 app.use('/download', downloadRoutes);
+app.use('/stream', videoProxyRoutes);
 app.use((err, req, res, next) => {
   console.error('=== ERROR ===');
   console.error('URL:', req.method, req.originalUrl);

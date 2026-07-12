@@ -12,16 +12,32 @@ try {
   console.error('Could not load videos.json:', e.message);
 }
 
+function toProxyUrl(hfUrl) {
+  if (!hfUrl) return '';
+  const match = hfUrl.match(/\/resolve\/main\/(.+)/);
+  if (match) return `/stream/${match[1]}`;
+  return hfUrl;
+}
+
 function getVideoSources(type, tmdbId) {
   const key = String(tmdbId);
-  if (videoConfig[key]) return videoConfig[key];
+  if (videoConfig[key]) {
+    const cfg = videoConfig[key];
+    const sources = {};
+    if (cfg.sources) {
+      for (const [quality, url] of Object.entries(cfg.sources)) {
+        sources[quality] = toProxyUrl(url);
+      }
+    }
+    return { ...cfg, sources };
+  }
 
   const storageBase = process.env.VIDEO_STORAGE_BASE || '';
   if (storageBase) {
     return {
       sources: {
-        '1080p': `${storageBase}/${type}/${tmdbId}-1080p.mp4`,
-        '720p': `${storageBase}/${type}/${tmdbId}-720p.mp4`
+        '1080p': `/stream/${type}/${tmdbId}-1080p.mp4`,
+        '720p': `/stream/${type}/${tmdbId}-720p.mp4`
       }
     };
   }
@@ -73,10 +89,10 @@ router.get('/:type/:id', async (req, res) => {
       eps.filter(e => e.season === s).forEach(ep => {
         const epKey = `${tmdbId}-s${s}e${ep.number}`;
         const epVideo = videoConfig[epKey];
-        episodes.push({
-          ...ep, season: s,
-          downloadUrl: epVideo?.sources?.['1080p'] || epVideo?.sources?.['720p'] || ''
-        });
+        let downloadUrl = '';
+        if (epVideo?.sources?.['1080p']) downloadUrl = toProxyUrl(epVideo.sources['1080p']);
+        else if (epVideo?.sources?.['720p']) downloadUrl = toProxyUrl(epVideo.sources['720p']);
+        episodes.push({ ...ep, season: s, downloadUrl });
       });
     }
   }

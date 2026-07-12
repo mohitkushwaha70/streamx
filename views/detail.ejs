@@ -55,6 +55,106 @@
     </div>
   </section>
 
+  <!-- Where to Watch -->
+  <% 
+    const hasSub = streaming && streaming.subscription && streaming.subscription.length > 0;
+    const hasFree = streaming && streaming.free && streaming.free.length > 0;
+    const hasRent = streaming && streaming.rent && streaming.rent.length > 0;
+    const hasBuy = streaming && streaming.buy && streaming.buy.length > 0;
+  %>
+  <% if (hasSub || hasFree || hasRent || hasBuy) { %>
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Where to <span class="accent">Watch</span></h2>
+    </div>
+    <div style="padding: 0 24px;">
+      <% if (hasSub) { %>
+      <div style="margin-bottom: 20px;">
+        <h3 style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">Stream (Subscription)</h3>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <% streaming.subscription.forEach(s => { %>
+          <a href="<%= s.url %>" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; text-decoration: none; color: #fff; transition: all 0.3s; min-width: 180px;" onmouseover="this.style.borderColor='<%= getSourceColor(s.name) %>';this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.background='rgba(255,255,255,0.06)'">
+            <% if (s.logo) { %>
+            <img src="<%= s.logo %>" alt="<%= s.name %>" style="width: 32px; height: 32px; border-radius: 6px; object-fit: contain;">
+            <% } else { %>
+            <span style="font-size: 1.5rem;"><%= getSourceIcon(s.name) %></span>
+            <% } %>
+            <div>
+              <div style="font-weight: 600; font-size: 0.9rem;"><%= s.name %></div>
+              <div style="font-size: 0.75rem; color: #4ade80;">Stream Now</div>
+            </div>
+          </a>
+          <% }) %>
+        </div>
+      </div>
+      <% } %>
+
+      <% if (hasFree) { %>
+      <div style="margin-bottom: 20px;">
+        <h3 style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">Watch Free</h3>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <% streaming.free.forEach(s => { %>
+          <a href="<%= s.url %>" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; text-decoration: none; color: #fff; transition: all 0.3s; min-width: 180px;" onmouseover="this.style.borderColor='#4ade80';this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.background='rgba(255,255,255,0.06)'">
+            <% if (s.logo) { %>
+            <img src="<%= s.logo %>" alt="<%= s.name %>" style="width: 32px; height: 32px; border-radius: 6px; object-fit: contain;">
+            <% } else { %>
+            <span style="font-size: 1.5rem;"><%= getSourceIcon(s.name) %></span>
+            <% } %>
+            <div>
+              <div style="font-weight: 600; font-size: 0.9rem;"><%= s.name %></div>
+              <div style="font-size: 0.75rem; color: #4ade80;">Free</div>
+            </div>
+          </a>
+          <% }) %>
+        </div>
+      </div>
+      <% } %>
+
+      <% if (hasRent) { %>
+      <div style="margin-bottom: 20px;">
+        <h3 style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">Rent</h3>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <% streaming.rent.forEach(s => { %>
+          <a href="<%= s.url %>" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; text-decoration: none; color: #fff; transition: all 0.3s; min-width: 180px;" onmouseover="this.style.borderColor='#f59e0b';this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.background='rgba(255,255,255,0.06)'">
+            <% if (s.logo) { %>
+            <img src="<%= s.logo %>" alt="<%= s.name %>" style="width: 32px; height: 32px; border-radius: 6px; object-fit: contain;">
+            <% } else { %>
+            <span style="font-size: 1.5rem;"><%= getSourceIcon(s.name) %></span>
+            <% } %>
+            <div>
+              <div style="font-weight: 600; font-size: 0.9rem;"><%= s.name %></div>
+              <div style="font-size: 0.75rem; color: #f59e0b;">Rent<%= s.price ? ' - ₹' + s.price : '' %></div>
+            </div>
+          </a>
+          <% }) %>
+        </div>
+      </div>
+      <% } %>
+
+      <% if (hasBuy) { %>
+      <div style="margin-bottom: 20px;">
+        <h3 style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">Buy</h3>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <% streaming.buy.forEach(s => { %>
+          <a href="<%= s.url %>" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; text-decoration: none; color: #fff; transition: all 0.3s; min-width: 180px;" onmouseover="this.style.borderColor='#3b82f6';this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.background='rgba(255,255,255,0.06)'">
+            <% if (s.logo) { %>
+            <img src="<%= s.logo %>" alt="<%= s.name %>" style="width: 32px; height: 32px; border-radius: 6px; object-fit: contain;">
+            <% } else { %>
+            <span style="font-size: 1.5rem;"><%= getSourceIcon(s.name) %></span>
+            <% } %>
+            <div>
+              <div style="font-weight: 600; font-size: 0.9rem;"><%= s.name %></div>
+              <div style="font-size: 0.75rem; color: #3b82f6;">Buy<%= s.price ? ' - ₹' + s.price : '' %></div>
+            </div>
+          </a>
+          <% }) %>
+        </div>
+      </div>
+      <% } %>
+    </div>
+  </section>
+  <% } %>
+
   <% if (item.episodes && item.episodes.length > 0) { %>
   <section class="section">
     <div class="section-header">

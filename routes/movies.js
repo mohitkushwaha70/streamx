@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { movies: sampleMovies } = require('../data/sample');
 const { fetchMovies } = require('../services/tmdb');
+const { getStreamingInfo, getSourceIcon, getSourceColor } = require('../services/watchmode');
 
 router.get('/', async (req, res) => {
   const tmdbMovies = await fetchMovies().catch(() => null);
@@ -28,7 +29,15 @@ router.get('/:id', async (req, res) => {
   const movie = allMovies.find(m => m.id === parseInt(req.params.id) || m.tmdbId === parseInt(req.params.id));
   if (!movie) return res.redirect('/movies');
   const related = allMovies.filter(m => m.genre === movie.genre && m.id !== movie.id).slice(0, 8);
-  res.render('detail', { item: movie, type: 'movie', related });
+
+  const tmdbId = movie.tmdbId || movie.id;
+  const streamingInfo = await getStreamingInfo(tmdbId, 'movie').catch(() => ({ grouped: {} }));
+
+  res.render('detail', {
+    item: movie, type: 'movie', related,
+    streaming: streamingInfo.grouped || {},
+    getSourceIcon, getSourceColor
+  });
 });
 
 module.exports = router;

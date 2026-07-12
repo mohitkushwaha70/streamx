@@ -14,7 +14,7 @@
     </div>
     <div class="content-grid">
       <% animeMovies.forEach(item => { %>
-      <a href="/anime" class="content-card">
+      <a href="/movies/<%= item.id %>" class="content-card">
         <div class="card-image">
           <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">
           <span class="card-badge new">ANIME</span>
@@ -47,7 +47,7 @@
     </div>
     <div class="content-grid">
       <% animeSeries.forEach(item => { %>
-      <a href="/anime" class="content-card">
+      <a href="/series/<%= item.id %>" class="content-card">
         <div class="card-image">
           <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">
           <span class="card-badge premium">⭐ PREMIUM</span>

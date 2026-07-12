@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { movies: sampleMovies, series: sampleSeries } = require('../data/sample');
 const { fetchMovies, fetchSeries } = require('../services/tmdb');
+const { getStreamingInfo, getSourceIcon, getSourceColor } = require('../services/watchmode');
 
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 const TMDB_IMG = 'https://image.tmdb.org/t/p';
@@ -91,9 +92,14 @@ router.get('/:type/:id', async (req, res) => {
   const trending = [...allMovies, ...allSeries].sort((a, b) => b.rating - a.rating).slice(0, 8);
   const shareUrl = `${req.protocol}://${req.get('host')}/watch/${type}/${itemId}`;
 
+  const tmdbId = item.tmdbId || item.id;
+  const streamingInfo = await getStreamingInfo(tmdbId, type).catch(() => ({ grouped: {} }));
+
   res.render('player', {
     item, type, related, episodes, currentEpisode, ep, trending,
-    totalSeasons: item.seasons || 1, currentSeason: season, shareUrl
+    totalSeasons: item.seasons || 1, currentSeason: season, shareUrl,
+    streaming: streamingInfo.grouped || {},
+    getSourceIcon, getSourceColor
   });
 });
 

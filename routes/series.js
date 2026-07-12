@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { series: sampleSeries } = require('../data/sample');
 const { fetchSeries, TMDB_IMG } = require('../services/tmdb');
+const { getStreamingInfo, getSourceIcon, getSourceColor } = require('../services/watchmode');
 
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 
@@ -52,7 +53,7 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   const tmdbSeries = await fetchSeries().catch(() => null);
-  const tmdbIds = new Set((tmdbSeries || [])  .map(s => s.tmdbId || s.id));
+  const tmdbIds = new Set((tmdbSeries || []).map(s => s.tmdbId || s.id));
   const localOnly = sampleSeries.filter(s => !tmdbIds.has(s.id));
   const allSeries = [...(tmdbSeries || []), ...localOnly];
 
@@ -71,7 +72,14 @@ router.get('/:id', async (req, res) => {
   const seasonsList = showDetails?.seasons || [];
 
   const related = allSeries.filter(s => s.genre === show.genre && s.id !== show.id).slice(0, 8);
-  res.render('detail', { item: { ...show, episodes, seasonsList }, type: 'series', related });
+
+  const streamingInfo = await getStreamingInfo(tmdbId, 'tv').catch(() => ({ grouped: {} }));
+
+  res.render('detail', {
+    item: { ...show, episodes, seasonsList }, type: 'series', related,
+    streaming: streamingInfo.grouped || {},
+    getSourceIcon, getSourceColor
+  });
 });
 
 module.exports = router;

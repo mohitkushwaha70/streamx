@@ -1,52 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
-const fs = require('fs');
 const { movies: sampleMovies, series: sampleSeries } = require('../data/sample');
-const { fetchMovies, fetchSeries } = require('../services/tmdb');
+const { fetchMovies, fetchSeries, fetchSeasonEpisodes } = require('../services/tmdb');
 const { getStreamingInfo, getSourceIcon, getSourceColor } = require('../services/watchmode');
-
-let videoConfig = {};
-function reloadVideoConfig() {
-  try { videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {}; } catch (e) {}
-}
-reloadVideoConfig();
-
-
-const TMDB_BASE = 'https://api.themoviedb.org/3';
-const TMDB_IMG = 'https://image.tmdb.org/t/p';
-
-function headers() {
-  return {
-    'Authorization': `Bearer ${process.env.TMDB_READ_ACCESS_TOKEN}`,
-    'Accept': 'application/json'
-  };
-}
-
-async function fetchSeasonEpisodes(tmdbId, seasonNumber) {
-  try {
-    const res = await fetch(`${TMDB_BASE}/tv/${tmdbId}/season/${seasonNumber}?language=en-US`, { headers: headers() });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return (data.episodes || []).map(ep => ({
-      number: ep.episode_number,
-      season: ep.season_number,
-      title: ep.name || `Episode ${ep.episode_number}`,
-      duration: ep.runtime ? `${ep.runtime}m` : '',
-      description: ep.overview || '',
-      poster: ep.still_path ? `${TMDB_IMG}/w300${ep.still_path}` : '',
-      airDate: ep.air_date || '',
-      rating: ep.vote_average ? ep.vote_average.toFixed(1) : ''
-    }));
-  } catch { return []; }
-}
+const videoConfig = require('../services/video-config');
 
 router.get('/:type/:id', async (req, res) => {
   if (!req.session.user) {
     req.session.error = 'Please sign in to watch content';
     return res.redirect('/auth/login');
   }
-  reloadVideoConfig();
+  const videoConfigData = videoConfig.get();
   const { type, id } = req.params;
   const itemId = parseInt(id);
   const ep = parseInt(req.query.ep) || 1;
@@ -63,9 +27,9 @@ router.get('/:type/:id', async (req, res) => {
   const localOnlySeries = sampleSeries.filter(s => !tmdbSeriesIds.has(s.id));
   let allSeries = [...(tmdbSeries || []), ...localOnlySeries];
 
-  for (const tmdbId of Object.keys(videoConfig).filter(k => !isNaN(k)).map(Number)) {
+  for (const tmdbId of Object.keys(videoConfigData).filter(k => !isNaN(k)).map(Number)) {
     if (!allMovies.find(m => (m.tmdbId || m.id) === tmdbId)) {
-      const cfg = videoConfig[tmdbId];
+      const cfg = videoConfigData[tmdbId];
       const firstUrl = Object.values(cfg.sources)[0];
       let match = firstUrl.match(/\/resolve\/main\/(.+)/);
       if (!match) match = firstUrl.match(/\/resolve\/(.+)/);
@@ -92,7 +56,7 @@ router.get('/:type/:id', async (req, res) => {
   if (!item) return res.redirect('/');
 
   const itemTmdbId = item.tmdbId || item.id;
-  const videoCfg = videoConfig[String(itemTmdbId)];
+  const videoCfg = videoConfigData[String(itemTmdbId)];
   if (videoCfg && videoCfg.sources) {
     const firstUrl = Object.values(videoCfg.sources)[0];
     let match = firstUrl.match(/\/resolve\/main\/(.+)/);

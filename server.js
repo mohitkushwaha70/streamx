@@ -3,18 +3,20 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const passport = require('passport');
 const path = require('path');
+const compression = require('compression');
 
 try { require('dotenv').config(); } catch(e) {}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(compression());
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: '7d', etag: true }));
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 app.use(session({
   secret: process.env.SESSION_SECRET || 'streamx_secret_2026',
@@ -47,7 +49,8 @@ const downloadRoutes = require('./routes/download');
 const videoProxyRoutes = require('./routes/video-proxy');
 const { changeEmitter } = require('./data/sample');
 
-// SSE endpoint for real-time sync
+changeEmitter.setMaxListeners(100);
+
 app.get('/events', (req, res) => {
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',

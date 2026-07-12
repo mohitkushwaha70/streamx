@@ -98,7 +98,7 @@
           <div class="q-icon <%= q.tag %>"><%= q.resolution %></div>
           <div class="q-text">
             <h3><%= q.label %></h3>
-            <p><%= q.resolution %> • <%= q.size %> • MP4</p>
+            <p><%= q.resolution %> • <%= q.size %> • <%= q.url && q.url.toLowerCase().endsWith('.mkv') ? 'MKV' : 'MP4' %></p>
           </div>
         </div>
         <div class="q-actions">

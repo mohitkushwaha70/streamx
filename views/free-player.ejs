@@ -42,8 +42,17 @@
         %>
         <iframe src="https://www.youtube.com/embed/<%= ytId %>?autoplay=1&rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
       <% } else { %>
+        <%
+          function getFreeVideoMime(url) {
+            if (!url) return 'video/mp4';
+            const lower = url.toLowerCase();
+            if (lower.endsWith('.mkv') || lower.includes('.mkv?')) return 'video/x-matroska';
+            if (lower.endsWith('.webm') || lower.includes('.webm?')) return 'video/webm';
+            return 'video/mp4';
+          }
+        %>
         <video id="videoPlayer" poster="<%= item.backdrop %>" controls autoplay playsinline style="background:#000;">
-          <source src="<%= item.videoUrl %>" type="video/mp4">
+          <source src="<%= item.videoUrl %>" type="<%= getFreeVideoMime(item.videoUrl) %>">
           Your browser does not support the video tag.
         </video>
       <% } %>

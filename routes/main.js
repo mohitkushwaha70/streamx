@@ -1,27 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
-const fs = require('fs');
 const { movies, series } = require('../data/sample');
 const { fetchMovies, fetchSeries, searchMovies: tmdbSearch, TMDB_IMG } = require('../services/tmdb');
-
-let videoConfig = {};
-function reloadVideoConfig() {
-  try { videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {}; } catch (e) {}
-}
-reloadVideoConfig();
+const videoConfig = require('../services/video-config');
 
 router.get('/', async (req, res) => {
-  reloadVideoConfig();
+  const videoConfigData = videoConfig.get();
   const tmdbMovies = await fetchMovies().catch(() => null);
   const tmdbSeries = await fetchSeries().catch(() => null);
 
   let allMovies = tmdbMovies || [];
   let allSeries = tmdbSeries || [];
 
-  const videoTmdbIds = Object.keys(videoConfig).filter(k => !isNaN(k)).map(Number);
+  const videoTmdbIds = Object.keys(videoConfigData).filter(k => !isNaN(k)).map(Number);
   for (const tmdbId of videoTmdbIds) {
-    const cfg = videoConfig[tmdbId];
+    const cfg = videoConfigData[tmdbId];
     const existing = allMovies.find(m => (m.tmdbId || m.id) === tmdbId);
     if (!existing) {
       allMovies.push({
@@ -54,7 +47,7 @@ router.get('/', async (req, res) => {
   let continueWatching = (req.session.continueWatching || [])
     .sort((a, b) => b.lastWatched - a.lastWatched)
     .slice(0, 8);
-  const top10 = [...allMovies].sort((a, b) => b.rating - a.rating).slice(0, 10);
+  const top10 = topRated;
   const trendingSeries = allSeries.slice(0, 8);
 
   res.render('index', { heroMovies, heroMovie: heroMovies[0], trending, newReleases, topRated, continueWatching, top10, trendingSeries, movies: allMovies, allSeries, TMDB_IMG });

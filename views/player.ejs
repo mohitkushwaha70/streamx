@@ -116,11 +116,23 @@
           <div class="player-overlay" id="playerOverlay" style="display:none"></div>
           <div class="player-controls" id="playerControls" style="display:none"></div>
           <% } else { %>
+          <%
+            function getVideoMimeType(url) {
+              if (!url) return 'video/mp4';
+              const lower = url.toLowerCase();
+              if (lower.endsWith('.mkv') || lower.includes('.mkv?')) return 'video/x-matroska';
+              if (lower.endsWith('.webm') || lower.includes('.webm?')) return 'video/webm';
+              if (lower.endsWith('.ogg') || lower.includes('.ogg?')) return 'video/ogg';
+              return 'video/mp4';
+            }
+            const videoSrc = currentEpisode ? currentEpisode.videoUrl : item.videoUrl;
+            const videoMime = getVideoMimeType(videoSrc);
+          %>
           <video id="videoPlayer" poster="<%= item.backdrop %>" preload="metadata" playsinline>
             <% if (currentEpisode) { %>
-            <source src="<%= currentEpisode.videoUrl %>" type="video/mp4">
+            <source src="<%= currentEpisode.videoUrl %>" type="<%= videoMime %>">
             <% } else { %>
-            <source src="<%= item.videoUrl %>" type="video/mp4">
+            <source src="<%= item.videoUrl %>" type="<%= videoMime %>">
             <% } %>
           </video>
 

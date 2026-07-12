@@ -4,13 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const { movies, series, users, payments, activityLogs, reports, getNextMovieId, getNextSeriesId, changeEmitter, addLog } = require('../data/sample');
 const { fetchMovies, fetchSeries, fetchTrendingAll, fetchGenreStats, searchMovies, TMDB_IMG } = require('../services/tmdb');
-
-let videoConfig = {};
-try {
-  videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {};
-} catch (e) {
-  console.error('Could not load videos.json:', e.message);
-}
+const videoConfig = require('../services/video-config');
 
 function isAdmin(req, res, next) {
   if (req.session.user && req.session.user.role === 'admin') return next();
@@ -37,10 +31,11 @@ async function getAllMovies() {
   const cleanTmdb = tmdb.filter(m => !editedIds.has(m.tmdbId || m.id));
   const allLocal = [...cleanTmdb, ...movies];
 
-  const videoTmdbIds = Object.keys(videoConfig).filter(k => !isNaN(k)).map(Number);
+  const videoConfigData = videoConfig.get();
+  const videoTmdbIds = Object.keys(videoConfigData).filter(k => !isNaN(k)).map(Number);
 
   for (const tmdbId of videoTmdbIds) {
-    const cfg = videoConfig[tmdbId];
+    const cfg = videoConfigData[tmdbId];
     const existing = allLocal.find(m => (m.tmdbId || m.id) === tmdbId);
     if (existing) {
       existing.videoUrl = existing.videoUrl || ('/stream/' + decodeURIComponent(Object.values(cfg.sources)[0].match(/\/resolve\/main\/(.+)/)?.[1] || Object.values(cfg.sources)[0].match(/\/resolve\/(.+)/)?.[1] || ''));
@@ -591,16 +586,9 @@ router.get('/logs', (req, res) => {
 });
 
 // Upload Movies from HF
-function reloadVideoConfig() {
-  try {
-    videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {};
-  } catch (e) {}
-}
-
-
 router.get('/upload', (req, res) => {
-  reloadVideoConfig();
-  const uploadedMovies = Object.entries(videoConfig).map(([id, cfg]) => ({
+  const videoConfigData = videoConfig.get();
+  const uploadedMovies = Object.entries(videoConfigData).map(([id, cfg]) => ({
     tmdbId: id,
     title: cfg.title,
     poster: cfg.poster,
@@ -685,13 +673,12 @@ router.post('/upload', async (req, res) => {
       }
     }
 
-    videoConfig[tmdbId] = {
+    const videoConfigData = videoConfig.get();
+    videoConfigData[tmdbId] = {
       ...details,
       sources: { [quality || '1080p']: hfUrl }
     };
-
-    const videosData = { note: 'Auto-generated from admin panel', videos: videoConfig };
-    fs.writeFileSync(path.join(__dirname, '..', 'data', 'videos.json'), JSON.stringify(videosData, null, 2));
+    videoConfig.set(videoConfigData);
 
     addLog('content', `Movie "${details.title}" uploaded from HF`, req.session.user.name);
     changeEmitter.emit('change', { type: 'movie', action: 'upload' });
@@ -705,11 +692,11 @@ router.post('/upload', async (req, res) => {
 
 router.get('/upload/delete/:tmdbId', (req, res) => {
   const tmdbId = req.params.tmdbId;
-  if (videoConfig[tmdbId]) {
-    const title = videoConfig[tmdbId].title;
-    delete videoConfig[tmdbId];
-    const videosData = { note: 'Auto-generated from admin panel', videos: videoConfig };
-    fs.writeFileSync(path.join(__dirname, '..', 'data', 'videos.json'), JSON.stringify(videosData, null, 2));
+  const videoConfigData = videoConfig.get();
+  if (videoConfigData[tmdbId]) {
+    const title = videoConfigData[tmdbId].title;
+    delete videoConfigData[tmdbId];
+    videoConfig.set(videoConfigData);
     addLog('content', `Movie "${title}" removed`, req.session.user.name);
     req.session.success = `"${title}" removed!`;
   }

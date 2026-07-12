@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { series: sampleSeries } = require('../data/sample');
-const { fetchSeries, TMDB_IMG } = require('../services/tmdb');
+const { fetchSeries, fetchSeasonEpisodes, TMDB_IMG } = require('../services/tmdb');
 const { getStreamingInfo, getSourceIcon, getSourceColor } = require('../services/watchmode');
 
 const TMDB_BASE = 'https://api.themoviedb.org/3';
@@ -11,24 +11,6 @@ function headers() {
     'Authorization': `Bearer ${process.env.TMDB_READ_ACCESS_TOKEN}`,
     'accept': 'application/json'
   };
-}
-
-async function fetchSeasonEpisodes(tmdbId, seasonNumber) {
-  try {
-    const res = await fetch(`${TMDB_BASE}/tv/${tmdbId}/season/${seasonNumber}?language=en-US`, { headers: headers() });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return (data.episodes || []).map(ep => ({
-      number: ep.episode_number,
-      season: ep.season_number,
-      title: ep.name || `Episode ${ep.episode_number}`,
-      duration: ep.runtime ? `${ep.runtime}m` : '',
-      description: ep.overview || '',
-      poster: ep.still_path ? `${TMDB_IMG}/w300${ep.still_path}` : '',
-      airDate: ep.air_date || '',
-      rating: ep.vote_average ? ep.vote_average.toFixed(1) : ''
-    }));
-  } catch { return []; }
 }
 
 async function fetchShowDetails(tmdbId) {

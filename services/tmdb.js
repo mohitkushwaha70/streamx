@@ -1,8 +1,17 @@
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 const TMDB_IMG = 'https://image.tmdb.org/t/p';
 
-const cache = { movies: null, series: null, anime: null, trending: null, lastFetch: 0 };
+const cache = {
+  movies: null, moviesLastFetch: 0,
+  series: null, seriesLastFetch: 0,
+  anime: null, animeLastFetch: 0,
+  trending: null, trendingLastFetch: 0,
+  seasonEpisodes: new Map()
+};
 const CACHE_TTL = 30 * 60 * 1000;
+const SEASON_CACHE_TTL = 60 * 60 * 1000;
+
+const inFlight = new Map();
 
 const TMDB_TOKEN = process.env.TMDB_READ_ACCESS_TOKEN;
 
@@ -21,6 +30,13 @@ async function fetchJSON(url) {
     throw new Error(`TMDB ${res.status}: ${url} - ${body.substring(0, 200)}`);
   }
   return res.json();
+}
+
+async function dedupe(key, fn) {
+  if (inFlight.has(key)) return inFlight.get(key);
+  const p = fn().finally(() => inFlight.delete(key));
+  inFlight.set(key, p);
+  return p;
 }
 
 async function getTrailer(movieId, isTv) {
@@ -59,9 +75,10 @@ async function getUpcoming(mediaType) {
   return data.results || [];
 }
 
-async function getDetails(id, isTv) {
+async function getDetails(id, isTv, includeCredits = true) {
   const type = isTv ? 'tv' : 'movie';
-  return fetchJSON(`${TMDB_BASE}/${type}/${id}?language=en-US&append_to_response=credits`);
+  const params = includeCredits ? '?language=en-US&append_to_response=credits' : '?language=en-US';
+  return fetchJSON(`${TMDB_BASE}/${type}/${id}${params}`);
 }
 
 async function getGenreList(mediaType) {
@@ -76,6 +93,28 @@ async function discoverByGenre(mediaType, genreId, page = 1) {
 
 async function getPersonDetails(personId) {
   return fetchJSON(`${TMDB_BASE}/person/${personId}?language=en-US`);
+}
+
+async function fetchSeasonEpisodes(tmdbId, seasonNumber) {
+  const key = `${tmdbId}-s${seasonNumber}`;
+  const cached = cache.seasonEpisodes.get(key);
+  if (cached && Date.now() - cached.time < SEASON_CACHE_TTL) return cached.data;
+
+  try {
+    const data = await fetchJSON(`${TMDB_BASE}/tv/${tmdbId}/season/${seasonNumber}?language=en-US`);
+    const episodes = (data.episodes || []).map(ep => ({
+      number: ep.episode_number,
+      season: ep.season_number,
+      title: ep.name || `Episode ${ep.episode_number}`,
+      duration: ep.runtime ? `${ep.runtime}m` : '',
+      description: ep.overview || '',
+      poster: ep.still_path ? `${TMDB_IMG}/w300${ep.still_path}` : '',
+      airDate: ep.air_date || '',
+      rating: ep.vote_average ? ep.vote_average.toFixed(1) : ''
+    }));
+    cache.seasonEpisodes.set(key, { data: episodes, time: Date.now() });
+    return episodes;
+  } catch { return []; }
 }
 
 function formatMovie(m, trailerKey) {
@@ -129,93 +168,99 @@ function formatMovie(m, trailerKey) {
 }
 
 async function fetchMovies() {
-  if (cache.movies && Date.now() - cache.lastFetch < CACHE_TTL) return cache.movies;
+  if (cache.movies && Date.now() - cache.moviesLastFetch < CACHE_TTL) return cache.movies;
 
-  try {
-    const [trending, topRated, popular] = await Promise.all([
-      getTrending('movie'),
-      getTopRated('movie'),
-      getPopular('movie')
-    ]);
+  return dedupe('movies', async () => {
+    try {
+      const [trending, topRated, popular] = await Promise.all([
+        getTrending('movie'),
+        getTopRated('movie'),
+        getPopular('movie')
+      ]);
 
-    const allIds = new Set();
-    const merged = [...trending, ...topRated, ...popular].filter(m => {
-      if (allIds.has(m.id)) return false;
-      allIds.add(m.id);
-      return true;
-    }).slice(0, 30);
+      const allIds = new Set();
+      const merged = [...trending, ...topRated, ...popular].filter(m => {
+        if (allIds.has(m.id)) return false;
+        allIds.add(m.id);
+        return true;
+      }).slice(0, 30);
 
-    const movies = [];
-    for (const m of merged) {
-      const trailerKey = await getTrailer(m.id, false);
-      movies.push(formatMovie(m, trailerKey));
+      const trailers = await Promise.all(merged.map(m => getTrailer(m.id, false)));
+
+      const movies = merged.map((m, i) => formatMovie(m, trailers[i]));
+
+      cache.movies = movies;
+      cache.moviesLastFetch = Date.now();
+      return movies;
+    } catch (e) {
+      console.error('TMDB fetch error:', e.message);
+      return null;
     }
-
-    cache.movies = movies;
-    cache.lastFetch = Date.now();
-    return movies;
-  } catch (e) {
-    console.error('TMDB fetch error:', e.message);
-    return null;
-  }
+  });
 }
 
 async function fetchSeries() {
-  if (cache.series && Date.now() - cache.lastFetch < CACHE_TTL) return cache.series;
+  if (cache.series && Date.now() - cache.seriesLastFetch < CACHE_TTL) return cache.series;
 
-  try {
-    const [trending, topRated, popular] = await Promise.all([
-      getTrending('tv'),
-      getTopRated('tv'),
-      getPopular('tv')
-    ]);
+  return dedupe('series', async () => {
+    try {
+      const [trending, topRated, popular] = await Promise.all([
+        getTrending('tv'),
+        getTopRated('tv'),
+        getPopular('tv')
+      ]);
 
-    const allIds = new Set();
-    const merged = [...trending, ...topRated, ...popular].filter(s => {
-      if (allIds.has(s.id)) return false;
-      allIds.add(s.id);
-      return true;
-    }).slice(0, 25);
+      const allIds = new Set();
+      const merged = [...trending, ...topRated, ...popular].filter(s => {
+        if (allIds.has(s.id)) return false;
+        allIds.add(s.id);
+        return true;
+      }).slice(0, 25);
 
-    const series = [];
-    for (const s of merged) {
-      const trailerKey = await getTrailer(s.id, true);
-      const details = await getDetails(s.id, true).catch(() => s);
-      series.push(formatMovie(details, trailerKey));
+      const [trailers, details] = await Promise.all([
+        Promise.all(merged.map(s => getTrailer(s.id, true))),
+        Promise.all(merged.map(s => getDetails(s.id, true, false).catch(() => s)))
+      ]);
+
+      const series = merged.map((s, i) => formatMovie(details[i], trailers[i]));
+
+      cache.series = series;
+      cache.seriesLastFetch = Date.now();
+      return series;
+    } catch (e) {
+      console.error('TMDB series fetch error:', e.message);
+      return null;
     }
-
-    cache.series = series;
-    return series;
-  } catch (e) {
-    console.error('TMDB series fetch error:', e.message);
-    return null;
-  }
+  });
 }
 
 async function fetchTrendingAll() {
-  if (cache.trending && Date.now() - cache.lastFetch < CACHE_TTL) return cache.trending;
+  if (cache.trending && Date.now() - cache.trendingLastFetch < CACHE_TTL) return cache.trending;
 
-  try {
-    const [moviesT, tvT, moviesP, tvP] = await Promise.all([
-      getTrending('movie'),
-      getTrending('tv'),
-      getPopular('movie'),
-      getPopular('tv')
-    ]);
+  return dedupe('trending', async () => {
+    try {
+      const [moviesT, tvT, moviesP, tvP] = await Promise.all([
+        getTrending('movie'),
+        getTrending('tv'),
+        getPopular('movie'),
+        getPopular('tv')
+      ]);
 
-    const allIds = new Set();
-    const all = [...moviesT, ...tvT, ...moviesP, ...tvP].filter(item => {
-      if (allIds.has(item.id)) return false;
-      allIds.add(item.id);
-      return true;
-    });
+      const allIds = new Set();
+      const all = [...moviesT, ...tvT, ...moviesP, ...tvP].filter(item => {
+        if (allIds.has(item.id)) return false;
+        allIds.add(item.id);
+        return true;
+      });
 
-    cache.trending = all;
-    return all;
-  } catch (e) {
-    console.error('TMDB trending fetch error:', e.message);
-    return [];
-  }
+      cache.trending = all;
+      cache.trendingLastFetch = Date.now();
+      return all;
+    } catch (e) {
+      console.error('TMDB trending fetch error:', e.message);
+      return [];
+    }
+  });
 }
 
 async function fetchGenreStats() {
@@ -246,7 +291,7 @@ async function searchMovies(query) {
 
 module.exports = {
   fetchMovies, fetchSeries, fetchTrendingAll, fetchGenreStats,
-  searchMovies, getDetails, getTrailer,
+  searchMovies, getDetails, getTrailer, fetchSeasonEpisodes,
   getTrending, getTopRated, getPopular, getNowPlaying, getUpcoming,
   getGenreList, discoverByGenre, getPersonDetails,
   formatMovie, TMDB_IMG

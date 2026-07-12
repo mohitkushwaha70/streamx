@@ -1,15 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
-const fs = require('fs');
 const { movies: sampleMovies, series: sampleSeries } = require('../data/sample');
 const { fetchMovies, fetchSeries } = require('../services/tmdb');
-
-let videoConfig = {};
-function reloadVideoConfig() {
-  try { videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {}; } catch (e) {}
-}
-reloadVideoConfig();
+const videoConfig = require('../services/video-config');
 
 function toProxyUrl(hfUrl) {
   if (!hfUrl) return '';
@@ -21,8 +14,9 @@ function toProxyUrl(hfUrl) {
 
 function getVideoSources(type, tmdbId) {
   const key = String(tmdbId);
-  if (videoConfig[key]) {
-    const cfg = videoConfig[key];
+  const videoConfigData = videoConfig.get();
+  if (videoConfigData[key]) {
+    const cfg = videoConfigData[key];
     const sources = {};
     if (cfg.sources) {
       for (const [quality, url] of Object.entries(cfg.sources)) {
@@ -46,12 +40,13 @@ function getVideoSources(type, tmdbId) {
 
 async function findItem(type, id) {
   const itemId = parseInt(id);
+  const videoConfigData = videoConfig.get();
   if (type === 'movie') {
     const tmdbMovies = await fetchMovies().catch(() => null);
     let allMovies = [...(tmdbMovies || []), ...sampleMovies];
-    for (const tmdbId of Object.keys(videoConfig).filter(k => !isNaN(k)).map(Number)) {
+    for (const tmdbId of Object.keys(videoConfigData).filter(k => !isNaN(k)).map(Number)) {
       if (!allMovies.find(m => (m.tmdbId || m.id) === tmdbId)) {
-        const cfg = videoConfig[tmdbId];
+        const cfg = videoConfigData[tmdbId];
         allMovies.push({ id: tmdbId, tmdbId, title: cfg.title, genre: cfg.genre, year: cfg.year, poster: cfg.poster, premium: false });
       }
     }
@@ -64,7 +59,7 @@ async function findItem(type, id) {
 }
 
 router.get('/:type/:id', async (req, res) => {
-  reloadVideoConfig();
+  const videoConfigData = videoConfig.get();
   const { type, id } = req.params;
   if (type !== 'movie' && type !== 'series') return res.redirect('/');
 
@@ -95,7 +90,7 @@ router.get('/:type/:id', async (req, res) => {
       const eps = item.episodeList || [];
       eps.filter(e => e.season === s).forEach(ep => {
         const epKey = `${tmdbId}-s${s}e${ep.number}`;
-        const epVideo = videoConfig[epKey];
+        const epVideo = videoConfigData[epKey];
         let downloadUrl = '';
         if (epVideo?.sources?.['1080p']) downloadUrl = toProxyUrl(epVideo.sources['1080p']);
         else if (epVideo?.sources?.['720p']) downloadUrl = toProxyUrl(epVideo.sources['720p']);

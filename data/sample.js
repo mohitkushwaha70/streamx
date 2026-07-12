@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const changeEmitter = new EventEmitter();
-changeEmitter.setMaxListeners(20);
+changeEmitter.setMaxListeners(100);
 
 let movies = [];
 

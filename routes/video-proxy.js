@@ -31,7 +31,10 @@ router.get('/*', async (req, res) => {
       headers['Range'] = req.headers.range;
     }
 
-    const upstream = await fetch(cdnUrl, { headers });
+    const upstream = await fetch(cdnUrl, {
+      headers,
+      signal: AbortSignal.timeout(30000)
+    });
     if (!upstream.ok) {
       return res.status(upstream.status).send(`Video not found: ${cleanPath}`);
     }

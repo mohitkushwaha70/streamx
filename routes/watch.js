@@ -70,10 +70,11 @@ router.get('/:type/:id', async (req, res) => {
   const itemTmdbId = item.tmdbId || item.id;
   const videoCfg = videoConfig[String(itemTmdbId)];
   if (videoCfg && videoCfg.sources) {
-    const firstSource = Object.values(videoCfg.sources)[0];
-    const match = firstSource.match(/\/resolve\/main\/(.+)/);
+    const firstUrl = Object.values(videoCfg.sources)[0];
+    let match = firstUrl.match(/\/resolve\/main\/(.+)/);
+    if (!match) match = firstUrl.match(/\/resolve\/(.+)/);
     if (match) {
-      item.videoUrl = `/stream/${match[1]}`;
+      item.videoUrl = `/stream/${decodeURIComponent(match[1])}`;
       item.videoType = 'mp4';
     }
   }

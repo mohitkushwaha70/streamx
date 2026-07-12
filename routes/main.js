@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
         poster: `https://picsum.photos/seed/${tmdbId}/400/600`,
         backdrop: '', description: '',
         premium: false, badge: 'new',
-        videoUrl: '/stream/' + Object.values(cfg.sources)[0].split('/resolve/main/')[1],
+        videoUrl: '/stream/' + decodeURIComponent(Object.values(cfg.sources)[0].match(/\/resolve\/(.+)/)?.[1] || ''),
         videoType: 'mp4'
       });
     }

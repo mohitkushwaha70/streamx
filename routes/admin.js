@@ -43,7 +43,7 @@ async function getAllMovies() {
     const cfg = videoConfig[tmdbId];
     const existing = allLocal.find(m => (m.tmdbId || m.id) === tmdbId);
     if (existing) {
-      existing.videoUrl = existing.videoUrl || ('/stream/' + Object.values(cfg.sources)[0].split('/resolve/main/')[1]);
+      existing.videoUrl = existing.videoUrl || ('/stream/' + decodeURIComponent(Object.values(cfg.sources)[0].match(/\/resolve\/(.+)/)?.[1] || ''));
       existing.hasVideo = true;
     } else {
       allLocal.push({
@@ -53,7 +53,7 @@ async function getAllMovies() {
         poster: `https://picsum.photos/seed/${tmdbId}/400/600`,
         backdrop: '', description: '',
         premium: false, badge: 'new',
-        videoUrl: '/stream/' + Object.values(cfg.sources)[0].split('/resolve/main/')[1],
+        videoUrl: '/stream/' + decodeURIComponent(Object.values(cfg.sources)[0].match(/\/resolve\/(.+)/)?.[1] || ''),
         videoType: 'mp4', hasVideo: true
       });
     }

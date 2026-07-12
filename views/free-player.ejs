@@ -1,0 +1,72 @@
+<%- include('partials/header', { pageTitle: 'Watch - ' + item.title }) %>
+<%- include('partials/navbar', { active: '' }) %>
+
+<style>
+.free-player-page { background: #000; min-height: 100vh; }
+.free-player-hero { width: 100%; max-width: 1100px; margin: 0 auto; }
+.free-player-wrapper { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; }
+.free-player-wrapper iframe, .free-player-wrapper video { width: 100%; height: 100%; border: none; }
+.free-player-info { padding: 32px 24px; max-width: 1100px; margin: 0 auto; }
+.free-player-info h1 { font-size: 1.6rem; font-weight: 800; color: #fff; margin-bottom: 12px; }
+.free-player-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.free-player-meta span { font-size: 0.85rem; color: var(--text-muted); }
+.free-player-meta .free-badge { background: rgba(16,185,129,0.2); color: #10b981; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
+.free-player-desc { color: var(--text-secondary); line-height: 1.8; font-size: 0.9rem; max-width: 800px; }
+.free-player-actions { display: flex; gap: 12px; margin-top: 20px; }
+.free-player-actions .btn { display: inline-flex; align-items: center; gap: 8px; }
+.back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; font-size: 0.85rem; margin-bottom: 20px; padding: 0 24px; }
+.back-link:hover { color: #fff; }
+@media (max-width: 768px) {
+  .free-player-info { padding: 20px 16px; }
+  .free-player-info h1 { font-size: 1.2rem; }
+}
+</style>
+
+<main class="free-player-page">
+  <a href="/free-movies" class="back-link" style="padding-top: 20px;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back to Free Movies
+  </a>
+
+  <div class="free-player-hero">
+    <div class="free-player-wrapper">
+      <% if (item.videoType === 'youtube') { %>
+        <%
+          let ytId = '';
+          const ytMatch = (item.videoUrl || '').match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+          if (ytMatch) ytId = ytMatch[1];
+          else {
+            const parts = (item.videoUrl || '').split('/');
+            ytId = parts[parts.length - 1];
+          }
+        %>
+        <iframe src="https://www.youtube.com/embed/<%= ytId %>?autoplay=1&rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+      <% } else { %>
+        <video id="videoPlayer" poster="<%= item.backdrop %>" controls autoplay playsinline style="background:#000;">
+          <source src="<%= item.videoUrl %>" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="free-player-info">
+    <h1><%= item.title %></h1>
+    <div class="free-player-meta">
+      <span class="free-badge">FREE</span>
+      <% if (item.year) { %><span><%= item.year %></span><% } %>
+      <% if (item.genre) { %><span><%= item.genre %></span><% } %>
+      <% if (item.runtime) { %><span><%= item.runtime %></span><% } %>
+      <% if (item.creator) { %><span>by <%= item.creator %></span><% } %>
+    </div>
+    <p class="free-player-desc"><%= item.description || '' %></p>
+    <div class="free-player-actions">
+      <a href="/free-movies" class="btn btn-outline">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        More Free Movies
+      </a>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>

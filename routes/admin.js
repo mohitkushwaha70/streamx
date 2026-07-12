@@ -126,12 +126,19 @@ router.get('/movies/add', (req, res) => {
 
 // Movies - Add
 router.post('/movies/add', (req, res) => {
-  const { title, genre, year, rating, duration, premium, description, poster, backdrop, videoUrl, cast, director, language } = req.body;
+  const { title, genre, year, rating, duration, premium, description, poster, backdrop, videoUrl, videoType, cast, director, language } = req.body;
+  let detectedType = videoType || 'mp4';
+  if (!videoType || videoType === 'auto') {
+    if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
+    else if (videoUrl && (videoUrl.includes('.mp4') || videoUrl.includes('.webm') || videoUrl.includes('.mkv'))) detectedType = 'mp4';
+    else detectedType = 'mp4';
+  }
   movies.push({
     id: getNextMovieId(), tmdbId: null, title, genre, year: parseInt(year), rating: parseFloat(rating), duration,
     premium: premium === 'on', badge: 'new', description, poster: poster || `https://picsum.photos/seed/${Date.now()}/400/600`,
     backdrop: backdrop || `https://picsum.photos/seed/${Date.now()}bg/1200/600`,
     videoUrl: videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    videoType: detectedType,
     cast: cast || '', director: director || '', language: language || 'English'
   });
   addLog('content', `Movie "${title}" added to catalog`, req.session.user.name);
@@ -158,17 +165,23 @@ router.get('/movies/edit/:id', async (req, res) => {
 // Movies - Edit (save as local override)
 router.post('/movies/edit/:id', async (req, res) => {
   const id = parseInt(req.params.id);
-  const { title, genre, year, rating, duration, premium, description, poster, backdrop, videoUrl, cast, director, language } = req.body;
+  const { title, genre, year, rating, duration, premium, description, poster, backdrop, videoUrl, videoType, cast, director, language } = req.body;
+  let detectedType = videoType || 'mp4';
+  if (!videoType || videoType === 'auto') {
+    if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
+    else if (videoUrl && (videoUrl.includes('.mp4') || videoUrl.includes('.webm') || videoUrl.includes('.mkv'))) detectedType = 'mp4';
+    else detectedType = 'mp4';
+  }
   const existing = movies.find(m => m.id === id);
   if (existing) {
-    Object.assign(existing, { title, genre, year: parseInt(year), rating: parseFloat(rating), duration, premium: premium === 'on', description, poster, backdrop, videoUrl, cast, director, language });
+    Object.assign(existing, { title, genre, year: parseInt(year), rating: parseFloat(rating), duration, premium: premium === 'on', description, poster, backdrop, videoUrl, videoType: detectedType, cast, director, language });
   } else {
     const tmdb = await getTmdbMovies();
     const tmdbMovie = tmdb.find(m => (m.tmdbId || m.id) === id);
     movies.push({
       id: getNextMovieId(), tmdbId: tmdbMovie ? (tmdbMovie.tmdbId || tmdbMovie.id) : id,
       title, genre, year: parseInt(year), rating: parseFloat(rating), duration,
-      premium: premium === 'on', description, poster, backdrop, videoUrl, cast, director, language
+      premium: premium === 'on', description, poster, backdrop, videoUrl, videoType: detectedType, cast, director, language
     });
   }
   addLog('content', `Movie "${title}" updated`, req.session.user.name);
@@ -208,13 +221,19 @@ router.get('/series/add', (req, res) => {
 
 // Series - Add
 router.post('/series/add', (req, res) => {
-  const { title, genre, year, rating, seasons, episodes, premium, description, poster, backdrop, videoUrl } = req.body;
+  const { title, genre, year, rating, seasons, episodes, premium, description, poster, backdrop, videoUrl, videoType } = req.body;
+  let detectedType = videoType || 'mp4';
+  if (!videoType || videoType === 'auto') {
+    if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
+    else detectedType = 'mp4';
+  }
   series.push({
     id: getNextSeriesId(), tmdbId: null, title, genre, year: parseInt(year), rating: parseFloat(rating),
     seasons: parseInt(seasons), episodes: parseInt(episodes), premium: premium === 'on', badge: 'new',
     description, poster: poster || `https://picsum.photos/seed/${Date.now()}/400/600`,
     backdrop: backdrop || `https://picsum.photos/seed/${Date.now()}bg/1200/600`,
-    videoUrl: videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+    videoUrl: videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    videoType: detectedType
   });
   addLog('content', `Series "${title}" added to catalog`, req.session.user.name);
   changeEmitter.emit('change', { type: 'series', action: 'add' });
@@ -240,10 +259,15 @@ router.get('/series/edit/:id', async (req, res) => {
 // Series - Edit (save as local override)
 router.post('/series/edit/:id', async (req, res) => {
   const id = parseInt(req.params.id);
-  const { title, genre, year, rating, seasons, episodes, premium, description, poster, backdrop, videoUrl } = req.body;
+  const { title, genre, year, rating, seasons, episodes, premium, description, poster, backdrop, videoUrl, videoType } = req.body;
+  let detectedType = videoType || 'mp4';
+  if (!videoType || videoType === 'auto') {
+    if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
+    else detectedType = 'mp4';
+  }
   const existing = series.find(s => s.id === id);
   if (existing) {
-    Object.assign(existing, { title, genre, year: parseInt(year), rating: parseFloat(rating), seasons: parseInt(seasons), episodes: parseInt(episodes), premium: premium === 'on', description, poster, backdrop, videoUrl });
+    Object.assign(existing, { title, genre, year: parseInt(year), rating: parseFloat(rating), seasons: parseInt(seasons), episodes: parseInt(episodes), premium: premium === 'on', description, poster, backdrop, videoUrl, videoType: detectedType });
   } else {
     const tmdb = await getTmdbSeries();
     const tmdbShow = tmdb.find(s => (s.tmdbId || s.id) === id);
@@ -251,7 +275,7 @@ router.post('/series/edit/:id', async (req, res) => {
       id: getNextSeriesId(), tmdbId: tmdbShow ? (tmdbShow.tmdbId || tmdbShow.id) : id,
       title, genre, year: parseInt(year), rating: parseFloat(rating),
       seasons: parseInt(seasons), episodes: parseInt(episodes), premium: premium === 'on',
-      description, poster, backdrop, videoUrl
+      description, poster, backdrop, videoUrl, videoType: detectedType
     });
   }
   addLog('content', `Series "${title}" updated`, req.session.user.name);

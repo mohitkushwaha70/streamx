@@ -64,9 +64,24 @@
             <input type="url" name="backdrop" class="form-input" value="<%= movie ? movie.backdrop : '' %>" placeholder="https://...">
           </div>
         </div>
-        <div class="form-group">
-          <label>Video URL</label>
-          <input type="url" name="videoUrl" class="form-input" value="<%= movie ? movie.videoUrl : '' %>" placeholder="https://...">
+        <div class="form-grid">
+          <div class="form-group" style="flex: 2;">
+            <label>Video URL</label>
+            <input type="url" name="videoUrl" class="form-input" value="<%= movie ? movie.videoUrl : '' %>" placeholder="YouTube URL, MP4 link, or any video URL">
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>Video Type</label>
+            <select name="videoType" class="form-input">
+              <option value="auto" selected>Auto Detect</option>
+              <option value="youtube" <%= movie && movie.videoType === 'youtube' ? 'selected' : '' %>>YouTube Embed</option>
+              <option value="mp4" <%= movie && movie.videoType === 'mp4' ? 'selected' : '' %>>Direct Video (MP4/WebM)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;">
+          <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">
+            <strong style="color: #3b82f6;">Tip:</strong> Paste a YouTube URL and select "Auto Detect" — it will auto-embed. For direct MP4 files, paste the .mp4 link. You can also embed any video URL (Vimeo, Dailymotion, etc.)
+          </p>
         </div>
         <div class="form-group">
           <label class="checkbox-label">

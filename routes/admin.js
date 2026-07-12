@@ -1,7 +1,16 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
+const fs = require('fs');
 const { movies, series, users, payments, activityLogs, reports, getNextMovieId, getNextSeriesId, changeEmitter, addLog } = require('../data/sample');
 const { fetchMovies, fetchSeries, fetchTrendingAll, fetchGenreStats, searchMovies, TMDB_IMG } = require('../services/tmdb');
+
+let videoConfig = {};
+try {
+  videoConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'videos.json'), 'utf8')).videos || {};
+} catch (e) {
+  console.error('Could not load videos.json:', e.message);
+}
 
 function isAdmin(req, res, next) {
   if (req.session.user && req.session.user.role === 'admin') return next();
@@ -26,7 +35,35 @@ async function getAllMovies() {
   const tmdb = await getTmdbMovies();
   const editedIds = new Set(movies.map(m => m.tmdbId));
   const cleanTmdb = tmdb.filter(m => !editedIds.has(m.tmdbId || m.id));
-  return [...cleanTmdb, ...movies];
+  const allLocal = [...cleanTmdb, ...movies];
+
+  const videoTmdbIds = Object.keys(videoConfig).filter(k => !isNaN(k)).map(Number);
+  const existingIds = new Set(allLocal.map(m => m.tmdbId || m.id));
+
+  for (const tmdbId of videoTmdbIds) {
+    if (!existingIds.has(tmdbId)) {
+      const cfg = videoConfig[tmdbId];
+      const tmdbMovie = tmdb.find(m => (m.tmdbId || m.id) === tmdbId);
+      allLocal.push({
+        id: tmdbId, tmdbId,
+        title: cfg.title || (tmdbMovie ? tmdbMovie.title : `Movie ${tmdbId}`),
+        genre: tmdbMovie ? tmdbMovie.genre : 'Unknown',
+        year: tmdbMovie ? tmdbMovie.year : 2024,
+        rating: tmdbMovie ? tmdbMovie.rating : 7.0,
+        duration: tmdbMovie ? tmdbMovie.duration : '2h',
+        poster: tmdbMovie ? tmdbMovie.poster : `https://picsum.photos/seed/${tmdbId}/400/600`,
+        backdrop: tmdbMovie ? tmdbMovie.backdrop : '',
+        description: tmdbMovie ? tmdbMovie.description : '',
+        premium: false,
+        badge: 'new',
+        videoUrl: '/stream/' + Object.values(cfg.sources)[0].split('/resolve/main/')[1],
+        videoType: 'mp4',
+        fromVideosJson: true
+      });
+    }
+  }
+
+  return allLocal;
 }
 
 async function getAllSeries() {

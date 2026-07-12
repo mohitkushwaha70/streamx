@@ -3,6 +3,13 @@
   "videos": {
     "1303331": {
       "title": "Dhamaal 4 (2026)",
+      "poster": "https://image.tmdb.org/t/p/w500/5d7hpbefNiuebl5eqP5cRrckVxs.jpg",
+      "backdrop": "https://image.tmdb.org/t/p/original/95sjD0dRajtU6SKD6Gq6PtrGoGY.jpg",
+      "genre": "Comedy",
+      "year": 2026,
+      "rating": 7.0,
+      "duration": "2h 10m",
+      "description": "The Dhamaal boys are back for another treasure hunt, facing hilarious challenges in their quest for treasure.",
       "sources": {
         "1080p": "https://huggingface.co/datasets/mohit8287kushwaha/Mohit8287kushwahaStreamxvedios/resolve/main/Dhamaal%204%202026%20Hindi%201080p%20HQ%20HDTC.mkv"
       }

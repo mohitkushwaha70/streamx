@@ -25,9 +25,13 @@ router.get('/', async (req, res) => {
       allMovies.push({
         id: tmdbId, tmdbId,
         title: cfg.title || `Movie ${tmdbId}`,
-        genre: 'Unknown', year: 2024, rating: 7.0, duration: '2h',
-        poster: `https://picsum.photos/seed/${tmdbId}/400/600`,
-        backdrop: '', description: '',
+        genre: cfg.genre || 'Unknown',
+        year: cfg.year || 2024,
+        rating: cfg.rating || 7.0,
+        duration: cfg.duration || '2h',
+        poster: cfg.poster || `https://picsum.photos/seed/${tmdbId}/400/600`,
+        backdrop: cfg.backdrop || '',
+        description: cfg.description || '',
         premium: false, badge: 'new',
         videoUrl: '/stream/' + decodeURIComponent(Object.values(cfg.sources)[0].match(/\/resolve\/main\/(.+)/)?.[1] || Object.values(cfg.sources)[0].match(/\/resolve\/(.+)/)?.[1] || ''),
         videoType: 'mp4'

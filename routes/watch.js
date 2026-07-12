@@ -56,11 +56,34 @@ router.get('/:type/:id', async (req, res) => {
 
   const tmdbMovieIds = new Set((tmdbMovies || []).map(m => m.tmdbId || m.id));
   const localOnlyMovies = sampleMovies.filter(m => !tmdbMovieIds.has(m.id));
-  const allMovies = [...(tmdbMovies || []), ...localOnlyMovies];
+  let allMovies = [...(tmdbMovies || []), ...localOnlyMovies];
 
   const tmdbSeriesIds = new Set((tmdbSeries || []).map(s => s.tmdbId || s.id));
   const localOnlySeries = sampleSeries.filter(s => !tmdbSeriesIds.has(s.id));
-  const allSeries = [...(tmdbSeries || []), ...localOnlySeries];
+  let allSeries = [...(tmdbSeries || []), ...localOnlySeries];
+
+  for (const tmdbId of Object.keys(videoConfig).filter(k => !isNaN(k)).map(Number)) {
+    if (!allMovies.find(m => (m.tmdbId || m.id) === tmdbId)) {
+      const cfg = videoConfig[tmdbId];
+      const firstUrl = Object.values(cfg.sources)[0];
+      let match = firstUrl.match(/\/resolve\/main\/(.+)/);
+      if (!match) match = firstUrl.match(/\/resolve\/(.+)/);
+      allMovies.push({
+        id: tmdbId, tmdbId,
+        title: cfg.title || `Movie ${tmdbId}`,
+        genre: cfg.genre || 'Unknown',
+        year: cfg.year || 2024,
+        rating: cfg.rating || 7.0,
+        duration: cfg.duration || '2h',
+        poster: cfg.poster || `https://picsum.photos/seed/${tmdbId}/400/600`,
+        backdrop: cfg.backdrop || '',
+        description: cfg.description || '',
+        premium: false, badge: 'new',
+        videoUrl: match ? `/stream/${decodeURIComponent(match[1])}` : '',
+        videoType: 'mp4'
+      });
+    }
+  }
 
   let item;
   if (type === 'movie') item = allMovies.find(m => m.id === itemId || m.tmdbId === itemId);

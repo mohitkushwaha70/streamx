@@ -2,7 +2,10 @@
 
 <div class="auth-container">
   <div class="auth-box">
-    <div class="logo">STREAM<span>X</span></div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;">
+      <img src="/images/favicon.svg" alt="" style="width:40px;height:40px;border-radius:10px;">
+      <span style="font-weight:800;font-size:1.5rem;color:#fff;letter-spacing:-0.5px;">STREAM<span style="background:linear-gradient(135deg,#6c5ce7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">X</span></span>
+    </div>
     <p class="subtitle">Create your account to start streaming</p>
 
     <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>

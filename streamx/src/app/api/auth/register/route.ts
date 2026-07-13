@@ -5,6 +5,12 @@ import { hashPassword, signToken } from '@/lib/auth';
 import { success, error } from '@/lib/api';
 import { cookies } from 'next/headers';
 
+function getClientIP(req: NextRequest): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    || req.headers.get('x-real-ip')
+    || 'unknown';
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { name, email, password } = await req.json();
@@ -13,6 +19,9 @@ export async function POST(req: NextRequest) {
 
     const existing = await db.user.findUnique({ where: { email } });
     if (existing) return error('Email already registered');
+
+    const ip = getClientIP(req);
+    const userAgent = req.headers.get('user-agent') || 'unknown';
 
     const hashed = await hashPassword(password);
     const user = await db.user.create({
@@ -24,6 +33,7 @@ export async function POST(req: NextRequest) {
         type: 'auth',
         message: `New user registered: ${name} (${email})`,
         userId: user.id,
+        metadata: JSON.stringify({ ip, userAgent, action: 'register' }),
       },
     });
 

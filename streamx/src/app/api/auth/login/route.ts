@@ -5,6 +5,12 @@ import { verifyPassword, signToken } from '@/lib/auth';
 import { success, error } from '@/lib/api';
 import { cookies } from 'next/headers';
 
+function getClientIP(req: NextRequest): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    || req.headers.get('x-real-ip')
+    || 'unknown';
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json();
@@ -17,6 +23,9 @@ export async function POST(req: NextRequest) {
     const valid = await verifyPassword(password, user.password);
     if (!valid) return error('Invalid email or password');
 
+    const ip = getClientIP(req);
+    const userAgent = req.headers.get('user-agent') || 'unknown';
+
     await db.user.update({
       where: { id: user.id },
       data: { lastActiveAt: new Date() },
@@ -27,6 +36,7 @@ export async function POST(req: NextRequest) {
         type: 'auth',
         message: `${user.name} (${user.email}) logged in`,
         userId: user.id,
+        metadata: JSON.stringify({ ip, userAgent, action: 'login' }),
       },
     });
 

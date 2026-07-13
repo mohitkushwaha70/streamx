@@ -9,6 +9,7 @@ interface LogEntry {
   type: string;
   message: string;
   user?: string;
+  metadata?: string;
   timestamp: string;
 }
 
@@ -133,7 +134,7 @@ export default function LogsPage() {
                 <th className="text-left px-5 py-3.5 text-xs font-medium text-muted uppercase tracking-wider">Timestamp</th>
                 <th className="text-left px-5 py-3.5 text-xs font-medium text-muted uppercase tracking-wider">Type</th>
                 <th className="text-left px-5 py-3.5 text-xs font-medium text-muted uppercase tracking-wider">Message</th>
-                <th className="text-left px-5 py-3.5 text-xs font-medium text-muted uppercase tracking-wider hidden md:table-cell">User</th>
+                <th className="text-left px-5 py-3.5 text-xs font-medium text-muted uppercase tracking-wider hidden md:table-cell">IP</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -153,32 +154,41 @@ export default function LogsPage() {
                   </td>
                 </tr>
               ) : (
-                logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-surface-hover transition-colors">
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-1.5 text-sm text-muted">
-                        <Clock className="w-3.5 h-3.5 shrink-0" />
-                        {formatDate(log.timestamp)}
-                      </div>
-                    </td>
-                    <td className="px-5 py-3">
-                      <span
-                        className={cn(
-                          'inline-flex px-2 py-1 rounded-md text-xs font-medium capitalize',
-                          getTypeBadge(log.type)
-                        )}
-                      >
-                        {log.type}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3">
-                      <p className="text-sm text-white truncate max-w-[300px]">{log.message}</p>
-                    </td>
-                    <td className="px-5 py-3 hidden md:table-cell">
-                      <span className="text-sm text-muted">{log.user || '—'}</span>
-                    </td>
-                  </tr>
-                ))
+                logs.map((log) => {
+                  let ip = '—';
+                  try {
+                    if (log.metadata) {
+                      const meta = JSON.parse(log.metadata);
+                      ip = meta.ip || '—';
+                    }
+                  } catch {}
+                  return (
+                    <tr key={log.id} className="hover:bg-surface-hover transition-colors">
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-1.5 text-sm text-muted">
+                          <Clock className="w-3.5 h-3.5 shrink-0" />
+                          {formatDate(log.timestamp)}
+                        </div>
+                      </td>
+                      <td className="px-5 py-3">
+                        <span
+                          className={cn(
+                            'inline-flex px-2 py-1 rounded-md text-xs font-medium capitalize',
+                            getTypeBadge(log.type)
+                          )}
+                        >
+                          {log.type}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3">
+                        <p className="text-sm text-white truncate max-w-[300px]">{log.message}</p>
+                      </td>
+                      <td className="px-5 py-3 hidden md:table-cell">
+                        <span className="text-sm text-muted font-mono">{ip}</span>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

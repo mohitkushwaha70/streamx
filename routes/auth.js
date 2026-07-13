@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const db = require('../services/database');
-const { logActivity } = require('../services/mongo-log');
+const { logActivity, syncUser } = require('../services/mongo-log');
 
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser((id, done) => {
@@ -73,6 +73,8 @@ router.post('/login', (req, res) => {
     role: user.role,
   });
 
+  syncUser(user);
+
   req.session.user = {
     id: user.id, name: user.name, email: user.email,
     role: user.role, avatar: user.avatar, plan: user.plan
@@ -115,6 +117,8 @@ router.post('/register', (req, res) => {
     role: 'user',
   });
 
+  syncUser(newUser);
+
   req.session.user = {
     id: newUser.id, name: newUser.name, email: newUser.email,
     role: newUser.role, avatar: newUser.avatar, plan: newUser.plan
@@ -143,6 +147,8 @@ router.get('/google/callback', (req, res, next) => {
       role: req.user.role,
       provider: 'google',
     });
+
+    syncUser(req.user);
 
     req.session.user = {
       id: req.user.id, name: req.user.name, email: req.user.email,

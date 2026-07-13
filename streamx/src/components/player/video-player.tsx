@@ -229,7 +229,7 @@ export default function VideoPlayer({
     }
   }, [contentId, src]);
 
-  // Save playback position every 10s
+  // Save playback position + watch history every 10s
   useEffect(() => {
     const key = `playback_${contentId}`;
     saveIntervalRef.current = setInterval(() => {
@@ -241,6 +241,16 @@ export default function VideoPlayer({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contentId, position: v.currentTime }),
         }).catch(() => {});
+        const dur = v.duration || 0;
+        if (dur > 0) {
+          const progress = Math.min((v.currentTime / dur) * 100, 100);
+          const completed = progress >= 90;
+          fetch('/api/user/history', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contentId, progress, completed }),
+          }).catch(() => {});
+        }
       }
     }, 10000);
     return () => {

@@ -5,6 +5,7 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const db = require('../services/database');
 const { logActivity, syncUser } = require('../services/mongo-log');
+const { sendOTP } = require('../services/email');
 
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser((id, done) => {
@@ -170,6 +171,77 @@ router.post('/logout', (req, res) => {
     res.clearCookie('connect.sid');
     res.redirect('/');
   });
+});
+
+// ===== OTP LOGIN =====
+router.get('/otp', (req, res) => {
+  if (req.session.user) return res.redirect('/');
+  res.render('otp-send', { email: '' });
+});
+
+router.post('/otp/send', async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    req.session.error = 'Please enter your email';
+    return res.redirect('/auth/otp');
+  }
+  const user = db.users.findByEmail(email);
+  if (!user) {
+    req.session.error = 'No account found with this email';
+    return res.redirect('/auth/otp');
+  }
+
+  const code = db.otp.create(email, 'login');
+  await sendOTP(email, code, 'login');
+
+  req.session.otpEmail = email;
+  res.redirect('/auth/otp/verify');
+});
+
+router.get('/otp/verify', (req, res) => {
+  if (req.session.user) return res.redirect('/');
+  if (!req.session.otpEmail) return res.redirect('/auth/otp');
+  res.render('otp-verify', { email: req.session.otpEmail });
+});
+
+router.post('/otp/verify', async (req, res) => {
+  const { code } = req.body;
+  const email = req.session.otpEmail;
+  if (!email) return res.redirect('/auth/otp');
+  if (!code || code.length !== 6) {
+    req.session.error = 'Enter the 6-digit OTP';
+    return res.redirect('/auth/otp/verify');
+  }
+
+  const valid = db.otp.verify(email, code, 'login');
+  if (!valid) {
+    req.session.error = 'Invalid or expired OTP. Try again.';
+    return res.redirect('/auth/otp/verify');
+  }
+
+  const user = db.users.findByEmail(email);
+  if (!user) {
+    req.session.error = 'Account not found';
+    return res.redirect('/auth/otp');
+  }
+
+  db.users.updateLastActive(user.id);
+  db.logs.add('user', `User logged in via OTP: ${user.name}`, user.name);
+  logActivity('login', `${user.name} (${user.email}) logged in via OTP`, user.id, {
+    ip: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown',
+    userAgent: req.headers['user-agent'] || 'unknown',
+    email: user.email,
+    role: user.role,
+    provider: 'otp',
+  });
+  syncUser(user);
+
+  delete req.session.otpEmail;
+  req.session.user = {
+    id: user.id, name: user.name, email: user.email,
+    role: user.role, avatar: user.avatar, plan: user.plan
+  };
+  res.redirect(user.role === 'admin' ? '/admin' : '/');
 });
 
 module.exports = router;

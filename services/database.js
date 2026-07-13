@@ -164,6 +164,16 @@ function createTables() {
     value TEXT DEFAULT ''
   )`);
 
+  db.run(`CREATE TABLE IF NOT EXISTS otp_codes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL,
+    code TEXT NOT NULL,
+    purpose TEXT DEFAULT 'login',
+    expires_at DATETIME NOT NULL,
+    used INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
   db.run(`CREATE INDEX IF NOT EXISTS idx_content_type ON content(type)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_content_genre ON content(genre)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_content_year ON content(year)`);
@@ -614,6 +624,31 @@ const settings = {
   }
 };
 
+// ===== OTP =====
+const otp = {
+  create(email, purpose = 'login') {
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    db.run("DELETE FROM otp_codes WHERE email = ? AND purpose = ?", [email, purpose]);
+    db.run("INSERT INTO otp_codes (email, code, purpose, expires_at) VALUES (?, ?, ?, ?)", [email, code, purpose, expires]);
+    save();
+    return code;
+  },
+  verify(email, code, purpose = 'login') {
+    const r = db.exec("SELECT * FROM otp_codes WHERE email = ? AND code = ? AND purpose = ? AND used = 0 ORDER BY id DESC LIMIT 1", [email, code, purpose]);
+    if (r.length === 0 || r[0].values.length === 0) return false;
+    const row = rowToObj(r[0], r[0].values[0]);
+    if (new Date(row.expires_at) < new Date()) return false;
+    db.run("UPDATE otp_codes SET used = 1 WHERE id = ?", [row.id]);
+    save();
+    return true;
+  },
+  cleanup() {
+    db.run("DELETE FROM otp_codes WHERE expires_at < datetime('now') OR used = 1");
+    save();
+  }
+};
+
 // ===== HELPERS =====
 function rowToObj(execResult, values) {
   const obj = {};
@@ -628,5 +663,5 @@ function tryParse(json) {
 module.exports = {
   init, getDb, save,
   users, content, episodes, watchlist, continueWatching,
-  videoConfigs, payments, logs, settings
+  videoConfigs, payments, logs, settings, otp
 };

@@ -1,0 +1,44 @@
+<%- include('partials/header', { pageTitle: 'Verify OTP' }) %>
+
+<div class="auth-container">
+  <div class="auth-box">
+    <div class="logo">STREAM<span>X</span></div>
+    <p class="subtitle">Enter the 6-digit code sent to</p>
+    <p style="color: var(--accent); font-weight: 600; margin-bottom: 20px; word-break: break-all;"><%= email %></p>
+
+    <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+    <form method="POST" action="/auth/otp/verify">
+      <div class="form-group">
+        <label>OTP Code</label>
+        <input type="text" name="code" class="form-input" placeholder="000000"
+               maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+               autocomplete="one-time-code" required
+               style="text-align:center;font-size:24px;letter-spacing:8px;font-family:monospace;">
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg">VERIFY & SIGN IN</button>
+    </form>
+
+    <div class="auth-footer" style="margin-top:16px;">
+      <form method="POST" action="/auth/otp/send" style="display:inline;">
+        <input type="hidden" name="email" value="<%= email %>">
+        <button type="submit" class="btn btn-outline" style="font-size:13px; padding:8px 16px;">
+          Resend OTP
+        </button>
+      </form>
+    </div>
+
+    <div class="auth-footer" style="margin-top:12px;">
+      <a href="/auth/otp" style="color: var(--accent);">← Use a different email</a>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.querySelector('input[name="code"]');
+  if (input) input.focus();
+});
+</script>
+
+<%- include('partials/footer') %>

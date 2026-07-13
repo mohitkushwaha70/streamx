@@ -1,0 +1,112 @@
+<%- include('../partials/header', { pageTitle: anime ? 'Edit Anime' : 'Add Anime' }) %>
+
+<div class="admin-layout">
+  <%- include('../partials/admin-sidebar') %>
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1><%= anime ? 'Edit' : 'Add New' %> Anime</h1>
+      <a href="/admin/anime" class="btn btn-outline">← Back</a>
+    </div>
+
+    <div class="admin-card">
+      <form method="POST" action="<%= anime ? '/admin/anime/edit/' + anime.id : '/admin/anime/add' %>" class="admin-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Title *</label>
+            <input type="text" name="title" class="form-input" value="<%= anime ? anime.title : '' %>" required>
+          </div>
+          <div class="form-group">
+            <label>Genre *</label>
+            <select name="genre" class="form-input" required>
+              <% ['Action','Anime','Comedy','Drama','Horror','Sci-Fi','Thriller','Adventure','Fantasy'].forEach(g => { %>
+              <option value="<%= g %>" <%= anime && anime.genre === g ? 'selected' : (!anime && g === 'Anime' ? 'selected' : '') %>><%= g %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Year *</label>
+            <input type="number" name="year" class="form-input" value="<%= anime ? anime.year : 2026 %>" required>
+          </div>
+          <div class="form-group">
+            <label>Rating *</label>
+            <input type="number" name="rating" class="form-input" step="0.1" min="0" max="10" value="<%= anime ? anime.rating : 8.0 %>" required>
+          </div>
+          <div class="form-group">
+            <label>Duration</label>
+            <input type="text" name="duration" class="form-input" value="<%= anime ? anime.duration : '' %>" placeholder="e.g. 24m per episode">
+          </div>
+          <div class="form-group">
+            <label>Language</label>
+            <input type="text" name="language" class="form-input" value="<%= anime ? anime.language : 'Japanese' %>">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Seasons</label>
+            <input type="number" name="seasons" class="form-input" value="<%= anime ? anime.seasons || 0 : 0 %>" min="0">
+          </div>
+          <div class="form-group">
+            <label>Total Episodes</label>
+            <input type="number" name="episodes" class="form-input" value="<%= anime ? anime.episodes_count || 0 : 0 %>" min="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description *</label>
+          <textarea name="description" class="form-input" rows="3" required><%= anime ? anime.description : '' %></textarea>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Cast</label>
+            <input type="text" name="cast" class="form-input" value="<%= anime ? anime.cast : '' %>" placeholder="e.g. Voice Actor 1, Voice Actor 2">
+          </div>
+          <div class="form-group">
+            <label>Director</label>
+            <input type="text" name="director" class="form-input" value="<%= anime ? anime.director : '' %>">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Poster URL</label>
+            <input type="url" name="poster" class="form-input" value="<%= anime ? anime.poster : '' %>" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <label>Backdrop URL</label>
+            <input type="url" name="backdrop" class="form-input" value="<%= anime ? anime.backdrop : '' %>" placeholder="https://...">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group" style="flex: 2;">
+            <label>Video URL</label>
+            <input type="url" name="videoUrl" class="form-input" value="<%= anime ? anime.video_url : '' %>" placeholder="YouTube URL, MP4 link, or any video URL">
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>Video Type</label>
+            <select name="videoType" class="form-input">
+              <option value="auto" selected>Auto Detect</option>
+              <option value="youtube" <%= anime && anime.video_type === 'youtube' ? 'selected' : '' %>>YouTube Embed</option>
+              <option value="mp4" <%= anime && anime.video_type === 'mp4' ? 'selected' : '' %>>Direct Video (MP4/WebM)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;">
+          <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">
+            <strong style="color: #3b82f6;">Tip:</strong> Paste a YouTube URL and select "Auto Detect" — it will auto-embed. For direct MP4 files, paste the .mp4 link.
+          </p>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" name="premium" <%= anime && anime.premium ? 'checked' : '' %>>
+            <span>Premium Content (requires subscription)</span>
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-lg">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <%= anime ? 'Update Anime' : 'Add Anime' %>
+          </button>
+          <a href="/admin/anime" class="btn btn-outline btn-lg">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>

@@ -60,14 +60,21 @@ router.get('/', (req, res) => {
   };
 
   const recentActivity = db.logs.get(5);
+  const success = req.session.success;
+  const error = req.session.error;
+  delete req.session.success;
+  delete req.session.error;
 
   res.render('admin/dashboard', {
+    admin: req.session.user,
     stats,
     recentUsers: allUsers.slice(-5).reverse(),
     recentMovies: allMovies.slice(-5).reverse(),
     trendingContent: [],
     recentActivity,
-    revenue
+    revenue,
+    success,
+    error
   });
 });
 
@@ -125,12 +132,21 @@ router.post('/movies/edit/:id', (req, res) => {
   const existing = db.content.findById(id);
   if (existing) {
     db.content.update(existing.id, {
-      title, genre, genres: genre ? [genre] : [],
-      year: parseInt(year), rating: parseFloat(rating),
-      duration, premium: premium === 'on' ? 1 : 0,
-      description, poster, backdrop,
-      video_url: videoUrl, video_type: detectedType,
-      cast, director, language
+      title: title || existing.title,
+      genre: genre || existing.genre,
+      genres: genre ? [genre] : (existing.genres || []),
+      year: parseInt(year) || existing.year,
+      rating: parseFloat(rating) || existing.rating,
+      duration: duration || existing.duration,
+      premium: premium === 'on' ? 1 : (existing.premium || 0),
+      description: description || existing.description,
+      poster: poster || existing.poster,
+      backdrop: backdrop || existing.backdrop,
+      video_url: videoUrl || existing.video_url,
+      video_type: detectedType,
+      cast: cast || existing.cast,
+      director: director || existing.director,
+      language: language || existing.language
     });
   }
   db.logs.add('content', `Movie "${title}" updated`, req.session.user.name);
@@ -203,12 +219,19 @@ router.post('/series/edit/:id', (req, res) => {
   const existing = db.content.findById(id);
   if (existing) {
     db.content.update(existing.id, {
-      title, genre, genres: genre ? [genre] : [],
-      year: parseInt(year), rating: parseFloat(rating),
-      seasons: parseInt(seasons), episodes_count: parseInt(episodes),
-      premium: premium === 'on' ? 1 : 0,
-      description, poster, backdrop,
-      video_url: videoUrl, video_type: detectedType
+      title: title || existing.title,
+      genre: genre || existing.genre,
+      genres: genre ? [genre] : (existing.genres || []),
+      year: parseInt(year) || existing.year,
+      rating: parseFloat(rating) || existing.rating,
+      seasons: parseInt(seasons) || existing.seasons,
+      episodes_count: parseInt(episodes) || existing.episodes_count,
+      premium: premium === 'on' ? 1 : (existing.premium || 0),
+      description: description || existing.description,
+      poster: poster || existing.poster,
+      backdrop: backdrop || existing.backdrop,
+      video_url: videoUrl || existing.video_url,
+      video_type: detectedType
     });
   }
   db.logs.add('content', `Series "${title}" updated`, req.session.user.name);
@@ -290,7 +313,93 @@ router.get('/settings', (req, res) => {
 
 router.get('/anime', (req, res) => {
   const anime = db.content.getByType('anime');
-  res.render('admin/anime', { anime });
+  const success = req.session.success;
+  const error = req.session.error;
+  delete req.session.success;
+  delete req.session.error;
+  res.render('admin/anime', { anime, success, error });
+});
+
+router.get('/anime/add', (req, res) => {
+  res.render('admin/anime-form', { anime: null });
+});
+
+router.post('/anime/add', (req, res) => {
+  const { title, genre, year, rating, duration, premium, description, poster, backdrop, videoUrl, videoType, cast, director, language, seasons, episodes } = req.body;
+  let detectedType = videoType || 'mp4';
+  if (!videoType || videoType === 'auto') {
+    if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
+    else detectedType = 'mp4';
+  }
+  db.content.create({
+    tmdb_id: null, title, type: 'anime', genre: genre || 'Anime',
+    genres: genre ? [genre] : ['Anime'],
+    year: parseInt(year) || 2026, rating: parseFloat(rating) || 8.0,
+    duration: duration || '',
+    description: description || '',
+    poster: poster || `https://picsum.photos/seed/${Date.now()}/400/600`,
+    backdrop: backdrop || `https://picsum.photos/seed/${Date.now()}bg/1200/600`,
+    video_url: videoUrl || '', video_type: detectedType,
+    cast: cast || '', director: director || '', language: language || 'ja',
+    premium: premium === 'on' ? 1 : 0, badge: 'new',
+    seasons: parseInt(seasons) || 0, episodes_count: parseInt(episodes) || 0
+  });
+  db.logs.add('content', `Anime "${title}" added to catalog`, req.session.user.name);
+  req.session.success = 'Anime added successfully!';
+  res.redirect('/admin/anime');
+});
+
+router.get('/anime/edit/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const anime = db.content.findById(id);
+  if (!anime || anime.type !== 'anime') return res.redirect('/admin/anime');
+  res.render('admin/anime-form', { anime });
+});
+
+router.post('/anime/edit/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const { title, genre, year, rating, duration, premium, description, poster, backdrop, videoUrl, videoType, cast, director, language, seasons, episodes } = req.body;
+  let detectedType = videoType || 'mp4';
+  if (!videoType || videoType === 'auto') {
+    if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
+    else detectedType = 'mp4';
+  }
+  const existing = db.content.findById(id);
+  if (existing) {
+    db.content.update(existing.id, {
+      title: title || existing.title,
+      genre: genre || 'Anime',
+      genres: genre ? [genre] : (existing.genres || ['Anime']),
+      year: parseInt(year) || existing.year,
+      rating: parseFloat(rating) || existing.rating,
+      duration: duration || existing.duration,
+      premium: premium === 'on' ? 1 : (existing.premium || 0),
+      description: description || existing.description,
+      poster: poster || existing.poster,
+      backdrop: backdrop || existing.backdrop,
+      video_url: videoUrl || existing.video_url,
+      video_type: detectedType,
+      cast: cast || existing.cast,
+      director: director || existing.director,
+      language: language || existing.language,
+      seasons: parseInt(seasons) || existing.seasons || 0,
+      episodes_count: parseInt(episodes) || existing.episodes_count || 0
+    });
+  }
+  db.logs.add('content', `Anime "${title}" updated`, req.session.user.name);
+  req.session.success = 'Anime updated successfully!';
+  res.redirect('/admin/anime');
+});
+
+router.get('/anime/delete/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const item = db.content.findById(id);
+  if (item && item.type === 'anime') {
+    db.content.delete(item.id);
+    db.logs.add('content', `Anime "${item.title}" deleted`, req.session.user.name);
+  }
+  req.session.success = 'Anime deleted successfully!';
+  res.redirect('/admin/anime');
 });
 
 router.get('/payments', (req, res) => {

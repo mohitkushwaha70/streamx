@@ -6,3 +6,4 @@ streamx/.next/
 streamx/data/
 *.log
 /tmp/
+.replit

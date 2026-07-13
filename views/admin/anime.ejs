@@ -10,11 +10,12 @@
       </div>
       <div class="admin-header-right">
         <span class="admin-count"><%= anime.length %> titles</span>
-        <a href="/admin/movies/add" class="btn btn-primary btn-sm">+ Add Anime</a>
+        <a href="/admin/anime/add" class="btn btn-primary btn-sm">+ Add Anime</a>
       </div>
     </div>
 
     <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+    <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
 
     <div class="admin-card">
       <div class="admin-card-header">
@@ -41,10 +42,10 @@
               <td><span class="plan-badge <%= m.premium ? 'premium' : 'free' %>"><%= m.premium ? 'Premium' : 'Free' %></span></td>
               <td>
                 <div class="action-btns">
-                  <a href="/admin/movies/edit/<%= m.id %>" class="btn-icon-sm" title="Edit">
+                  <a href="/admin/anime/edit/<%= m.id %>" class="btn-icon-sm" title="Edit">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                   </a>
-                  <a href="/admin/movies/delete/<%= m.id %>" class="btn-icon-sm danger" title="Delete" onclick="return confirm('Delete this anime?')">
+                  <a href="/admin/anime/delete/<%= m.id %>" class="btn-icon-sm danger" title="Delete" onclick="return confirm('Delete this anime?')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                   </a>
                 </div>
@@ -52,7 +53,7 @@
             </tr>
             <% }) %>
             <% if (anime.length === 0) { %>
-            <tr><td colspan="7" style="text-align:center;color:#555;padding:40px;">No anime content found. Anime titles from TMDB with Animation genre will appear here.</td></tr>
+            <tr><td colspan="7" style="text-align:center;color:#555;padding:40px;">No anime content found. Click "+ Add Anime" to add anime titles.</td></tr>
             <% } %>
           </tbody>
         </table>

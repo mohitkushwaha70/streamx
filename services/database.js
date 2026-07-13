@@ -32,6 +32,10 @@ async function init() {
   resetAdminPassword();
   save();
 
+  // Sync admin to MongoDB after all objects are ready
+  const admin = users.findByEmail('admin@streamx.com');
+  if (admin) getMongo()?.syncUser(admin);
+
   return db;
 }
 
@@ -194,8 +198,7 @@ function seedAdmin() {
     `INSERT INTO users (name, email, password, role, avatar, plan) VALUES (?, ?, ?, ?, ?, ?)`,
     ['Admin', 'admin@streamx.com', hash, 'admin', 'A', 'premium']
   );
-  const user = db.users.findByEmail('admin@streamx.com');
-  if (user) getMongo()?.syncUser(user);
+  save();
 }
 
 function resetAdminPassword() {
@@ -256,7 +259,7 @@ const users = {
     const fields = [];
     const vals = [];
     for (const [k, v] of Object.entries(data)) {
-      if (k === 'id') continue;
+      if (k === 'id' || v === undefined) continue;
       fields.push(`${k} = ?`);
       vals.push(v);
     }
@@ -404,7 +407,7 @@ const content = {
     const fields = [];
     const vals = [];
     for (const [k, v] of Object.entries(data)) {
-      if (k === 'id') continue;
+      if (k === 'id' || v === undefined) continue;
       fields.push(`${k} = ?`);
       vals.push(k === 'genres' ? JSON.stringify(v) : v);
     }

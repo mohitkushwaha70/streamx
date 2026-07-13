@@ -57,14 +57,14 @@
         <div class="form-grid">
           <div class="form-group" style="flex: 2;">
             <label>Video URL</label>
-            <input type="url" name="videoUrl" class="form-input" value="<%= show ? show.videoUrl : '' %>" placeholder="YouTube URL, MP4 link, or any video URL">
+            <input type="url" name="videoUrl" class="form-input" value="<%= show ? show.video_url : '' %>" placeholder="YouTube URL, MP4 link, or any video URL">
           </div>
           <div class="form-group" style="flex: 1;">
             <label>Video Type</label>
             <select name="videoType" class="form-input">
               <option value="auto" selected>Auto Detect</option>
-              <option value="youtube" <%= show && show.videoType === 'youtube' ? 'selected' : '' %>>YouTube Embed</option>
-              <option value="mp4" <%= show && show.videoType === 'mp4' ? 'selected' : '' %>>Direct Video (MP4/WebM)</option>
+              <option value="youtube" <%= show && show.video_type === 'youtube' ? 'selected' : '' %>>YouTube Embed</option>
+              <option value="mp4" <%= show && show.video_type === 'mp4' ? 'selected' : '' %>>Direct Video (MP4/WebM)</option>
             </select>
           </div>
         </div>

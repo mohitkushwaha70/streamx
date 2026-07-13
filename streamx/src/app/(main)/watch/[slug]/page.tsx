@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Play, Bookmark, BookmarkCheck, Clock, ClockCheck, Star,
+  Play, Bookmark, BookmarkCheck, Clock, CircleCheck, Star,
   ChevronDown, ChevronUp, ExternalLink, ArrowLeft,
 } from 'lucide-react';
 import { cn, formatDuration, formatRating } from '@/lib/utils';
@@ -307,7 +307,7 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
                 aria-label={watchLater ? 'Remove from watch later' : 'Add to watch later'}
               >
                 {watchLater ? (
-                  <ClockCheck className="h-5 w-5 text-accent" />
+                  <CircleCheck className="h-5 w-5 text-accent" />
                 ) : (
                   <Clock className="h-5 w-5" />
                 )}

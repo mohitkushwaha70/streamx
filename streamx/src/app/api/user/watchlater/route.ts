@@ -1,4 +1,3 @@
-export const dynamic = 'force-dynamic';
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { success, error, unauthorized } from '@/lib/api';
@@ -10,11 +9,16 @@ export async function GET() {
 
   const items = await db.watchLater.findMany({
     where: { userId: user.userId },
-    include: { content: true },
     orderBy: { createdAt: 'desc' },
   });
 
-  return success(items.map((i) => i.content));
+  const contentIds = items.map((i) => i.contentId);
+  const contentItems = contentIds.length > 0
+    ? await db.content.findMany({ where: { id: { in: contentIds } } })
+    : [];
+
+  const contentMap = new Map(contentItems.map((c) => [c.id, c]));
+  return success(items.map((i) => contentMap.get(i.contentId)).filter(Boolean));
 }
 
 export async function POST(req: NextRequest) {
@@ -24,8 +28,8 @@ export async function POST(req: NextRequest) {
   const { contentId } = await req.json();
   if (!contentId) return error('contentId required');
 
-  const existing = await db.watchLater.findUnique({
-    where: { userId_contentId: { userId: user.userId, contentId } },
+  const existing = await db.watchLater.findFirst({
+    where: { userId: user.userId, contentId },
   });
 
   if (existing) {

@@ -1,4 +1,3 @@
-export const dynamic = 'force-dynamic';
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { success, error, notFound, unauthorized } from '@/lib/api';
@@ -9,16 +8,20 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const { id } = await params;
     const content = await db.content.findFirst({
       where: { OR: [{ id }, { slug: id }] },
-      include: { episodes: { orderBy: [{ season: 'asc' }, { number: 'asc' }] } },
     });
     if (!content) return notFound('Content not found');
 
-    await db.content.update({
-      where: { id: content.id },
-      data: { viewCount: { increment: 1 } },
+    const episodes = await db.episode.findMany({
+      where: { contentId: content.id },
+      orderBy: [{ season: 'asc' }, { number: 'asc' }],
     });
 
-    return success(content);
+    await db.content.update({
+      where: { id: content.id },
+      data: { viewCount: (content.viewCount || 0) + 1 },
+    });
+
+    return success({ ...content, episodes });
   } catch (err) {
     return error(err instanceof Error ? err.message : 'Failed', 500);
   }

@@ -1,4 +1,3 @@
-export const dynamic = 'force-dynamic';
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { success, unauthorized } from '@/lib/api';
@@ -10,12 +9,27 @@ export async function GET() {
 
   const history = await db.history.findMany({
     where: { userId: user.userId },
-    include: { content: true },
     orderBy: { watchedAt: 'desc' },
     take: 50,
   });
 
-  return success(history.map((h) => ({ ...h.content, progress: h.progress, completed: h.completed })));
+  const contentIds = history.map((h) => h.contentId);
+  const contentItems = contentIds.length > 0
+    ? await db.content.findMany({ where: { id: { in: contentIds } } })
+    : [];
+
+  const contentMap = new Map(contentItems.map((c) => [c.id, c]));
+
+  return success(
+    history.map((h) => {
+      const content = contentMap.get(h.contentId);
+      return {
+        ...content,
+        progress: h.progress,
+        completed: h.completed,
+      };
+    })
+  );
 }
 
 export async function POST(req: NextRequest) {
@@ -24,11 +38,20 @@ export async function POST(req: NextRequest) {
 
   const { contentId, progress, completed } = await req.json();
 
-  await db.history.upsert({
-    where: { userId_contentId: { userId: user.userId, contentId } },
-    update: { progress: progress || 0, completed: completed || false, watchedAt: new Date() },
-    create: { userId: user.userId, contentId, progress: progress || 0, completed: completed || false },
+  const existing = await db.history.findFirst({
+    where: { userId: user.userId, contentId },
   });
+
+  if (existing) {
+    await db.history.update({
+      where: { id: existing.id },
+      data: { progress: progress || 0, completed: completed || false, watchedAt: new Date() },
+    });
+  } else {
+    await db.history.create({
+      data: { userId: user.userId, contentId, progress: progress || 0, completed: completed || false },
+    });
+  }
 
   return success({ saved: true });
 }

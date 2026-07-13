@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Play, Star, Bookmark, BookmarkCheck, Clock, ClockCheck } from 'lucide-react';
+import { Play, Star, Bookmark, BookmarkCheck, Clock, CircleCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ContentItem } from '@/types';
 
@@ -92,7 +92,7 @@ export function ContentCard({
                 aria-label={watchLater ? 'Remove from watch later' : 'Add to watch later'}
               >
                 {watchLater ? (
-                  <ClockCheck className="h-3.5 w-3.5 fill-accent text-accent" />
+                  <CircleCheck className="h-3.5 w-3.5 fill-accent text-accent" />
                 ) : (
                   <Clock className="h-3.5 w-3.5" />
                 )}

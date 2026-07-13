@@ -1,271 +1,170 @@
 generator client {
-  provider        = "prisma-client-js"
-  engineType      = "library"
+  provider   = "prisma-client-js"
+  engineType = "library"
 }
 
 datasource db {
-  provider = "postgresql"
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-
-enum Plan {
-  FREE
-  PREMIUM
-}
-
-enum ContentType {
-  MOVIE
-  SERIES
-  ANIME
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  CANCELLED
-  EXPIRED
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  password      String
-  avatar        String?
-  role          Role      @default(USER)
-  plan          Plan      @default(FREE)
-  banned        Boolean   @default(false)
-  watchTime     Int       @default(0)
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-  lastActiveAt  DateTime? @map("last_active_at")
-
-  history       History[]
-  bookmarks     Bookmark[]
-  watchLater    WatchLater[]
-  subscription  Subscription?
-  comments      Comment[]
-  playbackPos   PlaybackPosition[]
-
-  @@map("users")
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  email        String   @unique
+  password     String
+  avatar       String?
+  role         String   @default("USER")
+  plan         String   @default("FREE")
+  banned       Boolean  @default(false)
+  watchTime    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastActiveAt DateTime?
 }
 
 model Content {
-  id            String      @id @default(cuid())
-  tmdbId        Int?        @unique @map("tmdb_id")
-  title         String
-  slug          String      @unique
-  type          ContentType
-  description   String      @default("")
-  poster        String      @default("")
-  banner        String      @default("")
-  backdrop      String      @default("")
-  trailerUrl    String?     @map("trailer_url")
-  videoUrl      String?     @map("video_url")
-  huggingFaceUrl String?    @map("hugging_face_url")
-  genre         String      @default("")
-  genres        String[]    @default([])
-  language      String      @default("en")
-  country       String      @default("")
-  runtime       Int         @default(0)
-  rating        Float       @default(0)
-  releaseDate   DateTime?   @map("release_date")
-  cast          String[]    @default([])
-  director      String      @default("")
-  seasons       Int         @default(0)
-  episodesCount Int         @default(0) @map("episodes_count")
-  featured      Boolean     @default(false)
-  trending      Boolean     @default(false)
-  published     Boolean     @default(false)
-  viewCount     Int         @default(0) @map("view_count")
-  createdAt     DateTime    @default(now()) @map("created_at")
-  updatedAt     DateTime    @updatedAt @map("updated_at")
-
-  episodes      Episode[]
-  history       History[]
-  bookmarks     Bookmark[]
-  watchLater    WatchLater[]
-  comments      Comment[]
-  playbackPos   PlaybackPosition[]
-  collectionItems CollectionItem[]
-
-  @@index([type])
-  @@index([genre])
-  @@index([rating(sort: Desc)])
-  @@index([createdAt(sort: Desc)])
-  @@index([title])
-  @@index([published])
-  @@map("content")
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  tmdbId         Int?     @unique
+  title          String
+  slug           String   @unique
+  type           String
+  description    String   @default("")
+  poster         String   @default("")
+  banner         String   @default("")
+  backdrop       String   @default("")
+  trailerUrl     String?
+  videoUrl       String?
+  huggingFaceUrl String?
+  genre          String   @default("")
+  genres         String[]
+  language       String   @default("en")
+  country        String   @default("")
+  runtime        Int      @default(0)
+  rating         Float    @default(0)
+  releaseDate    DateTime?
+  cast           String[]
+  director       String   @default("")
+  seasons        Int      @default(0)
+  episodesCount  Int      @default(0)
+  featured       Boolean  @default(false)
+  trending       Boolean  @default(false)
+  published      Boolean  @default(false)
+  viewCount      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model Episode {
-  id          String   @id @default(cuid())
-  contentId   String   @map("content_id")
-  season      Int      @default(1)
-  number      Int
-  title       String
-  description String   @default("")
-  poster      String?
-  videoUrl    String?  @map("video_url")
-  huggingFaceUrl String? @map("hugging_face_url")
-  duration    Int      @default(0)
-  rating      Float    @default(0)
-  airDate     DateTime? @map("air_date")
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  content     Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
-
-  @@unique([contentId, season, number])
-  @@index([contentId])
-  @@map("episodes")
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  contentId      String   @db.ObjectId
+  season         Int      @default(1)
+  number         Int
+  title          String
+  description    String   @default("")
+  poster         String?
+  videoUrl       String?
+  huggingFaceUrl String?
+  duration       Int      @default(0)
+  rating         Float    @default(0)
+  airDate        DateTime?
+  createdAt      DateTime @default(now())
 }
 
 model History {
-  id          String   @id @default(cuid())
-  userId      String   @map("user_id")
-  contentId   String   @map("content_id")
-  progress    Float    @default(0)
-  completed   Boolean  @default(false)
-  watchedAt   DateTime @default(now()) @map("watched_at")
-
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  content     Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, contentId])
-  @@map("history")
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  contentId String   @db.ObjectId
+  progress  Float    @default(0)
+  completed Boolean  @default(false)
+  watchedAt DateTime @default(now())
 }
 
 model Bookmark {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  contentId String   @map("content_id")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, contentId])
-  @@map("bookmarks")
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  contentId String   @db.ObjectId
+  createdAt DateTime @default(now())
 }
 
 model WatchLater {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  contentId String   @map("content_id")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, contentId])
-  @@map("watch_later")
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  contentId String   @db.ObjectId
+  createdAt DateTime @default(now())
 }
 
 model PlaybackPosition {
-  id          String   @id @default(cuid())
-  userId      String   @map("user_id")
-  contentId   String?  @map("content_id")
-  episodeId   String?  @map("episode_id")
-  position    Float    @default(0)
-  duration    Float    @default(0)
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  content     Content? @relation(fields: [contentId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, contentId])
-  @@map("playback_positions")
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  contentId String?  @db.ObjectId
+  episodeId String?  @db.ObjectId
+  position  Float    @default(0)
+  duration  Float    @default(0)
+  updatedAt DateTime @updatedAt
 }
 
 model Subscription {
-  id            String             @id @default(cuid())
-  userId        String             @unique @map("user_id")
-  plan          Plan               @default(PREMIUM)
-  status        SubscriptionStatus @default(ACTIVE)
-  startDate     DateTime           @default(now()) @map("start_date")
-  endDate       DateTime?          @map("end_date")
-  amount        Float              @default(0)
-  paymentMethod String             @default("") @map("payment_method")
-  transactionId String?            @map("transaction_id")
-  createdAt     DateTime           @default(now()) @map("created_at")
-
-  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("subscriptions")
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @unique @db.ObjectId
+  plan          String   @default("PREMIUM")
+  status        String   @default("ACTIVE")
+  startDate     DateTime @default(now())
+  endDate       DateTime?
+  amount        Float    @default(0)
+  paymentMethod String   @default("")
+  transactionId String?
+  createdAt     DateTime @default(now())
 }
 
 model Collection {
-  id          String           @id @default(cuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
-  slug        String           @unique
-  description String           @default("")
-  poster      String           @default("")
-  featured    Boolean          @default(false)
-  createdAt   DateTime         @default(now()) @map("created_at")
-
-  items       CollectionItem[]
-
-  @@map("collections")
+  slug        String   @unique
+  description String   @default("")
+  poster      String   @default("")
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
 }
 
 model CollectionItem {
-  id          String     @id @default(cuid())
-  collectionId String    @map("collection_id")
-  contentId   String     @map("content_id")
-  order       Int        @default(0)
-
-  collection  Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  content     Content    @relation(fields: [contentId], references: [id], onDelete: Cascade)
-
-  @@unique([collectionId, contentId])
-  @@map("collection_items")
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  collectionId String @db.ObjectId
+  contentId    String @db.ObjectId
+  order        Int    @default(0)
 }
 
 model Comment {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  contentId String   @map("content_id")
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  contentId String   @db.ObjectId
   text      String
   rating    Float?
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
-
-  @@map("comments")
+  createdAt DateTime @default(now())
 }
 
 model Setting {
-  id    String @id @default(cuid())
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
   key   String @unique
   value String @default("")
-
-  @@map("settings")
 }
 
 model SyncLog {
-  id        String   @id @default(cuid())
-  status    String
-  message   String
-  filesFound Int      @default(0) @map("files_found")
-  newFiles  Int      @default(0) @map("new_files")
-  errors    Int      @default(0)
-  duration  Int      @default(0)
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("sync_logs")
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  status     String
+  message    String
+  filesFound Int      @default(0)
+  newFiles   Int      @default(0)
+  errors     Int      @default(0)
+  duration   Int      @default(0)
+  createdAt  DateTime @default(now())
 }
 
 model ActivityLog {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   type      String
   message   String
-  userId    String?  @map("user_id")
-  metadata  String?  @default("{}")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("activity_logs")
+  userId    String?
+  metadata  String?
+  createdAt DateTime @default(now())
 }

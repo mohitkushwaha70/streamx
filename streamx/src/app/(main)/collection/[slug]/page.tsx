@@ -8,49 +8,35 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-async function getCollection(slug: string) {
-  try {
-    const collection = await db.collection.findFirst({
-      where: { slug },
-      include: {
-        items: {
-          include: { content: true },
-          orderBy: { order: 'asc' },
-        },
-      },
-    });
-    return collection;
-  } catch {
-    return null;
-  }
-}
-
 export default async function CollectionPage({ params }: PageProps) {
   const { slug } = await params;
-  const collection = await getCollection(slug);
 
-  if (!collection) {
-    notFound();
-  }
+  const collection = await db.collection.findFirst({ where: { slug } });
+  if (!collection) notFound();
 
-  const items = collection.items
-    .map((item) => item.content)
+  const collectionItems = await db.collectionItem.findMany({
+    where: { collectionId: collection.id },
+    orderBy: { order: 'asc' },
+  });
+
+  const contentIds = collectionItems.map((i) => i.contentId);
+  const contentItems = contentIds.length > 0
+    ? await db.content.findMany({ where: { id: { in: contentIds } } })
+    : [];
+
+  const contentMap = new Map(contentItems.map((c) => [c.id, c]));
+  const items = collectionItems
+    .map((i) => contentMap.get(i.contentId))
     .filter(Boolean) as unknown as ContentItem[];
 
   return (
     <div className="min-h-screen pt-20">
       <div className="mx-auto max-w-[1440px] px-4 lg:px-8">
         <div className="mb-8">
-          <p className="text-xs font-medium uppercase tracking-wider text-accent">
-            Collection
-          </p>
-          <h1 className="mt-2 text-2xl font-bold text-white md:text-3xl">
-            {collection.name}
-          </h1>
+          <p className="text-xs font-medium uppercase tracking-wider text-accent">Collection</p>
+          <h1 className="mt-2 text-2xl font-bold text-white md:text-3xl">{collection.name}</h1>
           {collection.description && (
-            <p className="mt-2 max-w-2xl text-sm text-muted md:text-base">
-              {collection.description}
-            </p>
+            <p className="mt-2 max-w-2xl text-sm text-muted md:text-base">{collection.description}</p>
           )}
         </div>
 
@@ -63,9 +49,7 @@ export default async function CollectionPage({ params }: PageProps) {
         ) : (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <p className="text-lg font-medium text-white">This collection is empty</p>
-            <p className="mt-2 text-sm text-muted">
-              No content has been added to this collection yet.
-            </p>
+            <p className="mt-2 text-sm text-muted">No content has been added yet.</p>
           </div>
         )}
       </div>

@@ -94,12 +94,7 @@ app.use((err, req, res, next) => {
   res.status(500).send('Server Error: ' + err.message);
 });
 
-if (!process.env.TMDB_READ_ACCESS_TOKEN) {
-  console.error('!!! CRITICAL: TMDB_READ_ACCESS_TOKEN is not set !!!');
-  console.error('Set it in Render Dashboard > Environment tab.');
-} else {
-  console.log('TMDB_READ_ACCESS_TOKEN loaded (length:', process.env.TMDB_READ_ACCESS_TOKEN.length, ')');
-}
+// Content served from database only
 
 async function start() {
   await db.init();

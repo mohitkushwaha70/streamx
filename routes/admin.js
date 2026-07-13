@@ -1,9 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
-const fs = require('fs');
-const { fetchMovies, fetchSeries, fetchTrendingAll, fetchGenreStats, searchMovies, TMDB_IMG } = require('../services/tmdb');
-const videoConfig = require('../services/video-config');
 const db = require('../services/database');
 
 function isAdmin(req, res, next) {
@@ -16,72 +12,6 @@ router.use(isAdmin);
 
 const PREMIUM_MONTHLY = 299;
 const PREMIUM_YEARLY = 2999;
-
-async function getTmdbMovies() {
-  try { return await fetchMovies() || []; } catch(e) { return []; }
-}
-
-async function getTmdbSeries() {
-  try { return await fetchSeries() || []; } catch(e) { return []; }
-}
-
-async function getAllMovies() {
-  const tmdb = await getTmdbMovies();
-  const dbContent = db.content.getByType('movie');
-  const dbTmdbIds = new Set(dbContent.map(c => c.tmdb_id).filter(Boolean));
-  const cleanTmdb = tmdb.filter(m => !dbTmdbIds.has(m.tmdbId || m.id));
-  const allLocal = [...cleanTmdb, ...dbContent.map(c => ({
-    id: c.tmdb_id || c.id, tmdbId: c.tmdb_id,
-    title: c.title, genre: c.genre, genres: c.genres || [],
-    year: c.year, rating: c.rating, duration: c.duration,
-    description: c.description, poster: c.poster, backdrop: c.backdrop,
-    videoUrl: c.video_url, videoType: c.video_type,
-    cast: c.cast, director: c.director, language: c.language,
-    premium: !!c.premium, badge: c.badge
-  }))];
-
-  const videoConfigData = videoConfig.get();
-  const videoTmdbIds = Object.keys(videoConfigData).filter(k => !isNaN(k)).map(Number);
-  for (const tmdbId of videoTmdbIds) {
-    const cfg = videoConfigData[tmdbId];
-    const existing = allLocal.find(m => (m.tmdbId || m.id) === tmdbId);
-    if (existing) {
-      existing.videoUrl = existing.videoUrl || ('/stream/' + decodeURIComponent(Object.values(cfg.sources)[0].match(/\/resolve\/main\/(.+)/)?.[1] || Object.values(cfg.sources)[0].match(/\/resolve\/(.+)/)?.[1] || ''));
-      existing.hasVideo = true;
-    } else {
-      allLocal.push({
-        id: tmdbId, tmdbId,
-        title: cfg.title || `Movie ${tmdbId}`,
-        genre: cfg.genre || 'Unknown',
-        year: cfg.year || 2024,
-        rating: cfg.rating || 7.0,
-        duration: cfg.duration || '2h',
-        poster: cfg.poster || `https://picsum.photos/seed/${tmdbId}/400/600`,
-        backdrop: cfg.backdrop || '',
-        description: cfg.description || '',
-        premium: false, badge: 'new',
-        videoUrl: '/stream/' + decodeURIComponent(Object.values(cfg.sources)[0].match(/\/resolve\/main\/(.+)/)?.[1] || Object.values(cfg.sources)[0].match(/\/resolve\/(.+)/)?.[1] || ''),
-        videoType: 'mp4', hasVideo: true
-      });
-    }
-  }
-  return allLocal;
-}
-
-async function getAllSeries() {
-  const tmdb = await getTmdbSeries();
-  const dbContent = db.content.getByType('series');
-  const dbTmdbIds = new Set(dbContent.map(c => c.tmdb_id).filter(Boolean));
-  const cleanTmdb = tmdb.filter(s => !dbTmdbIds.has(s.tmdbId || s.id));
-  return [...cleanTmdb, ...dbContent.map(c => ({
-    id: c.tmdb_id || c.id, tmdbId: c.tmdb_id,
-    title: c.title, genre: c.genre, genres: c.genres || [],
-    year: c.year, rating: c.rating, seasons: c.seasons,
-    episodes: c.episodes_count, description: c.description,
-    poster: c.poster, backdrop: c.backdrop,
-    premium: !!c.premium, badge: c.badge
-  }))];
-}
 
 function computeRevenue() {
   const allUsers = db.users.getAll();
@@ -105,10 +35,10 @@ function formatIndian(num) {
   return '₹' + num;
 }
 
-router.get('/', async (req, res) => {
-  const [allMovies, allSeries, trendingData] = await Promise.all([
-    getAllMovies(), getAllSeries(), fetchTrendingAll().catch(() => [])
-  ]);
+router.get('/', (req, res) => {
+  const allMovies = db.content.getByType('movie');
+  const allSeries = db.content.getByType('series');
+  const allAnime = db.content.getByType('anime');
   const allUsers = db.users.getAll();
   const premiumUsers = allUsers.filter(u => u.plan === 'premium');
   const revenue = computeRevenue();
@@ -116,7 +46,7 @@ router.get('/', async (req, res) => {
   const stats = {
     totalMovies: allMovies.length,
     totalSeries: allSeries.length,
-    totalAnime: allMovies.filter(m => m.genre === 'Anime').length + allSeries.filter(s => s.genre === 'Anime').length,
+    totalAnime: allAnime.length,
     totalUsers: allUsers.length,
     premiumUsers: premiumUsers.length,
     freeUsers: allUsers.filter(u => u.plan === 'free').length,
@@ -129,35 +59,25 @@ router.get('/', async (req, res) => {
     avgRating: allMovies.length > 0 ? (allMovies.reduce((sum, m) => sum + m.rating, 0) / allMovies.length).toFixed(1) : '0.0'
   };
 
-  const trendingContent = (trendingData || []).slice(0, 8).map(item => ({
-    id: item.id,
-    title: item.title || item.name || 'Untitled',
-    poster: item.poster_path ? `${TMDB_IMG}/w200${item.poster_path}` : '',
-    rating: item.vote_average ? item.vote_average.toFixed(1) : '0.0',
-    mediaType: item.media_type || (item.title ? 'movie' : 'tv'),
-    year: (item.release_date || item.first_air_date || '').slice(0, 4)
-  }));
-
   const recentActivity = db.logs.get(5);
 
   res.render('admin/dashboard', {
     stats,
     recentUsers: allUsers.slice(-5).reverse(),
     recentMovies: allMovies.slice(-5).reverse(),
-    trendingContent,
+    trendingContent: [],
     recentActivity,
     revenue
   });
 });
 
-router.get('/movies', async (req, res) => {
-  const allMovies = await getAllMovies();
+router.get('/movies', (req, res) => {
   const search = req.query.search || '';
-  let filtered = allMovies;
+  let allMovies = db.content.getByType('movie');
   if (search) {
-    filtered = allMovies.filter(m => m.title.toLowerCase().includes(search.toLowerCase()));
+    allMovies = allMovies.filter(m => m.title.toLowerCase().includes(search.toLowerCase()));
   }
-  res.render('admin/movies', { movies: filtered, search, totalCount: allMovies.length });
+  res.render('admin/movies', { movies: allMovies, search, totalCount: allMovies.length });
 });
 
 router.get('/movies/add', (req, res) => {
@@ -187,21 +107,14 @@ router.post('/movies/add', (req, res) => {
   res.redirect('/admin/movies');
 });
 
-router.get('/movies/edit/:id', async (req, res) => {
+router.get('/movies/edit/:id', (req, res) => {
   const id = parseInt(req.params.id);
-  let movie = db.content.getByType('movie').find(m => m.tmdb_id === id || m.id === id);
-  if (!movie) {
-    const tmdb = await getTmdbMovies();
-    const tmdbMovie = tmdb.find(m => (m.tmdbId || m.id) === id);
-    if (tmdbMovie) {
-      movie = { ...tmdbMovie, tmdb_id: tmdbMovie.tmdbId || tmdbMovie.id };
-    }
-  }
+  let movie = db.content.findById(id);
   if (!movie) return res.redirect('/admin/movies');
   res.render('admin/movie-form', { movie });
 });
 
-router.post('/movies/edit/:id', async (req, res) => {
+router.post('/movies/edit/:id', (req, res) => {
   const id = parseInt(req.params.id);
   const { title, genre, year, rating, duration, premium, description, poster, backdrop, videoUrl, videoType, cast, director, language } = req.body;
   let detectedType = videoType || 'mp4';
@@ -209,7 +122,7 @@ router.post('/movies/edit/:id', async (req, res) => {
     if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
     else detectedType = 'mp4';
   }
-  const existing = db.content.getByType('movie').find(m => m.tmdb_id === id || m.id === id);
+  const existing = db.content.findById(id);
   if (existing) {
     db.content.update(existing.id, {
       title, genre, genres: genre ? [genre] : [],
@@ -219,16 +132,6 @@ router.post('/movies/edit/:id', async (req, res) => {
       video_url: videoUrl, video_type: detectedType,
       cast, director, language
     });
-  } else {
-    db.content.create({
-      tmdb_id: id, title, type: 'movie', genre,
-      genres: genre ? [genre] : [],
-      year: parseInt(year), rating: parseFloat(rating),
-      duration, description, poster, backdrop,
-      video_url: videoUrl, video_type: detectedType,
-      cast, director, language,
-      premium: premium === 'on' ? 1 : 0, badge: 'new'
-    });
   }
   db.logs.add('content', `Movie "${title}" updated`, req.session.user.name);
   req.session.success = 'Movie updated successfully!';
@@ -237,7 +140,7 @@ router.post('/movies/edit/:id', async (req, res) => {
 
 router.get('/movies/delete/:id', (req, res) => {
   const id = parseInt(req.params.id);
-  const movie = db.content.getByType('movie').find(m => m.tmdb_id === id || m.id === id);
+  const movie = db.content.findById(id);
   if (movie) {
     db.content.delete(movie.id);
     db.logs.add('content', `Movie "${movie.title}" deleted`, req.session.user.name);
@@ -246,14 +149,13 @@ router.get('/movies/delete/:id', (req, res) => {
   res.redirect('/admin/movies');
 });
 
-router.get('/series', async (req, res) => {
-  const allSeries = await getAllSeries();
+router.get('/series', (req, res) => {
   const search = req.query.search || '';
-  let filtered = allSeries;
+  let allSeries = db.content.getByType('series');
   if (search) {
-    filtered = allSeries.filter(s => s.title.toLowerCase().includes(search.toLowerCase()));
+    allSeries = allSeries.filter(s => s.title.toLowerCase().includes(search.toLowerCase()));
   }
-  res.render('admin/series', { series: filtered, search, totalCount: allSeries.length });
+  res.render('admin/series', { series: allSeries, search, totalCount: allSeries.length });
 });
 
 router.get('/series/add', (req, res) => {
@@ -283,21 +185,14 @@ router.post('/series/add', (req, res) => {
   res.redirect('/admin/series');
 });
 
-router.get('/series/edit/:id', async (req, res) => {
+router.get('/series/edit/:id', (req, res) => {
   const id = parseInt(req.params.id);
-  let show = db.content.getByType('series').find(s => s.tmdb_id === id || s.id === id);
-  if (!show) {
-    const tmdb = await getTmdbSeries();
-    const tmdbShow = tmdb.find(s => (s.tmdbId || s.id) === id);
-    if (tmdbShow) {
-      show = { ...tmdbShow, tmdb_id: tmdbShow.tmdbId || tmdbShow.id };
-    }
-  }
+  let show = db.content.findById(id);
   if (!show) return res.redirect('/admin/series');
   res.render('admin/series-form', { show });
 });
 
-router.post('/series/edit/:id', async (req, res) => {
+router.post('/series/edit/:id', (req, res) => {
   const id = parseInt(req.params.id);
   const { title, genre, year, rating, seasons, episodes, premium, description, poster, backdrop, videoUrl, videoType } = req.body;
   let detectedType = videoType || 'mp4';
@@ -305,20 +200,10 @@ router.post('/series/edit/:id', async (req, res) => {
     if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
     else detectedType = 'mp4';
   }
-  const existing = db.content.getByType('series').find(s => s.tmdb_id === id || s.id === id);
+  const existing = db.content.findById(id);
   if (existing) {
     db.content.update(existing.id, {
       title, genre, genres: genre ? [genre] : [],
-      year: parseInt(year), rating: parseFloat(rating),
-      seasons: parseInt(seasons), episodes_count: parseInt(episodes),
-      premium: premium === 'on' ? 1 : 0,
-      description, poster, backdrop,
-      video_url: videoUrl, video_type: detectedType
-    });
-  } else {
-    db.content.create({
-      tmdb_id: id, title, type: 'series', genre,
-      genres: genre ? [genre] : [],
       year: parseInt(year), rating: parseFloat(rating),
       seasons: parseInt(seasons), episodes_count: parseInt(episodes),
       premium: premium === 'on' ? 1 : 0,
@@ -333,7 +218,7 @@ router.post('/series/edit/:id', async (req, res) => {
 
 router.get('/series/delete/:id', (req, res) => {
   const id = parseInt(req.params.id);
-  const show = db.content.getByType('series').find(s => s.tmdb_id === id || s.id === id);
+  const show = db.content.findById(id);
   if (show) {
     db.content.delete(show.id);
     db.logs.add('content', `Series "${show.title}" deleted`, req.session.user.name);
@@ -403,10 +288,8 @@ router.get('/settings', (req, res) => {
   res.render('admin/settings', { admin: req.session.user });
 });
 
-router.get('/anime', async (req, res) => {
-  const allMovies = await getAllMovies();
-  const allSeries = await getAllSeries();
-  const anime = [...allMovies.filter(m => m.genre === 'Anime'), ...allSeries.filter(s => s.genre === 'Anime')];
+router.get('/anime', (req, res) => {
+  const anime = db.content.getByType('anime');
   res.render('admin/anime', { anime });
 });
 
@@ -480,9 +363,10 @@ router.get('/subscriptions', (req, res) => {
   });
 });
 
-router.get('/analytics', async (req, res) => {
-  const [allMovies, allSeries] = await Promise.all([getAllMovies(), getAllSeries()]);
-  const allContent = [...allMovies, ...allSeries];
+router.get('/analytics', (req, res) => {
+  const allContent = db.content.getAll();
+  const allMovies = allContent.filter(c => c.type === 'movie');
+  const allSeries = allContent.filter(c => c.type === 'series');
   const allUsers = db.users.getAll();
 
   const genreCounts = {};
@@ -542,114 +426,44 @@ router.get('/logs', (req, res) => {
 });
 
 router.get('/upload', (req, res) => {
-  const videoConfigData = videoConfig.get();
-  const uploadedMovies = Object.entries(videoConfigData).map(([id, cfg]) => ({
-    tmdbId: id, title: cfg.title, poster: cfg.poster,
-    genre: cfg.genre, year: cfg.year, rating: cfg.rating,
-    source: Object.values(cfg.sources)[0] || ''
-  }));
-  res.render('admin/upload', { uploadedMovies, success: req.session.success, error: req.session.error });
+  const allContent = db.content.getAll();
+  res.render('admin/upload', { uploadedMovies: allContent, success: req.session.success, error: req.session.error });
 });
 
-router.get('/upload/fetch/:tmdbId', async (req, res) => {
-  try {
-    const tmdbId = req.params.tmdbId;
-    const resp = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?language=en-US`, {
-      headers: { 'Authorization': `Bearer ${process.env.TMDB_READ_ACCESS_TOKEN}`, 'Accept': 'application/json' }
-    });
-    if (!resp.ok) {
-      const tvResp = await fetch(`https://api.themoviedb.org/3/tv/${tmdbId}?language=en-US`, {
-        headers: { 'Authorization': `Bearer ${process.env.TMDB_READ_ACCESS_TOKEN}`, 'Accept': 'application/json' }
-      });
-      if (!tvResp.ok) return res.json({ error: 'Not found' });
-      const tv = await tvResp.json();
-      return res.json({
-        title: tv.name, poster: tv.poster_path ? `${TMDB_IMG}/w500${tv.poster_path}` : '',
-        backdrop: tv.backdrop_path ? `${TMDB_IMG}/original${tv.backdrop_path}` : '',
-        genre: tv.genres?.[0]?.name || '', year: (tv.first_air_date || '').substring(0, 4),
-        rating: tv.vote_average || 0, description: tv.overview || '',
-        duration: `${tv.number_of_seasons || 1} Seasons`
-      });
-    }
-    const movie = await resp.json();
-    res.json({
-      title: movie.title, poster: movie.poster_path ? `${TMDB_IMG}/w500${movie.poster_path}` : '',
-      backdrop: movie.backdrop_path ? `${TMDB_IMG}/original${movie.backdrop_path}` : '',
-      genre: movie.genres?.[0]?.name || '', year: (movie.release_date || '').substring(0, 4),
-      rating: movie.vote_average || 0, description: movie.overview || '',
-      duration: movie.runtime ? `${movie.runtime}m` : ''
-    });
-  } catch (e) {
-    res.json({ error: e.message });
-  }
-});
-
-router.post('/upload', async (req, res) => {
-  const { tmdbId, hfUrl, quality } = req.body;
-  if (!tmdbId || !hfUrl) {
-    req.session.error = 'TMDB ID and HF URL are required!';
+router.post('/upload', (req, res) => {
+  const { title, genre, year, rating, videoUrl, videoType, poster, backdrop, description, duration, type: contentType } = req.body;
+  if (!title || !videoUrl) {
+    req.session.error = 'Title and Video URL are required!';
     return res.redirect('/admin/upload');
   }
-  try {
-    const resp = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?language=en-US`, {
-      headers: { 'Authorization': `Bearer ${process.env.TMDB_READ_ACCESS_TOKEN}`, 'Accept': 'application/json' }
-    });
-    let details = {};
-    if (resp.ok) {
-      const movie = await resp.json();
-      details = {
-        title: movie.title,
-        poster: movie.poster_path ? `${TMDB_IMG}/w500${movie.poster_path}` : '',
-        backdrop: movie.backdrop_path ? `${TMDB_IMG}/original${movie.backdrop_path}` : '',
-        genre: movie.genres?.[0]?.name || '',
-        year: (movie.release_date || '').substring(0, 4),
-        rating: movie.vote_average || 0,
-        description: movie.overview || '',
-        duration: movie.runtime ? `${movie.runtime}m` : ''
-      };
-    } else {
-      const tvResp = await fetch(`https://api.themoviedb.org/3/tv/${tmdbId}?language=en-US`, {
-        headers: { 'Authorization': `Bearer ${process.env.TMDB_READ_ACCESS_TOKEN}`, 'Accept': 'application/json' }
-      });
-      if (tvResp.ok) {
-        const tv = await tvResp.json();
-        details = {
-          title: tv.name, poster: tv.poster_path ? `${TMDB_IMG}/w500${tv.poster_path}` : '',
-          backdrop: tv.backdrop_path ? `${TMDB_IMG}/original${tv.backdrop_path}` : '',
-          genre: tv.genres?.[0]?.name || '', year: (tv.first_air_date || '').substring(0, 4),
-          rating: tv.vote_average || 0, description: tv.overview || '',
-          duration: `${tv.number_of_seasons || 1} Seasons`
-        };
-      } else {
-        details = { title: `Movie ${tmdbId}`, poster: '', backdrop: '', genre: '', year: 2024, rating: 0, description: '', duration: '' };
-      }
-    }
-
-    const videoConfigData = videoConfig.get();
-    videoConfigData[tmdbId] = {
-      ...details,
-      sources: { [quality || '1080p']: hfUrl }
-    };
-    videoConfig.set(videoConfigData);
-
-    db.logs.add('content', `Movie "${details.title}" uploaded from HF`, req.session.user.name);
-    req.session.success = `"${details.title}" added successfully!`;
-    res.redirect('/admin/upload');
-  } catch (e) {
-    req.session.error = 'Error: ' + e.message;
-    res.redirect('/admin/upload');
+  let detectedType = videoType || 'mp4';
+  if (!videoType || videoType === 'auto') {
+    if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
+    else detectedType = 'mp4';
   }
+  db.content.create({
+    tmdb_id: null, title, type: contentType || 'movie', genre: genre || '',
+    genres: genre ? [genre] : [],
+    year: parseInt(year) || 2024, rating: parseFloat(rating) || 0,
+    duration: duration || '',
+    description: description || '',
+    poster: poster || `https://picsum.photos/seed/${Date.now()}/400/600`,
+    backdrop: backdrop || `https://picsum.photos/seed/${Date.now()}bg/1200/600`,
+    video_url: videoUrl, video_type: detectedType,
+    premium: 0, badge: 'new'
+  });
+  db.logs.add('content', `Content "${title}" uploaded`, req.session.user.name);
+  req.session.success = `"${title}" added successfully!`;
+  res.redirect('/admin/upload');
 });
 
-router.get('/upload/delete/:tmdbId', (req, res) => {
-  const tmdbId = req.params.tmdbId;
-  const videoConfigData = videoConfig.get();
-  if (videoConfigData[tmdbId]) {
-    const title = videoConfigData[tmdbId].title;
-    delete videoConfigData[tmdbId];
-    videoConfig.set(videoConfigData);
-    db.logs.add('content', `Movie "${title}" removed`, req.session.user.name);
-    req.session.success = `"${title}" removed!`;
+router.get('/upload/delete/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const item = db.content.findById(id);
+  if (item) {
+    db.content.delete(item.id);
+    db.logs.add('content', `Content "${item.title}" removed`, req.session.user.name);
+    req.session.success = `"${item.title}" removed!`;
   }
   res.redirect('/admin/upload');
 });

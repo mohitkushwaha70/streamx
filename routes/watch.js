@@ -1,123 +1,92 @@
 const express = require('express');
 const router = express.Router();
-const { movies: sampleMovies, series: sampleSeries } = require('../data/sample');
-const { fetchMovies, fetchSeries, fetchSeasonEpisodes } = require('../services/tmdb');
-const { getStreamingInfo, getSourceIcon, getSourceColor } = require('../services/watchmode');
-const videoConfig = require('../services/video-config');
 const db = require('../services/database');
 
-router.get('/:type/:id', async (req, res) => {
+function toProxyUrl(url) {
+  if (!url) return url;
+  let match = url.match(/\/resolve\/main\/(.+)/);
+  if (!match) match = url.match(/\/resolve\/(.+)/);
+  if (match) return `/stream/${decodeURIComponent(match[1])}`;
+  return url;
+}
+
+router.get('/:type/:id', (req, res) => {
   if (!req.session.user) {
     req.session.error = 'Please sign in to watch content';
     return res.redirect('/auth/login');
   }
-  const videoConfigData = videoConfig.get();
+
   const { type, id } = req.params;
   const itemId = parseInt(id);
   const ep = parseInt(req.query.ep) || 1;
   const season = parseInt(req.query.season) || 1;
 
-  const tmdbMovies = await fetchMovies().catch(() => null);
-  const tmdbSeries = await fetchSeries().catch(() => null);
-
-  const tmdbMovieIds = new Set((tmdbMovies || []).map(m => m.tmdbId || m.id));
-  const localOnlyMovies = sampleMovies.filter(m => !tmdbMovieIds.has(m.id));
-  let allMovies = [...(tmdbMovies || []), ...localOnlyMovies];
-
-  const tmdbSeriesIds = new Set((tmdbSeries || []).map(s => s.tmdbId || s.id));
-  const localOnlySeries = sampleSeries.filter(s => !tmdbSeriesIds.has(s.id));
-  let allSeries = [...(tmdbSeries || []), ...localOnlySeries];
-
-  for (const tmdbId of Object.keys(videoConfigData).filter(k => !isNaN(k)).map(Number)) {
-    if (!allMovies.find(m => (m.tmdbId || m.id) === tmdbId)) {
-      const cfg = videoConfigData[tmdbId];
-      const firstUrl = Object.values(cfg.sources)[0];
-      let match = firstUrl.match(/\/resolve\/main\/(.+)/);
-      if (!match) match = firstUrl.match(/\/resolve\/(.+)/);
-      allMovies.push({
-        id: tmdbId, tmdbId,
-        title: cfg.title || `Movie ${tmdbId}`,
-        genre: cfg.genre || 'Unknown',
-        year: cfg.year || 2024,
-        rating: cfg.rating || 7.0,
-        duration: cfg.duration || '2h',
-        poster: cfg.poster || `https://picsum.photos/seed/${tmdbId}/400/600`,
-        backdrop: cfg.backdrop || '',
-        description: cfg.description || '',
-        premium: false, badge: 'new',
-        videoUrl: match ? `/stream/${decodeURIComponent(match[1])}` : '',
-        videoType: 'mp4'
-      });
-    }
-  }
-
-  let item;
-  if (type === 'movie') item = allMovies.find(m => m.id === itemId || m.tmdbId === itemId);
-  else item = allSeries.find(s => s.id === itemId || s.tmdbId === itemId);
+  const item = db.content.findById(itemId);
   if (!item) return res.redirect('/');
 
-  const itemTmdbId = item.tmdbId || item.id;
-  const videoCfg = videoConfigData[String(itemTmdbId)];
+  // Check video URL from content record
+  let videoUrl = item.video_url || '';
+
+  // Also check video_configs table (may have been set via admin)
+  const videoCfg = db.videoConfigs.get(item.tmdb_id);
   if (videoCfg && videoCfg.sources) {
-    const firstUrl = Object.values(videoCfg.sources)[0];
-    let match = firstUrl.match(/\/resolve\/main\/(.+)/);
-    if (!match) match = firstUrl.match(/\/resolve\/(.+)/);
-    if (match) {
-      item.videoUrl = `/stream/${decodeURIComponent(match[1])}`;
-      item.videoType = 'mp4';
+    const sources = Object.values(videoCfg.sources);
+    if (sources.length > 0) {
+      videoUrl = toProxyUrl(sources[0]) || videoUrl;
     }
   }
 
-  if (req.session.user) {
-    db.continueWatching.upsert(req.session.user.id, itemId, type, item.title, item.poster, item.genre, item.duration || (item.seasons ? item.seasons + ' Seasons' : ''), Math.floor(Math.random() * 30) + 10);
+  // Apply proxy to any HuggingFace URLs
+  if (videoUrl && videoUrl.includes('huggingface.co')) {
+    videoUrl = toProxyUrl(videoUrl);
   }
 
+  // Update item with resolved video URL
+  item.videoUrl = videoUrl;
+
+  // Track continue watching
+  if (req.session.user) {
+    db.continueWatching.upsert(
+      req.session.user.id, item.tmdb_id || item.id, item.type === 'series' ? 'series' : 'movie',
+      item.title, item.poster, item.genre, item.duration || (item.seasons ? item.seasons + ' Seasons' : ''),
+      Math.floor(Math.random() * 30) + 10
+    );
+  }
+
+  // Load episodes for series
   let episodes = [];
   let currentEpisode = null;
-  if (type === 'series') {
-    const tmdbId = item.tmdbId || item.id;
-    episodes = item.episodeList || [];
-    if (episodes.length === 0) {
-      episodes = await fetchSeasonEpisodes(tmdbId, season);
-    }
+  if (item.type === 'series' || item.type === 'anime') {
+    episodes = db.episodes.findByContent(item.id);
+    // Proxy episode video URLs
+    episodes.forEach(e => {
+      if (e.video_url && e.video_url.includes('huggingface.co')) {
+        e.videoUrl = toProxyUrl(e.video_url);
+      } else {
+        e.videoUrl = e.video_url || '';
+      }
+    });
     currentEpisode = episodes.find(e => e.number === ep) || episodes[0] || null;
-  }
-
-  const related = type === 'movie'
-    ? allMovies.filter(m => m.genre === item.genre && m.id !== itemId).slice(0, 8)
-    : allSeries.filter(s => s.genre === item.genre && s.id !== itemId).slice(0, 8);
-
-  const trending = [...allMovies, ...allSeries].sort((a, b) => b.rating - a.rating).slice(0, 8);
-  const shareUrl = `${req.protocol}://${req.get('host')}/watch/${type}/${itemId}`;
-
-  const tmdbId = item.tmdbId || item.id;
-  const streamingInfo = await getStreamingInfo(tmdbId, type).catch(() => ({ grouped: {} }));
-
-  function toProxyUrl(url) {
-    if (!url) return url;
-    let match = url.match(/\/resolve\/main\/(.+)/);
-    if (!match) match = url.match(/\/resolve\/(.+)/);
-    if (match) return `/stream/${decodeURIComponent(match[1])}`;
-    return url;
-  }
-  if (item.videoUrl && item.videoUrl.includes('huggingface.co')) {
-    item.videoUrl = toProxyUrl(item.videoUrl);
-  }
-  if (item.videoStorageUrl && item.videoStorageUrl.includes('huggingface.co')) {
-    item.videoUrl = toProxyUrl(item.videoStorageUrl);
-    item.videoType = 'mp4';
-  }
-  episodes.forEach(ep => {
-    if (ep.videoUrl && ep.videoUrl.includes('huggingface.co')) {
-      ep.videoUrl = toProxyUrl(ep.videoUrl);
+    if (currentEpisode) {
+      // Use episode video URL if available
+      if (currentEpisode.videoUrl) {
+        item.videoUrl = currentEpisode.videoUrl;
+      }
     }
-  });
+  }
+
+  // Related content
+  const related = db.content.list(item.type, { genre: item.genre, limit: 8 }).items.filter(m => m.id !== item.id);
+
+  // Trending across all types
+  const trending = db.content.getAll().sort((a, b) => b.rating - a.rating).slice(0, 8);
+
+  const shareUrl = `${req.protocol}://${req.get('host')}/watch/${item.type}/${item.id}`;
 
   res.render('player', {
-    item, type, related, episodes, currentEpisode, ep, trending,
+    item, type: item.type, related, episodes, currentEpisode, ep, trending,
     totalSeasons: item.seasons || 1, currentSeason: season, shareUrl,
-    streaming: streamingInfo.grouped || {},
-    getSourceIcon, getSourceColor
+    streaming: {}
   });
 });
 

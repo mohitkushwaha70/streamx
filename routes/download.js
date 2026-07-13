@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { movies: sampleMovies, series: sampleSeries } = require('../data/sample');
-const { fetchMovies, fetchSeries } = require('../services/tmdb');
-const videoConfig = require('../services/video-config');
+const db = require('../services/database');
 
 function toProxyUrl(hfUrl) {
   if (!hfUrl) return '';
@@ -12,97 +10,37 @@ function toProxyUrl(hfUrl) {
   return hfUrl;
 }
 
-function getVideoSources(type, tmdbId) {
-  const key = String(tmdbId);
-  const videoConfigData = videoConfig.get();
-  if (videoConfigData[key]) {
-    const cfg = videoConfigData[key];
-    const sources = {};
-    if (cfg.sources) {
-      for (const [quality, url] of Object.entries(cfg.sources)) {
-        sources[quality] = toProxyUrl(url);
-      }
-    }
-    return { ...cfg, sources };
-  }
-
-  const storageBase = process.env.VIDEO_STORAGE_BASE || '';
-  if (storageBase) {
-    return {
-      sources: {
-        '1080p': `/stream/${type}/${tmdbId}-1080p.mp4`,
-        '720p': `/stream/${type}/${tmdbId}-720p.mp4`
-      }
-    };
-  }
-  return null;
-}
-
-async function findItem(type, id) {
-  const itemId = parseInt(id);
-  const videoConfigData = videoConfig.get();
-  if (type === 'movie') {
-    const tmdbMovies = await fetchMovies().catch(() => null);
-    let allMovies = [...(tmdbMovies || []), ...sampleMovies];
-    for (const tmdbId of Object.keys(videoConfigData).filter(k => !isNaN(k)).map(Number)) {
-      if (!allMovies.find(m => (m.tmdbId || m.id) === tmdbId)) {
-        const cfg = videoConfigData[tmdbId];
-        allMovies.push({ id: tmdbId, tmdbId, title: cfg.title, genre: cfg.genre, year: cfg.year, poster: cfg.poster, premium: false });
-      }
-    }
-    return allMovies.find(m => m.id === itemId || m.tmdbId === itemId) || null;
-  } else {
-    const tmdbSeries = await fetchSeries().catch(() => null);
-    const allSeries = [...(tmdbSeries || []), ...sampleSeries];
-    return allSeries.find(s => s.id === itemId || s.tmdbId === itemId) || null;
-  }
-}
-
-router.get('/:type/:id', async (req, res) => {
-  const videoConfigData = videoConfig.get();
+router.get('/:type/:id', (req, res) => {
   const { type, id } = req.params;
   if (type !== 'movie' && type !== 'series') return res.redirect('/');
 
-  const item = await findItem(type, id);
+  const item = db.content.findById(parseInt(id));
   if (!item) return res.redirect('/');
 
-  const tmdbId = item.tmdbId || item.id;
-  const videoInfo = getVideoSources(type, tmdbId);
+  let videoUrl = item.video_url || '';
+  if (videoUrl && videoUrl.includes('huggingface.co')) {
+    videoUrl = toProxyUrl(videoUrl);
+  }
 
   const qualities = [
-    { label: '4K Ultra HD', resolution: '2160p', size: '~8 GB', tag: 'ultra', available: false, url: '' },
-    { label: 'Full HD', resolution: '1080p', size: '~2.5 GB', tag: 'hd', available: false, url: '' },
+    { label: 'Full HD', resolution: '1080p', size: '~2.5 GB', tag: 'hd', available: !!videoUrl, url: videoUrl },
     { label: 'HD', resolution: '720p', size: '~1.2 GB', tag: '720', available: false, url: '' },
     { label: 'SD', resolution: '480p', size: '~600 MB', tag: 'sd', available: false, url: '' },
   ];
 
-  if (videoInfo && videoInfo.sources) {
-    const src = videoInfo.sources;
-    if (src['2160p'] || src['4k']) { qualities[0].available = true; qualities[0].url = src['2160p'] || src['4k']; }
-    if (src['1080p']) { qualities[1].available = true; qualities[1].url = src['1080p']; }
-    if (src['720p']) { qualities[2].available = true; qualities[2].url = src['720p']; }
-    if (src['480p']) { qualities[3].available = true; qualities[3].url = src['480p']; }
+  let episodes = [];
+  if (item.type === 'series' || item.type === 'anime') {
+    episodes = db.episodes.findByContent(item.id);
+    episodes.forEach(ep => {
+      if (ep.video_url && ep.video_url.includes('huggingface.co')) {
+        ep.downloadUrl = toProxyUrl(ep.video_url);
+      } else {
+        ep.downloadUrl = ep.video_url || '';
+      }
+    });
   }
 
-  const episodes = [];
-  if (type === 'series' && item.seasons) {
-    for (let s = 1; s <= (item.seasons || 1); s++) {
-      const eps = item.episodeList || [];
-      eps.filter(e => e.season === s).forEach(ep => {
-        const epKey = `${tmdbId}-s${s}e${ep.number}`;
-        const epVideo = videoConfigData[epKey];
-        let downloadUrl = '';
-        if (epVideo?.sources?.['1080p']) downloadUrl = toProxyUrl(epVideo.sources['1080p']);
-        else if (epVideo?.sources?.['720p']) downloadUrl = toProxyUrl(epVideo.sources['720p']);
-        episodes.push({ ...ep, season: s, downloadUrl });
-      });
-    }
-  }
-
-  res.render('download', {
-    item, type, qualities, episodes,
-    page: 'download'
-  });
+  res.render('download', { item, type: item.type, qualities, episodes, page: 'download' });
 });
 
 module.exports = router;

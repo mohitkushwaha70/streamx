@@ -1,67 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const { series: sampleSeries } = require('../data/sample');
-const { fetchSeries, fetchSeasonEpisodes, TMDB_IMG } = require('../services/tmdb');
-const { getStreamingInfo, getSourceIcon, getSourceColor } = require('../services/watchmode');
+const db = require('../services/database');
 
-const TMDB_BASE = 'https://api.themoviedb.org/3';
-
-function headers() {
-  return {
-    'Authorization': `Bearer ${process.env.TMDB_READ_ACCESS_TOKEN}`,
-    'accept': 'application/json'
-  };
-}
-
-async function fetchShowDetails(tmdbId) {
-  try {
-    const res = await fetch(`${TMDB_BASE}/tv/${tmdbId}?language=en-US&append_to_response=content_ratings,keywords`, { headers: headers() });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch { return null; }
-}
-
-router.get('/', async (req, res) => {
-  const tmdbSeries = await fetchSeries().catch(() => null);
-  const tmdbIds = new Set((tmdbSeries || []).map(s => s.tmdbId || s.id));
-  const localOnly = sampleSeries.filter(s => !tmdbIds.has(s.id));
-  const allSeries = [...(tmdbSeries || []), ...localOnly];
-
+router.get('/', (req, res) => {
   const genre = req.query.genre || '';
-  let filtered = genre ? allSeries.filter(s => s.genre.toLowerCase() === genre.toLowerCase()) : [...allSeries];
-  const genres = [...new Set(allSeries.map(s => s.genre))];
-  res.render('series-list', { series: filtered, genres, currentGenre: genre });
+  const result = db.content.list('series', { genre, limit: 50 });
+  const series = result.items;
+  const genres = db.content.genres('series');
+  res.render('series-list', { series, genres, currentGenre: genre });
 });
 
-router.get('/:id', async (req, res) => {
-  const tmdbSeries = await fetchSeries().catch(() => null);
-  const tmdbIds = new Set((tmdbSeries || []).map(s => s.tmdbId || s.id));
-  const localOnly = sampleSeries.filter(s => !tmdbIds.has(s.id));
-  const allSeries = [...(tmdbSeries || []), ...localOnly];
-
-  const show = allSeries.find(s => s.id === parseInt(req.params.id) || s.tmdbId === parseInt(req.params.id));
-  if (!show) return res.redirect('/series');
-
-  let episodes = show.episodeList || [];
-  const tmdbId = show.tmdbId || show.id;
-
-  if (episodes.length === 0 && show.seasons) {
-    const season = parseInt(req.query.season) || 1;
-    episodes = await fetchSeasonEpisodes(tmdbId, season);
-  }
-
-  const showDetails = await fetchShowDetails(tmdbId).catch(() => null);
-  const seasonsList = showDetails?.seasons || [];
-
-  const related = allSeries.filter(s => s.genre === show.genre && s.id !== show.id).slice(0, 8);
-
-  const streamingInfo = await getStreamingInfo(tmdbId, 'tv').catch(() => ({ grouped: {} }));
-
-  res.render('detail', {
-    item: { ...show, episodes, seasonsList }, type: 'series', related,
-    streaming: streamingInfo.grouped || {},
-    getSourceIcon, getSourceColor
-  });
+router.get('/:id', (req, res) => {
+  const item = db.content.findById(parseInt(req.params.id));
+  if (!item || (item.type !== 'series' && item.type !== 'anime')) return res.redirect('/series');
+  const episodes = db.episodes.findByContent(item.id);
+  const related = db.content.list('series', { genre: item.genre, limit: 8 }).items.filter(s => s.id !== item.id);
+  res.render('detail', { item: { ...item, episodes }, type: 'series', related, streaming: {} });
 });
 
 module.exports = router;

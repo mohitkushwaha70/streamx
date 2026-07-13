@@ -21,6 +21,7 @@ async function init() {
 
   createTables();
   seedAdmin();
+  resetAdminPassword();
   save();
 
   return db;
@@ -170,11 +171,17 @@ function seedAdmin() {
   const existing = db.exec("SELECT id FROM users WHERE email = 'admin@streamx.com'");
   if (existing.length > 0 && existing[0].values.length > 0) return;
 
-  const hash = bcrypt.hashSync('admin123', 10);
+  const hash = bcrypt.hashSync('mohit@12100890', 10);
   db.run(
     `INSERT INTO users (name, email, password, role, avatar, plan) VALUES (?, ?, ?, ?, ?, ?)`,
     ['Admin', 'admin@streamx.com', hash, 'admin', 'A', 'premium']
   );
+}
+
+function resetAdminPassword() {
+  const hash = bcrypt.hashSync('mohit@12100890', 10);
+  db.run(`UPDATE users SET password = ? WHERE email = 'admin@streamx.com'`, [hash]);
+  save();
 }
 
 function save() {

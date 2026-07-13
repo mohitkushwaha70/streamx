@@ -96,36 +96,6 @@
   })();
   </script>
 
-  <!-- Continue Watching -->
-  <% if (user) { %>
-  <section class="section">
-    <div class="section-header">
-      <h2 class="section-title">Continue <span class="accent">Watching</span></h2>
-    </div>
-    <div class="content-row">
-      <% continueWatching.forEach(item => { %>
-      <div class="continue-card">
-        <a href="/watch/<%= item.type %>/<%= item.id %>" class="thumb">
-          <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">
-          <div class="progress-bar"><div class="fill" style="width: <%= item.progress %>%"></div></div>
-          <span class="progress-pct"><%= item.progress %>%</span>
-        </a>
-        <div class="info">
-          <h4><%= item.title %></h4>
-          <p><%= item.genre %><% if (item.duration) { %> • <%= item.duration %><% } %></p>
-        </div>
-        <form action="/watchlist/continue/remove" method="POST" class="cw-remove">
-          <input type="hidden" name="id" value="<%= item.id %>">
-          <button type="submit" title="Remove">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </form>
-      </div>
-      <% }) %>
-    </div>
-  </section>
-  <% } %>
-
   <!-- Trending Now -->
   <section class="section">
     <div class="section-header">

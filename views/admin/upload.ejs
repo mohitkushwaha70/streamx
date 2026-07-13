@@ -1,106 +1,71 @@
-<%- include('../partials/header', { pageTitle: 'Upload Content' }) %>
+<%- include('../partials/header', { pageTitle: 'Quick Upload' }) %>
 
 <div class="admin-layout">
   <%- include('../partials/admin-sidebar') %>
   <main class="admin-main">
     <div class="admin-header">
-      <h1>Upload Content</h1>
-      <p style="color:#888;margin-top:4px;">Add movies, series, or anime directly</p>
+      <h1>Quick Upload</h1>
+      <p style="color:#888;margin-top:4px;">Paste HuggingFace URL → Video appears on website instantly</p>
     </div>
 
     <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
     <% if (error) { %><div class="alert alert-danger"><%= error %></div><% } %>
 
-    <div class="admin-card" style="max-width:700px;">
-      <h3 style="margin-bottom:16px;">Add New Content</h3>
-      <form method="POST" action="/admin/upload">
-        <div class="form-group" style="margin-bottom:14px;">
-          <label style="display:block;color:#ccc;margin-bottom:4px;font-size:13px;">Title *</label>
-          <input type="text" name="title" required placeholder="Movie / Series title"
-            style="width:100%;padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;">
+    <!-- QUICK UPLOAD BOX -->
+    <div class="admin-card" style="max-width:800px;background:linear-gradient(135deg,#0a1628,#0f2847);border:1px solid #2563eb;">
+      <h3 style="margin-bottom:20px;color:#fff;font-size:1.2rem;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" style="vertical-align:middle;margin-right:8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Video URL Paste Karo
+      </h3>
+
+      <form id="quickUpload" method="POST" action="/admin/upload">
+        <div style="display:flex;gap:10px;margin-bottom:16px;">
+          <input type="url" id="videoUrlInput" name="videoUrl" required
+            placeholder="https://huggingface.co/datasets/.../resolve/main/video.mkv"
+            style="flex:1;padding:14px 18px;background:#0a0a1a;border:2px solid #333;color:#fff;border-radius:12px;font-size:1rem;outline:none;transition:border 0.3s;"
+            onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#333'">
+          <button type="submit" id="uploadBtn"
+            style="padding:14px 32px;background:#2563eb;color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.3s;">
+            Upload
+          </button>
         </div>
 
-        <div style="display:flex;gap:12px;margin-bottom:14px;">
-          <div class="form-group" style="flex:1;">
-            <label style="display:block;color:#ccc;margin-bottom:4px;font-size:13px;">Type</label>
-            <select name="type" style="width:100%;padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;">
-              <option value="movie">Movie</option>
-              <option value="series">Series</option>
-              <option value="anime">Anime</option>
-            </select>
-          </div>
-          <div class="form-group" style="flex:1;">
-            <label style="display:block;color:#ccc;margin-bottom:4px;font-size:13px;">Genre</label>
-            <input type="text" name="genre" placeholder="Action, Drama..."
-              style="width:100%;padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;">
-          </div>
-        </div>
-
-        <div style="display:flex;gap:12px;margin-bottom:14px;">
-          <div class="form-group" style="flex:1;">
-            <label style="display:block;color:#ccc;margin-bottom:4px;font-size:13px;">Year</label>
-            <input type="number" name="year" value="2024" placeholder="2024"
-              style="width:100%;padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;">
-          </div>
-          <div class="form-group" style="flex:1;">
-            <label style="display:block;color:#ccc;margin-bottom:4px;font-size:13px;">Rating</label>
-            <input type="number" name="rating" step="0.1" min="0" max="10" value="7.0" placeholder="7.0"
-              style="width:100%;padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;">
-          </div>
-          <div class="form-group" style="flex:1;">
-            <label style="display:block;color:#ccc;margin-bottom:4px;font-size:13px;">Duration</label>
-            <input type="text" name="duration" placeholder="2h 15m"
-              style="width:100%;padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;">
+        <!-- Auto-detected filename preview -->
+        <div id="filePreview" style="display:none;padding:12px 16px;background:#0a0a1a;border:1px solid #222;border-radius:10px;margin-bottom:16px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/></svg>
+            <div style="flex:1;">
+              <div id="detectedTitle" style="color:#fff;font-weight:600;font-size:0.95rem;"></div>
+              <div id="detectedMeta" style="color:#888;font-size:0.8rem;margin-top:2px;"></div>
+            </div>
+            <span id="detectedType" style="padding:4px 12px;background:#2563eb;color:#fff;border-radius:20px;font-size:0.75rem;font-weight:600;"></span>
           </div>
         </div>
 
-        <div class="form-group" style="margin-bottom:14px;">
-          <label style="display:block;color:#ccc;margin-bottom:4px;font-size:13px;">Video URL *</label>
-          <input type="url" name="videoUrl" required placeholder="https://huggingface.co/... or YouTube URL"
-            style="width:100%;padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;">
-        </div>
-
-        <div class="form-group" style="margin-bottom:14px;">
-          <label style="display:block;color:#ccc;margin-bottom:4px;font-size:13px;">Video Type</label>
-          <select name="videoType" style="width:100%;padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;">
-            <option value="auto">Auto-detect</option>
-            <option value="mp4">MP4</option>
-            <option value="youtube">YouTube</option>
-          </select>
-        </div>
-
-        <div class="form-group" style="margin-bottom:14px;">
-          <label style="display:block;color:#ccc;margin-bottom:4px;font-size:13px;">Description</label>
-          <textarea name="description" rows="3" placeholder="Short description..."
-            style="width:100%;padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;"></textarea>
-        </div>
-
-        <div style="display:flex;gap:12px;margin-bottom:14px;">
-          <div class="form-group" style="flex:1;">
-            <label style="display:block;color:#ccc;margin-bottom:4px;font-size:13px;">Poster URL</label>
-            <input type="url" name="poster" placeholder="https://... (auto-generates if empty)"
-              style="width:100%;padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;">
-          </div>
-          <div class="form-group" style="flex:1;">
-            <label style="display:block;color:#ccc;margin-bottom:4px;font-size:13px;">Backdrop URL</label>
-            <input type="url" name="backdrop" placeholder="https://... (auto-generates if empty)"
-              style="width:100%;padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;">
-          </div>
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;font-size:15px;">
-          Save to Website
-        </button>
+        <!-- Hidden fields auto-filled by JS -->
+        <input type="hidden" name="title" id="hiddenTitle">
+        <input type="hidden" name="type" id="hiddenType" value="movie">
+        <input type="hidden" name="genre" id="hiddenGenre" value="">
+        <input type="hidden" name="year" id="hiddenYear" value="">
+        <input type="hidden" name="rating" id="hiddenRating" value="7.0">
+        <input type="hidden" name="duration" id="hiddenDuration" value="">
+        <input type="hidden" name="description" id="hiddenDescription" value="">
+        <input type="hidden" name="videoType" id="hiddenVideoType" value="mp4">
       </form>
+
+      <div style="color:#666;font-size:0.8rem;margin-top:8px;">
+        URL paste karte hi title automatically aa jayega. Sirf "Upload" dabao!
+      </div>
     </div>
 
+    <!-- ALL CONTENT -->
     <% if (uploadedMovies && uploadedMovies.length > 0) { %>
-    <div class="admin-card" style="margin-top:20px;">
-      <h3 style="margin-bottom:16px;">All Content (<%= uploadedMovies.length %>)</h3>
+    <div class="admin-card" style="margin-top:24px;">
+      <h3 style="margin-bottom:16px;">Website Content (<%= uploadedMovies.length %>)</h3>
       <div class="admin-table-wrap">
         <table class="admin-table">
           <thead>
-            <tr><th>#</th><th>Title</th><th>Type</th><th>Genre</th><th>Year</th><th>Rating</th><th>Actions</th></tr>
+            <tr><th>#</th><th>Title</th><th>Type</th><th>Genre</th><th>Rating</th><th>Actions</th></tr>
           </thead>
           <tbody>
             <% uploadedMovies.forEach((m, i) => { %>
@@ -109,21 +74,18 @@
               <td>
                 <div class="user-cell">
                   <% if (m.poster) { %><img src="<%= m.poster %>" class="table-thumb" alt="<%= m.title %>"><% } %>
-                  <div>
-                    <strong><%= m.title %></strong>
-                  </div>
+                  <strong><%= m.title %></strong>
                 </div>
               </td>
               <td><span class="table-badge"><%= m.type %></span></td>
               <td><span class="table-badge"><%= m.genre %></span></td>
-              <td><%= m.year %></td>
               <td>★ <%= m.rating %></td>
               <td>
                 <div class="action-btns">
                   <a href="/watch/<%= m.type %>/<%= m.id %>" class="btn-icon-sm" title="Watch" target="_blank">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                   </a>
-                  <a href="/admin/upload/delete/<%= m.id %>" class="btn-icon-sm danger" title="Remove" onclick="return confirm('Remove this content?')">
+                  <a href="/admin/upload/delete/<%= m.id %>" class="btn-icon-sm danger" title="Remove" onclick="return confirm('Remove?')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                   </a>
                 </div>
@@ -137,3 +99,65 @@
     <% } %>
   </main>
 </div>
+
+<script>
+const urlInput = document.getElementById('videoUrlInput');
+const filePreview = document.getElementById('filePreview');
+const detectedTitle = document.getElementById('detectedTitle');
+const detectedMeta = document.getElementById('detectedMeta');
+const detectedType = document.getElementById('detectedType');
+const hiddenTitle = document.getElementById('hiddenTitle');
+const hiddenType = document.getElementById('hiddenType');
+const hiddenVideoType = document.getElementById('hiddenVideoType');
+
+function cleanFileName(url) {
+  try {
+    let path = url.split('/resolve/')[1] || url.split('/main/')[1] || url.split('/').pop();
+    path = decodeURIComponent(path);
+    let name = path.split('/').pop();
+    name = name.replace(/\.(mkv|mp4|avi|webm|mov|flv|wmv|m4v)$/i, '');
+    name = name.replace(/\b(1080p|720p|480p|2160p|4K|hd|hq|web-dl|webrip|bluray|dvdrip|hdtc|cam|hdcam|proper|extended|unrated|directors?|cut)\b/gi, '');
+    name = name.replace(/\.(Hindi|English|Dual|Audio|ESub|SSub|Full|Movie|Film)\b/gi, ' ');
+    name = name.replace(/[.\-_]+/g, ' ').replace(/\s+/g, ' ').trim();
+    if (name.length > 2) name = name.charAt(0).toUpperCase() + name.slice(1);
+    return name || 'Untitled Video';
+  } catch(e) { return 'Untitled Video'; }
+}
+
+function detectType(url, title) {
+  const lower = url.toLowerCase();
+  if (lower.includes('anime') || /anime|season|episode/i.test(title)) return 'anime';
+  if (/season|episode|series|s\d+e\d+/i.test(lower) || /season|episode|series/i.test(title)) return 'series';
+  return 'movie';
+}
+
+function detectVideoType(url) {
+  if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
+  return 'mp4';
+}
+
+urlInput.addEventListener('input', function() {
+  const url = this.value.trim();
+  if (!url) { filePreview.style.display = 'none'; return; }
+
+  const title = cleanFileName(url);
+  const type = detectType(url, title);
+  const vType = detectVideoType(url);
+
+  detectedTitle.textContent = title;
+  detectedMeta.textContent = type.charAt(0).toUpperCase() + type.slice(1) + ' • ' + (vType === 'youtube' ? 'YouTube' : vType.toUpperCase());
+  detectedType.textContent = type.toUpperCase();
+  filePreview.style.display = 'block';
+
+  hiddenTitle.value = title;
+  hiddenType.value = type;
+  hiddenVideoType.value = vType;
+});
+
+document.getElementById('quickUpload').addEventListener('submit', function(e) {
+  if (!urlInput.value.trim()) { e.preventDefault(); return; }
+  if (!hiddenTitle.value) hiddenTitle.value = cleanFileName(urlInput.value);
+  document.getElementById('uploadBtn').textContent = 'Uploading...';
+  document.getElementById('uploadBtn').disabled = true;
+});
+</script>

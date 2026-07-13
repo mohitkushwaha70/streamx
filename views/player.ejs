@@ -284,27 +284,6 @@
       <div class="player-container" id="playerContainer">
         <div class="video-wrapper" id="videoWrapper">
           <%
-            const currentUrl = currentEpisode ? currentEpisode.videoUrl : item.videoUrl;
-            const isYoutube = item.videoType === 'youtube' || (currentEpisode && currentEpisode.videoType === 'youtube') || (currentUrl && (currentUrl.includes('youtube.com') || currentUrl.includes('youtu.be')));
-          %>
-          <% if (isYoutube) { %>
-          <%
-            let ytUrl = currentUrl || '';
-            const ytMatch = ytUrl.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-            const ytId = ytMatch ? ytMatch[1] : '';
-          %>
-          <div style="width:100%;height:100%;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;">
-            <img src="<%= item.backdrop || item.poster || '' %>" alt="<%= item.title %>" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;opacity:0.4;">
-            <div style="position:relative;z-index:1;text-align:center;">
-              <a href="https://www.youtube.com/watch?v=<%= ytId %>" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:12px;padding:16px 32px;background:rgba(229,9,20,0.9);color:#fff;border:none;border-radius:12px;text-decoration:none;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all 0.3s;">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-                Watch Trailer on YouTube
-              </a>
-              <p style="color:#999;margin-top:12px;font-size:0.8rem;">Trailer plays on YouTube</p>
-            </div>
-          </div>
-          <% } else { %>
-          <%
             function getVideoMimeType(url) {
               if (!url) return 'video/mp4';
               const lower = url.toLowerCase();
@@ -447,7 +426,6 @@
               </div>
             </div>
           </div>
-          <% } %>
         </div>
       </div>
 

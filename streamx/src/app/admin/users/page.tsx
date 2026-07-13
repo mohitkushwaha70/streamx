@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Search, Trash2, Shield, Ban, CheckCircle, Users as UsersIcon } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Search, Trash2, Shield, Ban, CheckCircle, Users as UsersIcon, RefreshCw, Clock } from 'lucide-react';
 import { cn, formatDate } from '@/lib/utils';
 
 interface UserRecord {
@@ -11,6 +11,7 @@ interface UserRecord {
   role: 'USER' | 'ADMIN';
   plan: 'FREE' | 'PREMIUM';
   createdAt: string;
+  lastActiveAt?: string;
   banned?: boolean;
 }
 
@@ -24,6 +25,8 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState('');
   const [planFilter, setPlanFilter] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -54,6 +57,15 @@ export default function AdminUsersPage() {
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  useEffect(() => {
+    if (autoRefresh) {
+      intervalRef.current = setInterval(fetchUsers, 8000);
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [autoRefresh, fetchUsers]);
 
   useEffect(() => {
     setPage(1);
@@ -109,9 +121,29 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Users</h1>
-        <p className="text-muted text-sm mt-1">{total} registered users</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Users</h1>
+          <p className="text-muted text-sm mt-1">{total} registered users</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={autoRefresh}
+              onChange={(e) => setAutoRefresh(e.target.checked)}
+              className="w-4 h-4 rounded border-border bg-background text-[#e50914] focus:ring-[#e50914] focus:ring-offset-0"
+            />
+            <span className="text-sm text-muted">Auto-refresh</span>
+          </label>
+          <button
+            onClick={() => fetchUsers()}
+            className="p-2 text-muted hover:text-white rounded-lg hover:bg-surface-hover transition-colors"
+            title="Refresh"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -158,6 +190,7 @@ export default function AdminUsersPage() {
                 <th className="text-left px-5 py-3.5 text-xs font-medium text-muted uppercase tracking-wider hidden md:table-cell">Role</th>
                 <th className="text-left px-5 py-3.5 text-xs font-medium text-muted uppercase tracking-wider hidden sm:table-cell">Plan</th>
                 <th className="text-left px-5 py-3.5 text-xs font-medium text-muted uppercase tracking-wider hidden lg:table-cell">Joined</th>
+                <th className="text-left px-5 py-3.5 text-xs font-medium text-muted uppercase tracking-wider hidden lg:table-cell">Last Active</th>
                 <th className="text-right px-5 py-3.5 text-xs font-medium text-muted uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -219,6 +252,12 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-5 py-4 hidden lg:table-cell">
                       <span className="text-sm text-muted">{formatDate(user.createdAt)}</span>
+                    </td>
+                    <td className="px-5 py-4 hidden lg:table-cell">
+                      <span className="text-sm text-muted flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 shrink-0" />
+                        {user.lastActiveAt ? formatDate(user.lastActiveAt) : 'Never'}
+                      </span>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-end gap-1">

@@ -17,7 +17,7 @@ export default function LogsPage() {
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState('');
   const [search, setSearch] = useState('');
-  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   const fetchLogs = useCallback(async () => {

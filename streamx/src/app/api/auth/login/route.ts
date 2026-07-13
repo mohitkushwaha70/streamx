@@ -22,6 +22,14 @@ export async function POST(req: NextRequest) {
       data: { lastActiveAt: new Date() },
     });
 
+    await db.activityLog.create({
+      data: {
+        type: 'auth',
+        message: `${user.name} (${user.email}) logged in`,
+        userId: user.id,
+      },
+    });
+
     const token = await signToken({
       userId: user.id,
       email: user.email,

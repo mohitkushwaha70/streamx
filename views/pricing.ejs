@@ -71,184 +71,116 @@
     </div>
   </section>
 
-  <!-- UPI Payment Modal -->
-  <div id="payment-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9998; display:none; align-items:center; justify-content:center;">
-    <div style="background:var(--surface,#1a1a2e); border:1px solid var(--border,#333); border-radius:16px; padding:32px; max-width:420px; width:90%; position:relative;">
-      <button onclick="closeModal()" style="position:absolute; top:12px; right:16px; background:none; border:none; color:var(--text,#fff); font-size:24px; cursor:pointer;">&times;</button>
-
-      <div id="modal-step1">
-        <h3 style="margin:0 0 4px; text-align:center;">Pay via UPI</h3>
-        <p style="text-align:center; color:var(--text-muted,#888); margin:0 0 20px; font-size:14px;" id="modal-plan-label"></p>
-
-        <div style="text-align:center; margin-bottom:20px;">
-          <img id="qr-code-img" style="width:200px; height:200px; border-radius:12px; background:#fff; padding:8px;" alt="QR Code">
-        </div>
-
-        <div style="background:var(--bg,#0f0f23); border-radius:10px; padding:14px; text-align:center; margin-bottom:16px;">
-          <p style="margin:0 0 6px; font-size:12px; color:var(--text-muted,#888);">UPI ID</p>
-          <p style="margin:0; font-size:18px; font-weight:bold; color:var(--accent,#6c5ce7); letter-spacing:1px;" id="modal-upi-id"></p>
-          <button onclick="copyUPI()" style="margin-top:8px; background:var(--accent,#6c5ce7); color:#fff; border:none; padding:6px 20px; border-radius:6px; cursor:pointer; font-size:13px;">Copy UPI ID</button>
-        </div>
-
-        <p style="text-align:center; font-size:13px; color:var(--text-muted,#888); margin-bottom:16px;">
-          Pay <strong id="modal-amount" style="color:var(--accent,#6c5ce7);"></strong> using any UPI app (GPay, PhonePe, FamPay, Paytm)
-        </p>
-
-        <button onclick="showStep2()" style="width:100%; padding:14px; background:var(--accent,#6c5ce7); color:#fff; border:none; border-radius:10px; font-size:16px; font-weight:600; cursor:pointer;">
-          I've Paid — Enter Transaction ID
-        </button>
-      </div>
-
-      <div id="modal-step2" style="display:none;">
-        <h3 style="margin:0 0 4px; text-align:center;">Confirm Payment</h3>
-        <p style="text-align:center; color:var(--text-muted,#888); margin:0 0 20px; font-size:14px;">Enter UPI Transaction ID from your payment app</p>
-
-        <div style="margin-bottom:16px;">
-          <label style="display:block; margin-bottom:6px; font-size:13px; color:var(--text-muted,#888);">UPI Transaction ID</label>
-          <input type="text" id="txn-input" placeholder="e.g. 312345678901"
-            style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--border,#333); background:var(--bg,#0f0f23); color:var(--text,#fff); font-size:15px; box-sizing:border-box;">
-        </div>
-
-        <p style="font-size:12px; color:var(--text-muted,#888); margin:0 0 16px; text-align:center;">
-          Transaction ID मिलेगा UPI app के "View Details" में
-        </p>
-
-        <div id="verify-status" style="display:none; text-align:center; padding:10px; border-radius:8px; margin-bottom:12px; font-weight:600;"></div>
-
-        <button id="verify-btn" onclick="verifyPayment()" style="width:100%; padding:14px; background:var(--accent,#6c5ce7); color:#fff; border:none; border-radius:10px; font-size:16px; font-weight:600; cursor:pointer;">
-          Verify & Activate Premium
-        </button>
-
-        <button onclick="showStep1()" style="width:100%; padding:10px; background:none; border:none; color:var(--text-muted,#888); font-size:13px; cursor:pointer; margin-top:8px;">
-          ← Back to QR Code
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div id="toast" style="display:none; position:fixed; bottom:20px; right:20px; padding:14px 24px; border-radius:12px; z-index:9999; font-weight:600;"></div>
+  <div id="payment-status" style="display:none; position:fixed; top:20px; right:20px; padding:16px 24px; border-radius:12px; z-index:9999; font-weight:600; max-width:400px;"></div>
 </main>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-let currentPlanType = '';
-let currentTxnId = '';
-
-function buyPlan(planType) {
-  currentPlanType = planType;
-  const modal = document.getElementById('payment-modal');
-  modal.style.display = 'flex';
-
-  document.getElementById('modal-step1').style.display = 'block';
-  document.getElementById('modal-step2').style.display = 'none';
-
-  const label = planType === 'premium_monthly' ? 'Premium Monthly — ₹199' : 'Premium Yearly — ₹1,999';
-  const amount = planType === 'premium_monthly' ? '₹199' : '₹1,999';
-  document.getElementById('modal-plan-label').textContent = label;
-  document.getElementById('modal-amount').textContent = amount;
-
-  fetch('/api/payment/create-order', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ planType }),
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data.error) {
-      showToast(data.error, '#ff4444');
-      closeModal();
-      return;
-    }
-    currentTxnId = data.txnId;
-    document.getElementById('modal-upi-id').textContent = data.upiId;
-
-    const upiUrl = 'upi://pay?pa=' + encodeURIComponent(data.upiId) + '&pn=' + encodeURIComponent(data.upiName) + '&am=' + data.amount + '&cu=INR';
-    document.getElementById('qr-code-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(upiUrl) + '&bgcolor=ffffff&color=1a1a2e';
-  })
-  .catch(() => {
-    showToast('Network error. Try again.', '#ff4444');
-    closeModal();
-  });
-}
-
-function showStep1() {
-  document.getElementById('modal-step1').style.display = 'block';
-  document.getElementById('modal-step2').style.display = 'none';
-}
-
-function showStep2() {
-  document.getElementById('modal-step1').style.display = 'none';
-  document.getElementById('modal-step2').style.display = 'block';
-  document.getElementById('txn-input').focus();
-}
-
-function closeModal() {
-  document.getElementById('payment-modal').style.display = 'none';
-}
-
-function copyUPI() {
-  const upiId = document.getElementById('modal-upi-id').textContent;
-  navigator.clipboard.writeText(upiId).then(() => showToast('UPI ID copied!', '#00c853'));
-}
-
-async function verifyPayment() {
-  const txnInput = document.getElementById('txn-input');
-  const statusEl = document.getElementById('verify-status');
-  const btn = document.getElementById('verify-btn');
-  const txnId = txnInput.value.trim();
-
-  if (!txnId || txnId.length < 4) {
-    statusEl.style.display = 'block';
-    statusEl.style.background = '#ff444422';
-    statusEl.style.color = '#ff4444';
-    statusEl.textContent = 'Enter a valid transaction ID';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Verifying...';
-  statusEl.style.display = 'none';
+async function buyPlan(planType) {
+  const statusEl = document.getElementById('payment-status');
 
   try {
-    const res = await fetch('/api/payment/verify', {
+    statusEl.style.display = 'block';
+    statusEl.style.background = 'var(--surface)';
+    statusEl.style.color = 'var(--text)';
+    statusEl.style.border = '1px solid var(--border)';
+    statusEl.textContent = 'Creating order...';
+
+    const orderRes = await fetch('/api/payment/create-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ txnId, planType: currentPlanType }),
+      body: JSON.stringify({ planType }),
     });
-    const data = await res.json();
+    const orderData = await orderRes.json();
 
-    if (res.ok && data.success) {
-      statusEl.style.display = 'block';
-      statusEl.style.background = '#00c85322';
-      statusEl.style.color = '#00c853';
-      statusEl.textContent = 'Premium activated! Redirecting...';
-      setTimeout(() => window.location.href = '/profile', 1500);
-    } else {
-      statusEl.style.display = 'block';
-      statusEl.style.background = '#ff444422';
-      statusEl.style.color = '#ff4444';
-      statusEl.textContent = data.error || 'Verification failed';
-      btn.disabled = false;
-      btn.textContent = 'Verify & Activate Premium';
+    if (!orderRes.ok) {
+      statusEl.style.background = '#ff4444';
+      statusEl.style.color = '#fff';
+      statusEl.textContent = orderData.error || 'Failed to create order';
+      setTimeout(() => statusEl.style.display = 'none', 4000);
+      return;
     }
+
+    statusEl.style.display = 'none';
+
+    const options = {
+      key: orderData.keyId,
+      amount: orderData.amount,
+      currency: orderData.currency,
+      name: 'streamX',
+      description: orderData.planLabel,
+      order_id: orderData.orderId,
+      prefill: {
+        name: orderData.userName || '',
+        email: orderData.userEmail || '',
+      },
+      theme: { color: '#6c5ce7' },
+      handler: async function (response) {
+        try {
+          statusEl.style.display = 'block';
+          statusEl.style.background = 'var(--surface)';
+          statusEl.style.color = 'var(--text)';
+          statusEl.style.border = '1px solid var(--border)';
+          statusEl.textContent = 'Verifying payment...';
+
+          const verifyRes = await fetch('/api/payment/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              planType: planType,
+            }),
+          });
+          const verifyData = await verifyRes.json();
+
+          if (verifyRes.ok && verifyData.success) {
+            statusEl.style.background = '#00c853';
+            statusEl.style.color = '#fff';
+            statusEl.style.border = 'none';
+            statusEl.textContent = 'Payment successful! Premium activated.';
+            setTimeout(() => window.location.href = '/profile', 2000);
+          } else {
+            statusEl.style.background = '#ff4444';
+            statusEl.style.color = '#fff';
+            statusEl.style.border = 'none';
+            statusEl.textContent = verifyData.error || 'Verification failed. Contact support.';
+            setTimeout(() => statusEl.style.display = 'none', 5000);
+          }
+        } catch (e) {
+          statusEl.style.background = '#ff8800';
+          statusEl.style.color = '#fff';
+          statusEl.style.border = 'none';
+          statusEl.textContent = 'Payment received. Please wait while we verify...';
+          setTimeout(() => window.location.href = '/profile', 5000);
+        }
+      },
+      modal: {
+        ondismiss: function () {
+          statusEl.style.display = 'none';
+        },
+      },
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', function (response) {
+      statusEl.style.display = 'block';
+      statusEl.style.background = '#ff4444';
+      statusEl.style.color = '#fff';
+      statusEl.style.border = 'none';
+      statusEl.textContent = 'Payment failed: ' + (response.error.description || 'Unknown error');
+      setTimeout(() => statusEl.style.display = 'none', 5000);
+    });
+    rzp.open();
   } catch (e) {
     statusEl.style.display = 'block';
-    statusEl.style.background = '#ff880022';
-    statusEl.style.color = '#ff8800';
-    statusEl.textContent = 'Network error. Try again.';
-    btn.disabled = false;
-    btn.textContent = 'Verify & Activate Premium';
+    statusEl.style.background = '#ff4444';
+    statusEl.style.color = '#fff';
+    statusEl.style.border = 'none';
+    statusEl.textContent = 'Network error. Please try again.';
+    setTimeout(() => statusEl.style.display = 'none', 3000);
   }
-}
-
-function showToast(msg, color) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.display = 'block';
-  t.style.background = color;
-  t.style.color = '#fff';
-  t.style.padding = '14px 24px';
-  t.style.borderRadius = '12px';
-  setTimeout(() => t.style.display = 'none', 3000);
 }
 </script>
 

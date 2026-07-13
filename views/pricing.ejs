@@ -23,7 +23,7 @@
         <a href="/auth/register" class="btn btn-outline" style="width:100%;">Get Started</a>
       </div>
 
-      <!-- Premium -->
+      <!-- Premium Monthly -->
       <div class="pricing-card featured">
         <h3>Premium</h3>
         <p style="color: var(--text-muted); font-size: 0.85rem;">Most popular choice</p>
@@ -35,25 +35,153 @@
           <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> No ads</li>
           <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Offline downloads</li>
         </ul>
-        <a href="/auth/register" class="btn btn-primary" style="width:100%;">Choose Premium</a>
+        <% if (user) { %>
+          <% if (user.plan === 'premium') { %>
+            <button class="btn btn-primary" style="width:100%;" disabled>Current Plan</button>
+          <% } else { %>
+            <button class="btn btn-primary" style="width:100%;" onclick="buyPlan('premium_monthly')">Buy ₹199/month</button>
+          <% } %>
+        <% } else { %>
+          <a href="/auth/login" class="btn btn-primary" style="width:100%;">Login to Buy</a>
+        <% } %>
       </div>
 
-      <!-- Ultra -->
+      <!-- Premium Yearly -->
       <div class="pricing-card">
-        <h3>Ultra</h3>
-        <p style="color: var(--text-muted); font-size: 0.85rem;">For the ultimate experience</p>
-        <div class="price">₹499<small>/month</small></div>
+        <h3>Premium Yearly</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Save ₹389 — 2 months free!</p>
+        <div class="price">₹1,999<small>/year</small></div>
         <ul>
           <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Everything in Premium</li>
           <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> 4K + Dolby Atmos</li>
           <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> 6 devices</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Early access</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Priority support</li>
           <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Exclusive originals</li>
         </ul>
-        <a href="/auth/register" class="btn btn-outline" style="width:100%;">Choose Ultra</a>
+        <% if (user) { %>
+          <% if (user.plan === 'premium') { %>
+            <button class="btn btn-outline" style="width:100%;" disabled>Current Plan</button>
+          <% } else { %>
+            <button class="btn btn-outline" style="width:100%;" onclick="buyPlan('premium_yearly')">Buy ₹1,999/year</button>
+          <% } %>
+        <% } else { %>
+          <a href="/auth/login" class="btn btn-outline" style="width:100%;">Login to Buy</a>
+        <% } %>
       </div>
     </div>
   </section>
+
+  <div id="payment-status" style="display:none; position:fixed; top:20px; right:20px; padding:16px 24px; border-radius:12px; z-index:9999; font-weight:600; max-width:400px;"></div>
 </main>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+async function buyPlan(planType) {
+  const statusEl = document.getElementById('payment-status');
+
+  try {
+    statusEl.style.display = 'block';
+    statusEl.style.background = 'var(--surface)';
+    statusEl.style.color = 'var(--text)';
+    statusEl.style.border = '1px solid var(--border)';
+    statusEl.textContent = 'Creating order...';
+
+    const orderRes = await fetch('/api/payment/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ planType }),
+    });
+    const orderData = await orderRes.json();
+
+    if (!orderRes.ok) {
+      statusEl.style.background = '#ff4444';
+      statusEl.style.color = '#fff';
+      statusEl.textContent = orderData.error || 'Failed to create order';
+      setTimeout(() => statusEl.style.display = 'none', 3000);
+      return;
+    }
+
+    statusEl.style.display = 'none';
+
+    const options = {
+      key: orderData.keyId,
+      amount: orderData.amount,
+      currency: orderData.currency,
+      name: 'streamX',
+      description: orderData.planLabel,
+      order_id: orderData.orderId,
+      prefill: {
+        name: orderData.userName || '',
+        email: orderData.userEmail || '',
+      },
+      theme: { color: '#6c5ce7' },
+      handler: async function (response) {
+        try {
+          statusEl.style.display = 'block';
+          statusEl.style.background = 'var(--surface)';
+          statusEl.style.color = 'var(--text)';
+          statusEl.style.border = '1px solid var(--border)';
+          statusEl.textContent = 'Verifying payment...';
+
+          const verifyRes = await fetch('/api/payment/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              planType: planType,
+            }),
+          });
+          const verifyData = await verifyRes.json();
+
+          if (verifyRes.ok && verifyData.success) {
+            statusEl.style.background = '#00c853';
+            statusEl.style.color = '#fff';
+            statusEl.style.border = 'none';
+            statusEl.textContent = 'Payment successful! Premium activated.';
+            setTimeout(() => window.location.href = '/profile', 2000);
+          } else {
+            statusEl.style.background = '#ff4444';
+            statusEl.style.color = '#fff';
+            statusEl.style.border = 'none';
+            statusEl.textContent = verifyData.error || 'Verification failed. Contact support.';
+            setTimeout(() => statusEl.style.display = 'none', 5000);
+          }
+        } catch (e) {
+          statusEl.style.background = '#ff8800';
+          statusEl.style.color = '#fff';
+          statusEl.style.border = 'none';
+          statusEl.textContent = 'Payment received. Please wait while we verify...';
+          setTimeout(() => window.location.href = '/profile', 5000);
+        }
+      },
+      modal: {
+        ondismiss: function () {
+          statusEl.style.display = 'none';
+        },
+      },
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', function (response) {
+      statusEl.style.display = 'block';
+      statusEl.style.background = '#ff4444';
+      statusEl.style.color = '#fff';
+      statusEl.style.border = 'none';
+      statusEl.textContent = 'Payment failed: ' + (response.error.description || 'Unknown error');
+      setTimeout(() => statusEl.style.display = 'none', 5000);
+    });
+    rzp.open();
+  } catch (e) {
+    statusEl.style.display = 'block';
+    statusEl.style.background = '#ff4444';
+    statusEl.style.color = '#fff';
+    statusEl.style.border = 'none';
+    statusEl.textContent = 'Network error. Please try again.';
+    setTimeout(() => statusEl.style.display = 'none', 3000);
+  }
+}
+</script>
 
 <%- include('partials/footer') %>

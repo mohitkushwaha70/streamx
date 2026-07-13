@@ -10,8 +10,8 @@ function isAdmin(req, res, next) {
 
 router.use(isAdmin);
 
-const PREMIUM_MONTHLY = 299;
-const PREMIUM_YEARLY = 2999;
+const PREMIUM_MONTHLY = 199;
+const PREMIUM_YEARLY = 1999;
 
 function computeRevenue() {
   const allUsers = db.users.getAll();

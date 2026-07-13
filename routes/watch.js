@@ -24,6 +24,11 @@ router.get('/:type/:id', (req, res) => {
   const item = db.content.findById(itemId);
   if (!item) return res.redirect('/');
 
+  if (item.premium && req.session.user.plan !== 'premium') {
+    req.session.error = 'This is premium content. Upgrade to Premium to watch!';
+    return res.redirect('/pricing');
+  }
+
   // Check video URL from content record
   let videoUrl = item.video_url || '';
 

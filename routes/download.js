@@ -13,9 +13,15 @@ function toProxyUrl(hfUrl) {
 router.get('/:type/:id', (req, res) => {
   const { type, id } = req.params;
   if (type !== 'movie' && type !== 'series') return res.redirect('/');
+  if (!req.session.user) return res.redirect('/auth/login');
 
   const item = db.content.findById(parseInt(id));
   if (!item) return res.redirect('/');
+
+  if (item.premium && req.session.user.plan !== 'premium') {
+    req.session.error = 'This is premium content. Upgrade to Premium!';
+    return res.redirect('/pricing');
+  }
 
   let videoUrl = item.video_url || '';
   if (videoUrl && videoUrl.includes('huggingface.co')) {

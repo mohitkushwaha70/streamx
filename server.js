@@ -50,6 +50,7 @@ const watchlistRoutes = require('./routes/watchlist');
 const downloadRoutes = require('./routes/download');
 const videoProxyRoutes = require('./routes/video-proxy');
 const searchRoutes = require('./routes/search');
+const paymentRoutes = require('./routes/payment');
 const { changeEmitter } = require('./data/sample');
 
 changeEmitter.setMaxListeners(100);
@@ -85,6 +86,7 @@ app.use('/watchlist', watchlistRoutes);
 app.use('/download', downloadRoutes);
 app.use('/stream', videoProxyRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/payment', paymentRoutes);
 app.use((err, req, res, next) => {
   console.error('=== ERROR ===');
   console.error('URL:', req.method, req.originalUrl);

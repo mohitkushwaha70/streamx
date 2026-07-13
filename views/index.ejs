@@ -17,6 +17,8 @@
 .hero-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.3); border: none; cursor: pointer; transition: all 0.3s; }
 .hero-dot.active { background: var(--blue-primary, #2563eb); transform: scale(1.3); }
 @media (max-width: 768px) { .hero-slider { height: 60vh; min-height: 400px; } .hero-arrow { width: 36px; height: 36px; } }
+.card-progress { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.2); z-index: 5; }
+.card-progress .progress-bar { height: 100%; background: var(--accent, #6c5ce7); border-radius: 2px; transition: width 0.3s; }
 </style>
 
 <main class="main-content">
@@ -128,6 +130,40 @@
       <% }) %>
     </div>
   </section>
+
+  <% if (user && continueWatching.length > 0) { %>
+  <!-- Continue Watching -->
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Continue <span class="accent">Watching</span></h2>
+    </div>
+    <div class="content-row">
+      <% continueWatching.forEach(item => { %>
+      <a href="/watch/<%= item.type === 'series' ? 'series' : 'movie' %>/<%= item.tmdb_id %>" class="content-card">
+        <div class="card-image">
+          <img src="<%= item.poster || '/placeholder.jpg' %>" alt="<%= item.title %>" loading="lazy">
+          <div class="card-progress">
+            <div class="progress-bar" style="width: <%= item.progress || 0 %>%"></div>
+          </div>
+          <div class="card-overlay">
+            <div class="play-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="card-info">
+          <div class="card-title"><%= item.title %></div>
+          <div class="card-meta">
+            <span><%= item.genre %></span>
+            <span class="dot"></span>
+            <span><%= item.progress || 0 %>% done</span>
+          </div>
+        </div>
+      </a>
+      <% }) %>
+    </div>
+  </section>
+  <% } %>
 
   <!-- Top 10 -->
   <section class="section">

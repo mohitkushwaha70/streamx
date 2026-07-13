@@ -3,6 +3,14 @@ const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
+let mongoSync = null;
+function getMongo() {
+  if (!mongoSync) {
+    try { mongoSync = require('./mongo-log'); } catch(e) { console.error('[MongoDB] module load failed:', e.message); }
+  }
+  return mongoSync;
+}
+
 const DB_PATH = path.join(__dirname, '..', 'data', 'streamx.db');
 let db = null;
 
@@ -209,11 +217,15 @@ const users = {
       [name, email, password, google_id, role, avatar || name.charAt(0).toUpperCase(), plan]
     );
     save();
-    return this.findByEmail(email);
+    const user = this.findByEmail(email);
+    if (user) getMongo()?.syncUser(user);
+    return user;
   },
   updateLastActive(id) {
     db.run("UPDATE users SET last_active = CURRENT_TIMESTAMP WHERE id = ?", [id]);
     save();
+    const user = this.findById(id);
+    if (user) getMongo()?.syncUser(user);
   },
   count() {
     const r = db.exec("SELECT COUNT(*) as c FROM users");
@@ -240,10 +252,13 @@ const users = {
     vals.push(id);
     db.run(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, vals);
     save();
+    const user = this.findById(id);
+    if (user) getMongo()?.syncUser(user);
   },
   delete(id) {
     db.run("DELETE FROM users WHERE id = ?", [id]);
     save();
+    getMongo()?.deleteUser(id);
   }
 };
 
@@ -271,13 +286,15 @@ const content = {
          description=?, poster=?, backdrop=?, video_url=?, video_type=?, trailer_key=?, cast=?,
          director=?, language=?, popularity=?, release_date=?, seasons=?, episodes_count=?,
          premium=?, badge=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`,
-        [data.title, data.genre, JSON.stringify(data.genres || []), data.year, data.rating,
-         data.vote_count || 0, data.duration, data.description, data.poster, data.backdrop,
-         data.video_url, data.video_type, data.trailer_key, data.cast, data.director,
-         data.language, data.popularity, data.release_date, data.seasons || 0,
-         data.episodes_count || 0, data.premium ? 1 : 0, data.badge, existing.id]
+        [data.title, data.genre || '', JSON.stringify(data.genres || []), data.year || 0, data.rating || 0,
+         data.vote_count || 0, data.duration || '', data.description || '', data.poster || '', data.backdrop || '',
+         data.video_url || '', data.video_type || 'mp4', data.trailer_key || '', data.cast || '', data.director || '',
+         data.language || 'en', data.popularity || 0, data.release_date || '', data.seasons || 0,
+         data.episodes_count || 0, data.premium ? 1 : 0, data.badge || '', existing.id]
       );
       save();
+      const item = this.findById(existing.id);
+      if (item) getMongo()?.syncContent(item);
       return existing.id;
     } else {
       db.run(
@@ -285,15 +302,18 @@ const content = {
          duration, description, poster, backdrop, video_url, video_type, trailer_key, cast,
          director, language, popularity, release_date, seasons, episodes_count, premium, badge)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [data.tmdb_id, data.title, data.type, data.genre, JSON.stringify(data.genres || []),
-         data.year, data.rating, data.vote_count || 0, data.duration, data.description,
-         data.poster, data.backdrop, data.video_url, data.video_type, data.trailer_key,
-         data.cast, data.director, data.language, data.popularity, data.release_date,
-         data.seasons || 0, data.episodes_count || 0, data.premium ? 1 : 0, data.badge]
+        [data.tmdb_id, data.title, data.type, data.genre || '', JSON.stringify(data.genres || []),
+         data.year || 0, data.rating || 0, data.vote_count || 0, data.duration || '', data.description || '',
+         data.poster || '', data.backdrop || '', data.video_url || '', data.video_type || 'mp4', data.trailer_key || '',
+         data.cast || '', data.director || '', data.language || 'en', data.popularity || 0, data.release_date || '',
+         data.seasons || 0, data.episodes_count || 0, data.premium ? 1 : 0, data.badge || '']
       );
-      save();
       const rid = db.exec("SELECT last_insert_rowid() as id");
-      return rid[0].values[0][0];
+      const id = rid[0].values[0][0];
+      save();
+      const item = this.findById(id);
+      if (item) getMongo()?.syncContent(item);
+      return id;
     }
   },
   search(query, limit = 20) {
@@ -336,6 +356,7 @@ const content = {
   delete(id) {
     db.run("DELETE FROM content WHERE id = ?", [id]);
     save();
+    getMongo()?.deleteContent(id);
   },
   all() {
     const r = db.exec("SELECT * FROM content ORDER BY id DESC");
@@ -360,9 +381,12 @@ const content = {
        data.popularity || 0, data.release_date || '', data.seasons || 0,
        data.episodes_count || 0, data.premium || 0, data.badge || '']
     );
-    save();
     const rid = db.exec("SELECT last_insert_rowid() as id");
-    return rid[0].values[0][0];
+    const id = rid[0].values[0][0];
+    save();
+    const item = this.findById(id);
+    if (item) getMongo()?.syncContent(item);
+    return id;
   },
   update(id, data) {
     const fields = [];
@@ -376,6 +400,8 @@ const content = {
     vals.push(id);
     db.run(`UPDATE content SET ${fields.join(', ')} WHERE id = ?`, vals);
     save();
+    const item = this.findById(id);
+    if (item) getMongo()?.syncContent(item);
   }
 };
 
@@ -403,7 +429,10 @@ const episodes = {
         [contentId, data.number, data.season || 1, data.title, data.duration, data.description, data.poster, data.air_date, data.rating, data.video_url]
       );
     }
+    const epId = existing?.id || db.exec("SELECT last_insert_rowid() as id")[0]?.values[0]?.[0];
     save();
+    const epData = { ...data, id: epId };
+    getMongo()?.syncEpisode(epData, contentId);
   }
 };
 
@@ -419,10 +448,12 @@ const watchlist = {
   add(userId, contentId, type = 'watchlist') {
     db.run("INSERT OR IGNORE INTO watchlist (user_id, content_id, type) VALUES (?, ?, ?)", [userId, contentId, type]);
     save();
+    getMongo()?.syncWatchlist(userId, contentId, type, 'add');
   },
   remove(userId, contentId, type = 'watchlist') {
     db.run("DELETE FROM watchlist WHERE user_id = ? AND content_id = ? AND type = ?", [userId, contentId, type]);
     save();
+    getMongo()?.syncWatchlist(userId, contentId, type, 'remove');
   },
   has(userId, contentId, type = 'watchlist') {
     const r = db.exec("SELECT 1 FROM watchlist WHERE user_id = ? AND content_id = ? AND type = ?", [userId, contentId, type]);
@@ -451,10 +482,12 @@ const continueWatching = {
        progress || 0, title || '', poster || '', genre || '', duration || '']
     );
     save();
+    getMongo()?.syncContinueWatching(userId, { tmdb_id: tmdbId, type, title, poster, genre, duration, progress }, 'upsert');
   },
   remove(userId, tmdbId) {
     db.run("DELETE FROM continue_watching WHERE user_id = ? AND tmdb_id = ?", [userId, tmdbId]);
     save();
+    getMongo()?.syncContinueWatching(userId, { tmdb_id: tmdbId }, 'remove');
   }
 };
 
@@ -483,14 +516,32 @@ const videoConfigs = {
       `INSERT INTO video_configs (tmdb_id, title, poster, backdrop, genre, year, rating, duration, description, sources)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(tmdb_id) DO UPDATE SET title=?, poster=?, backdrop=?, genre=?, year=?, rating=?, duration=?, description=?, sources=?`,
-      [tmdbId, data.title, data.poster, data.backdrop, data.genre, data.year, data.rating, data.duration, data.description, JSON.stringify(data.sources || {}),
-       data.title, data.poster, data.backdrop, data.genre, data.year, data.rating, data.duration, data.description, JSON.stringify(data.sources || {})]
+      [tmdbId, data.title || '', data.poster || '', data.backdrop || '', data.genre || '', data.year || 0, data.rating || 0, data.duration || '', data.description || '', JSON.stringify(data.sources || {}),
+       data.title || '', data.poster || '', data.backdrop || '', data.genre || '', data.year || 0, data.rating || 0, data.duration || '', data.description || '', JSON.stringify(data.sources || {})]
     );
     save();
+    (async () => {
+      try {
+        const db2 = await getMongo()?.getDb();
+        if (db2) {
+          await db2.collection('video_configs').updateOne(
+            { tmdbId },
+            { $set: { tmdbId, ...data, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
+            { upsert: true }
+          );
+        }
+      } catch(e) { console.error('[MongoDB] video_configs sync failed:', e.message); }
+    })();
   },
   remove(tmdbId) {
     db.run("DELETE FROM video_configs WHERE tmdb_id = ?", [tmdbId]);
     save();
+    (async () => {
+      try {
+        const db2 = await getMongo()?.getDb();
+        if (db2) await db2.collection('video_configs').deleteOne({ tmdbId });
+      } catch(e) { console.error('[MongoDB] video_configs delete failed:', e.message); }
+    })();
   }
 };
 
@@ -503,6 +554,7 @@ const payments = {
       [userId, amount, plan, method, status, txId]
     );
     save();
+    getMongo()?.syncPayment({ user_id: userId, amount, plan, method, status, transaction_id: txId });
   },
   all() {
     const r = db.exec("SELECT p.*, u.name as user_name FROM payments p LEFT JOIN users u ON p.user_id = u.id ORDER BY p.id DESC");
@@ -523,6 +575,7 @@ const logs = {
       db.exec("DELETE FROM activity_logs WHERE id NOT IN (SELECT id FROM activity_logs ORDER BY id DESC LIMIT 200)");
     }
     save();
+    getMongo()?.logActivity(type, message, null, { admin });
   },
   all(limit = 100) {
     const r = db.exec("SELECT * FROM activity_logs ORDER BY id DESC LIMIT ?", [limit]);
@@ -533,6 +586,31 @@ const logs = {
   getByType(type, limit = 100) {
     const r = db.exec("SELECT * FROM activity_logs WHERE type = ? ORDER BY id DESC LIMIT ?", [type, limit]);
     return r.length > 0 ? r[0].values.map(v => rowToObj(r[0], v)) : [];
+  }
+};
+
+// ===== SETTINGS =====
+const settings = {
+  get(key) {
+    const r = db.exec("SELECT value FROM settings WHERE key = ?", [key]);
+    return r.length > 0 && r[0].values.length > 0 ? r[0].values[0][0] : null;
+  },
+  set(key, value) {
+    db.run("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", [key, String(value)]);
+    save();
+    (async () => {
+      try {
+        const db2 = await getMongo()?.getDb();
+        if (db2) await db2.collection('settings').updateOne({ key }, { $set: { key, value: String(value), updatedAt: new Date() } }, { upsert: true });
+      } catch(e) { console.error('[MongoDB] settings sync failed:', e.message); }
+    })();
+  },
+  all() {
+    const r = db.exec("SELECT * FROM settings");
+    if (r.length === 0) return {};
+    const obj = {};
+    r[0].values.forEach(v => { obj[v[0]] = v[1]; });
+    return obj;
   }
 };
 
@@ -550,5 +628,5 @@ function tryParse(json) {
 module.exports = {
   init, getDb, save,
   users, content, episodes, watchlist, continueWatching,
-  videoConfigs, payments, logs
+  videoConfigs, payments, logs, settings
 };

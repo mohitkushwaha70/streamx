@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const db = require('../services/database');
+const { logActivity } = require('../services/mongo-log');
 
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser((id, done) => {
@@ -65,6 +66,13 @@ router.post('/login', (req, res) => {
   db.users.updateLastActive(user.id);
   db.logs.add('user', `User logged in: ${user.name}`, user.name);
 
+  logActivity('login', `${user.name} (${user.email}) logged in`, user.id, {
+    ip: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown',
+    userAgent: req.headers['user-agent'] || 'unknown',
+    email: user.email,
+    role: user.role,
+  });
+
   req.session.user = {
     id: user.id, name: user.name, email: user.email,
     role: user.role, avatar: user.avatar, plan: user.plan
@@ -100,6 +108,13 @@ router.post('/register', (req, res) => {
 
   db.logs.add('user', `New user registered: ${name} (${email})`, 'System');
 
+  logActivity('register', `New user registered: ${name} (${email})`, newUser.id, {
+    ip: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown',
+    userAgent: req.headers['user-agent'] || 'unknown',
+    email,
+    role: 'user',
+  });
+
   req.session.user = {
     id: newUser.id, name: newUser.name, email: newUser.email,
     role: newUser.role, avatar: newUser.avatar, plan: newUser.plan
@@ -120,6 +135,15 @@ router.get('/google/callback', (req, res, next) => {
   }
   passport.authenticate('google', { failureRedirect: '/auth/login' })(req, res, () => {
     db.users.updateLastActive(req.user.id);
+
+    logActivity('login', `${req.user.name} (${req.user.email}) logged in via Google`, req.user.id, {
+      ip: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown',
+      userAgent: req.headers['user-agent'] || 'unknown',
+      email: req.user.email,
+      role: req.user.role,
+      provider: 'google',
+    });
+
     req.session.user = {
       id: req.user.id, name: req.user.name, email: req.user.email,
       role: req.user.role, avatar: req.user.avatar, plan: req.user.plan

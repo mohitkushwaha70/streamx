@@ -51,6 +51,40 @@
         <input type="hidden" name="duration" id="hiddenDuration" value="">
         <input type="hidden" name="description" id="hiddenDescription" value="">
         <input type="hidden" name="videoType" id="hiddenVideoType" value="mp4">
+
+        <!-- Content Type & Premium Selector -->
+        <div style="display:flex;gap:12px;margin-top:12px;align-items:center;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <label style="color:#aaa;font-size:0.85rem;">Type:</label>
+            <select id="contentType" onchange="hiddenType.value=this.value" style="padding:8px 14px;background:#0a0a1a;border:1px solid #333;color:#fff;border-radius:8px;font-size:0.85rem;cursor:pointer;">
+              <option value="movie">Movie</option>
+              <option value="series">Series</option>
+              <option value="anime">Anime</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <label style="color:#aaa;font-size:0.85rem;">Genre:</label>
+            <select id="contentGenre" onchange="hiddenGenre.value=this.value" style="padding:8px 14px;background:#0a0a1a;border:1px solid #333;color:#fff;border-radius:8px;font-size:0.85rem;cursor:pointer;">
+              <option value="Action">Action</option>
+              <option value="Comedy">Comedy</option>
+              <option value="Drama">Drama</option>
+              <option value="Horror">Horror</option>
+              <option value="Sci-Fi">Sci-Fi</option>
+              <option value="Thriller">Thriller</option>
+              <option value="Romance">Romance</option>
+              <option value="Adventure">Adventure</option>
+              <option value="Crime">Crime</option>
+              <option value="Anime">Anime</option>
+              <option value="Documentary">Documentary</option>
+              <option value="Fantasy">Fantasy</option>
+            </select>
+          </div>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 14px;background:#0a0a1a;border:1px solid #333;border-radius:8px;color:#facc15;font-size:0.85rem;transition:all 0.3s;" onmouseover="this.style.borderColor='#facc15'" onmouseout="this.style.borderColor='#333'">
+            <input type="checkbox" name="premium" id="premiumCheck" style="cursor:pointer;accent-color:#facc15;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Premium
+          </label>
+        </div>
       </form>
 
       <div style="color:#666;font-size:0.8rem;margin-top:8px;">
@@ -65,7 +99,7 @@
       <div class="admin-table-wrap">
         <table class="admin-table">
           <thead>
-            <tr><th>#</th><th>Title</th><th>Type</th><th>Genre</th><th>Rating</th><th>Actions</th></tr>
+            <tr><th>#</th><th>Title</th><th>Type</th><th>Genre</th><th>Rating</th><th>Status</th><th>Actions</th></tr>
           </thead>
           <tbody>
             <% uploadedMovies.forEach((m, i) => { %>
@@ -80,6 +114,7 @@
               <td><span class="table-badge"><%= m.type %></span></td>
               <td><span class="table-badge"><%= m.genre %></span></td>
               <td>★ <%= m.rating %></td>
+              <td><span class="plan-badge <%= m.premium ? 'premium' : 'free' %>"><%= m.premium ? 'Premium' : 'Free' %></span></td>
               <td>
                 <div class="action-btns">
                   <a href="/watch/<%= m.type %>/<%= m.id %>" class="btn-icon-sm" title="Watch" target="_blank">
@@ -131,6 +166,18 @@ function detectType(url, title) {
   return 'movie';
 }
 
+function detectGenre(url, title) {
+  const text = (url + ' ' + title).toLowerCase();
+  if (/action|war|fight|military/i.test(text)) return 'Action';
+  if (/comedy|funny|laugh/i.test(text)) return 'Comedy';
+  if (/horror|scary|ghost|horror/i.test(text)) return 'Horror';
+  if (/romantic|love|romance/i.test(text)) return 'Romance';
+  if (/sci.?fi|space|alien|future/i.test(text)) return 'Sci-Fi';
+  if (/thriller|suspense|crime/i.test(text)) return 'Thriller';
+  if (/anime/i.test(text)) return 'Anime';
+  return '';
+}
+
 function detectVideoType(url) {
   if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
   return 'mp4';
@@ -142,16 +189,21 @@ urlInput.addEventListener('input', function() {
 
   const title = cleanFileName(url);
   const type = detectType(url, title);
+  const genre = detectGenre(url, title);
   const vType = detectVideoType(url);
 
   detectedTitle.textContent = title;
-  detectedMeta.textContent = type.charAt(0).toUpperCase() + type.slice(1) + ' • ' + (vType === 'youtube' ? 'YouTube' : vType.toUpperCase());
+  detectedMeta.textContent = type.charAt(0).toUpperCase() + type.slice(1) + ' • ' + genre + ' • ' + (vType === 'youtube' ? 'YouTube' : vType.toUpperCase());
   detectedType.textContent = type.toUpperCase();
   filePreview.style.display = 'block';
 
   hiddenTitle.value = title;
   hiddenType.value = type;
+  hiddenGenre.value = genre;
   hiddenVideoType.value = vType;
+
+  document.getElementById('contentType').value = type;
+  if (genre) document.getElementById('contentGenre').value = genre;
 });
 
 document.getElementById('quickUpload').addEventListener('submit', function(e) {

@@ -540,7 +540,7 @@ router.get('/upload', (req, res) => {
 });
 
 router.post('/upload', (req, res) => {
-  const { title, genre, year, rating, videoUrl, videoType, poster, backdrop, description, duration, type: contentType } = req.body;
+  const { title, genre, year, rating, videoUrl, videoType, poster, backdrop, description, duration, type: contentType, premium } = req.body;
   if (!title || !videoUrl) {
     req.session.error = 'Title and Video URL are required!';
     return res.redirect('/admin/upload');
@@ -559,7 +559,7 @@ router.post('/upload', (req, res) => {
     poster: poster || `https://picsum.photos/seed/${Date.now()}/400/600`,
     backdrop: backdrop || `https://picsum.photos/seed/${Date.now()}bg/1200/600`,
     video_url: videoUrl, video_type: detectedType,
-    premium: 0, badge: 'new'
+    premium: premium === 'on' ? 1 : 0, badge: 'new'
   });
   db.logs.add('content', `Content "${title}" uploaded`, req.session.user.name);
   req.session.success = `"${title}" added successfully!`;

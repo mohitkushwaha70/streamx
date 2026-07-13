@@ -21,7 +21,8 @@ router.get('/:type/:id', (req, res) => {
   const ep = parseInt(req.query.ep) || 1;
   const season = parseInt(req.query.season) || 1;
 
-  const item = db.content.findById(itemId);
+  let item = db.content.findById(itemId);
+  if (!item && type) item = db.content.findByTmdbId(itemId, type);
   if (!item) return res.redirect('/');
 
   if (item.premium && req.session.user.plan !== 'premium') {

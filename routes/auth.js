@@ -53,6 +53,11 @@ router.post('/login', (req, res) => {
     return res.redirect('/auth/login');
   }
 
+  if (user.banned) {
+    req.session.error = 'Your account has been suspended. Contact support.';
+    return res.redirect('/auth/login');
+  }
+
   if (!user.password) {
     req.session.error = 'This account uses Google sign-in. Please use Google to login.';
     return res.redirect('/auth/login');

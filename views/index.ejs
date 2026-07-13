@@ -139,7 +139,7 @@
     </div>
     <div class="content-row">
       <% continueWatching.forEach(item => { %>
-      <a href="/watch/<%= item.type === 'series' ? 'series' : 'movie' %>/<%= item.tmdb_id %>" class="content-card">
+      <a href="/watch/<%= item.type === 'series' ? 'series' : 'movie' %>/<%= item.id %>" class="content-card">
         <div class="card-image">
           <img src="<%= item.poster || '/placeholder.jpg' %>" alt="<%= item.title %>" loading="lazy">
           <div class="card-progress">

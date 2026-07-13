@@ -52,6 +52,10 @@ const videoProxyRoutes = require('./routes/video-proxy');
 const searchRoutes = require('./routes/search');
 const paymentRoutes = require('./routes/payment');
 const { changeEmitter } = require('./data/sample');
+const { getSourceIcon, getSourceColor } = require('./services/watchmode');
+
+app.locals.getSourceIcon = getSourceIcon;
+app.locals.getSourceColor = getSourceColor;
 
 changeEmitter.setMaxListeners(100);
 

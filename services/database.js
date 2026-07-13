@@ -194,6 +194,8 @@ function seedAdmin() {
     `INSERT INTO users (name, email, password, role, avatar, plan) VALUES (?, ?, ?, ?, ?, ?)`,
     ['Admin', 'admin@streamx.com', hash, 'admin', 'A', 'premium']
   );
+  const user = db.users.findByEmail('admin@streamx.com');
+  if (user) getMongo()?.syncUser(user);
 }
 
 function resetAdminPassword() {

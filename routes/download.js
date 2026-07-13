@@ -12,7 +12,7 @@ function toProxyUrl(hfUrl) {
 
 router.get('/:type/:id', (req, res) => {
   const { type, id } = req.params;
-  if (type !== 'movie' && type !== 'series') return res.redirect('/');
+  if (!['movie', 'series', 'anime'].includes(type)) return res.redirect('/');
   if (!req.session.user) return res.redirect('/auth/login');
 
   const item = db.content.findById(parseInt(id));

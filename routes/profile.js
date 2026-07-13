@@ -12,4 +12,19 @@ router.get('/', (req, res) => {
   res.render('profile', { userWatchlist, userFavorites, userSaved, continueWatching });
 });
 
+router.post('/', (req, res) => {
+  if (!req.session.user) return res.redirect('/auth/login');
+  const { name, avatar } = req.body;
+  const updates = {};
+  if (name && name.trim()) updates.name = name.trim();
+  if (avatar && avatar.trim()) updates.avatar = avatar.trim().charAt(0).toUpperCase();
+  if (Object.keys(updates).length > 0) {
+    db.users.update(req.session.user.id, updates);
+    if (updates.name) req.session.user.name = updates.name;
+    if (updates.avatar) req.session.user.avatar = updates.avatar;
+    req.session.success = 'Profile updated!';
+  }
+  res.redirect('/profile');
+});
+
 module.exports = router;

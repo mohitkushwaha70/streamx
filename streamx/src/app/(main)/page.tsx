@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { db } from '@/lib/db';
 import { HeroBanner } from '@/components/ui/hero-banner';
 import { ContentRow } from '@/components/ui/content-row';
+import { ContinueWatchingRow } from '@/components/ui/continue-watching-row';
 import { SkeletonHero, SkeletonRow } from '@/components/ui/skeleton';
 import type { ContentItem } from '@/types';
 import { Prisma } from '@prisma/client';
@@ -101,6 +102,7 @@ export default function HomePage() {
       </Suspense>
 
       <div className="relative z-10 -mt-20 space-y-10 pb-16">
+        <ContinueWatchingRow />
         <Suspense fallback={<SkeletonRow />}>
           <TrendingSection />
         </Suspense>

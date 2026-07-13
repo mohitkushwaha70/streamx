@@ -10,6 +10,7 @@ interface ContentRowProps {
   items: ContentItem[];
   bookmarks?: Set<string>;
   watchLater?: Set<string>;
+  progressMap?: Map<string, number>;
   onToggleBookmark?: (id: string) => void;
   onToggleWatchLater?: (id: string) => void;
   seeAllHref?: string;
@@ -20,6 +21,7 @@ export function ContentRow({
   items,
   bookmarks,
   watchLater,
+  progressMap,
   onToggleBookmark,
   onToggleWatchLater,
   seeAllHref,
@@ -83,6 +85,7 @@ export function ContentRow({
                 item={item}
                 bookmarked={bookmarks?.has(item.id)}
                 watchLater={watchLater?.has(item.id)}
+                progress={progressMap?.get(item.id)}
                 onToggleBookmark={onToggleBookmark}
                 onToggleWatchLater={onToggleWatchLater}
               />

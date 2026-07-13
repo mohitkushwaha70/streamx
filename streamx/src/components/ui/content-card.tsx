@@ -9,6 +9,7 @@ interface ContentCardProps {
   item: ContentItem;
   bookmarked?: boolean;
   watchLater?: boolean;
+  progress?: number;
   onToggleBookmark?: (id: string) => void;
   onToggleWatchLater?: (id: string) => void;
 }
@@ -17,6 +18,7 @@ export function ContentCard({
   item,
   bookmarked = false,
   watchLater = false,
+  progress,
   onToggleBookmark,
   onToggleWatchLater,
 }: ContentCardProps) {
@@ -112,6 +114,19 @@ export function ContentCard({
             </>
           )}
         </div>
+        {typeof progress === 'number' && progress > 0 && (
+          <div className="mt-1.5">
+            <div className="h-1 w-full rounded-full bg-surface-hover overflow-hidden">
+              <div
+                className="progress-bar h-full"
+                style={{ width: `${Math.min(progress, 100)}%` }}
+              />
+            </div>
+            <p className="mt-0.5 text-[10px] text-muted">
+              {Math.round(progress)}% watched
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

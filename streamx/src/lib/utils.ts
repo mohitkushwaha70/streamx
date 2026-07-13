@@ -31,12 +31,6 @@ export function truncate(str: string, len: number): string {
   return str.slice(0, len) + '...';
 }
 
-export function TMDB_IMG(path: string, size: string = 'w500'): string {
-  if (!path) return '';
-  if (path.startsWith('http')) return path;
-  return `https://image.tmdb.org/t/p/${size}${path}`;
-}
-
 export function getInitials(name: string): string {
   return name
     .split(' ')

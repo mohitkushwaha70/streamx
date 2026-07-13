@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   Play, Bookmark, BookmarkCheck, Clock, CircleCheck, Star,
-  ChevronDown, ChevronUp, ExternalLink, ArrowLeft,
+  ChevronDown, ChevronUp, ArrowLeft,
 } from 'lucide-react';
 import { cn, formatDuration, formatRating } from '@/lib/utils';
 import { ContentRow } from '@/components/ui/content-row';
@@ -70,9 +70,7 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
               );
             }
           }
-        } catch {
-          // silent
-        }
+        } catch {}
       } else {
         setError(data.error || 'Content not found');
       }
@@ -99,9 +97,7 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
         const data = await res.json();
         setBookmarked(data.data.bookmarked);
       }
-    } catch {
-      // silent
-    }
+    } catch {}
   };
 
   const toggleWatchLater = async () => {
@@ -116,42 +112,25 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
         const data = await res.json();
         setWatchLater(data.data.added);
       }
-    } catch {
-      // silent
-    }
-  };
-
-  const handlePlay = async () => {
-    if (!content) return;
-    try {
-      await fetch('/api/user/history', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contentId: content.id, progress: 0 }),
-      });
-    } catch {
-      // silent
-    }
+    } catch {}
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="relative h-[50vh] w-full skeleton" />
-        <div className="mx-auto max-w-[1440px] px-4 lg:px-8 -mt-24 relative z-10">
-          <div className="space-y-4">
-            <div className="h-10 w-96 max-w-full rounded skeleton" />
+        <div className="relative h-[55vh] w-full skeleton" />
+        <div className="mx-auto max-w-[1440px] px-4 lg:px-12 -mt-28 relative z-10">
+          <div className="space-y-5">
+            <div className="h-12 w-96 max-w-full rounded-xl skeleton" />
             <div className="flex gap-3">
-              <div className="h-5 w-16 rounded skeleton" />
-              <div className="h-5 w-12 rounded skeleton" />
-              <div className="h-5 w-20 rounded skeleton" />
+              <div className="h-6 w-16 rounded skeleton" />
+              <div className="h-6 w-12 rounded skeleton" />
+              <div className="h-6 w-24 rounded skeleton" />
             </div>
-            <div className="h-20 w-full max-w-2xl rounded skeleton" />
-            <div className="flex gap-3">
-              <div className="h-12 w-36 rounded-md skeleton" />
-              <div className="h-12 w-36 rounded-md skeleton" />
-              <div className="h-12 w-12 rounded-md skeleton" />
-              <div className="h-12 w-12 rounded-md skeleton" />
+            <div className="h-24 w-full max-w-2xl rounded-xl skeleton" />
+            <div className="flex gap-4">
+              <div className="h-14 w-40 rounded-xl skeleton" />
+              <div className="h-14 w-40 rounded-xl skeleton" />
             </div>
           </div>
         </div>
@@ -163,9 +142,7 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
     return (
       <div className="flex min-h-screen flex-col items-center justify-center text-center">
         <p className="text-lg font-medium text-white">{error || 'Content not found'}</p>
-        <Link href="/" className="btn-primary mt-4">
-          Back to Home
-        </Link>
+        <Link href="/" className="btn-primary mt-4">Back to Home</Link>
       </div>
     );
   }
@@ -181,29 +158,36 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
   const seasons = Object.keys(episodesBySeason).map(Number).sort((a, b) => a - b);
   const currentEpisodes = episodesBySeason[selectedSeason] || [];
 
+  const videoUrl = content.videoUrl || content.huggingFaceUrl;
+  const isMovie = content.type === 'MOVIE';
+  const canPlay = !!videoUrl;
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="relative h-[50vh] w-full overflow-hidden md:h-[60vh]">
+      {/* Hero backdrop */}
+      <div className="relative h-[55vh] w-full overflow-hidden md:h-[65vh]">
         <img
-          src={content.banner || content.backdrop}
+          src={content.banner || content.backdrop || content.poster}
           alt={content.title}
           className="h-full w-full object-cover"
         />
         <div className="gradient-overlay absolute inset-0" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/40" />
 
         <button
           onClick={() => router.back()}
-          className="absolute left-4 top-20 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-surface/80 text-white backdrop-blur-sm transition-colors hover:bg-surface-hover lg:left-8"
+          className="absolute left-4 top-20 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-black/40 backdrop-blur-sm text-white transition-colors hover:bg-black/60 lg:left-12"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
       </div>
 
-      <div className="relative z-10 mx-auto max-w-[1440px] px-4 lg:px-8 -mt-32">
+      {/* Content info */}
+      <div className="relative z-10 mx-auto max-w-[1440px] px-4 lg:px-12 -mt-36">
         <div className="flex flex-col gap-8 md:flex-row">
-          <div className="flex-shrink-0 md:w-64">
-            <div className="overflow-hidden rounded-lg border border-border shadow-2xl">
+          {/* Poster */}
+          <div className="flex-shrink-0 md:w-72">
+            <div className="overflow-hidden rounded-xl border border-white/10 shadow-2xl">
               <img
                 src={content.poster || content.backdrop}
                 alt={content.title}
@@ -212,29 +196,30 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
             </div>
           </div>
 
+          {/* Details */}
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-white md:text-4xl leading-tight">
+            <h1 className="text-3xl font-extrabold text-white md:text-5xl leading-tight tracking-tight">
               {content.title}
             </h1>
 
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted">
-              {year && <span>{year}</span>}
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-white/60">
+              {year && <span className="font-medium">{year}</span>}
               {content.runtime > 0 && (
                 <>
-                  <span className="h-0.5 w-0.5 rounded-full bg-muted" />
+                  <span className="h-1 w-1 rounded-full bg-white/30" />
                   <span>{formatDuration(content.runtime)}</span>
                 </>
               )}
               {content.seasons > 0 && (
                 <>
-                  <span className="h-0.5 w-0.5 rounded-full bg-muted" />
-                  <span>{content.seasons} Season{content.seasons !== 1 ? 's' : ''}</span>
+                  <span className="h-1 w-1 rounded-full bg-white/30" />
+                  <span className="font-medium">{content.seasons} Season{content.seasons !== 1 ? 's' : ''}</span>
                 </>
               )}
               {content.rating > 0 && (
                 <>
-                  <span className="h-0.5 w-0.5 rounded-full bg-muted" />
-                  <span className="flex items-center gap-1 text-yellow-400">
+                  <span className="h-1 w-1 rounded-full bg-white/30" />
+                  <span className="flex items-center gap-1 text-yellow-400 font-bold">
                     <Star className="h-4 w-4 fill-current" />
                     {formatRating(content.rating)}
                   </span>
@@ -242,18 +227,18 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
               )}
               {content.language && (
                 <>
-                  <span className="h-0.5 w-0.5 rounded-full bg-muted" />
-                  <span className="uppercase">{content.language}</span>
+                  <span className="h-1 w-1 rounded-full bg-white/30" />
+                  <span className="uppercase font-medium tracking-wider">{content.language}</span>
                 </>
               )}
             </div>
 
             {content.genres.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
                 {content.genres.map((g) => (
                   <span
                     key={g}
-                    className="rounded-full border border-border bg-surface/50 px-3 py-1 text-xs font-medium text-muted"
+                    className="rounded-lg border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-white/70"
                   >
                     {g}
                   </span>
@@ -261,80 +246,76 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
               </div>
             )}
 
-            <p className="mt-5 text-sm leading-relaxed text-white/80 md:text-base">
+            <p className="mt-6 text-sm leading-relaxed text-white/70 md:text-base max-w-3xl">
               {content.description}
             </p>
 
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              {(content.videoUrl || content.huggingFaceUrl) && (
-                <a
-                  href={content.videoUrl || content.huggingFaceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={handlePlay}
-                  className="btn-primary flex items-center gap-2 text-base"
+            {/* Action buttons */}
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              {canPlay && (
+                <Link
+                  href={`/player/${content.id}`}
+                  className="btn-primary flex items-center gap-3 text-base !px-8 !py-3.5 rounded-xl"
                 >
                   <Play className="h-5 w-5 fill-current" />
-                  Play Now
-                </a>
+                  {isMovie ? 'Play Movie' : 'Play Now'}
+                </Link>
+              )}
+
+              {!canPlay && (
+                <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3.5 text-sm text-white/50">
+                  <Play className="h-5 w-5" />
+                  Coming Soon
+                </div>
               )}
 
               {content.trailerUrl && (
                 <button
                   onClick={() => setShowTrailer(true)}
-                  className="flex items-center gap-2 rounded-md border border-border bg-surface/80 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-surface-hover"
+                  className="flex items-center gap-2.5 rounded-xl border border-white/20 bg-white/5 backdrop-blur-sm px-6 py-3.5 text-sm font-semibold text-white transition-all hover:bg-white/10"
                 >
-                  <ExternalLink className="h-4 w-4" />
+                  <Play className="h-4 w-4 fill-current" />
                   Trailer
                 </button>
               )}
 
               <button
                 onClick={toggleBookmark}
-                className="flex h-11 w-11 items-center justify-center rounded-md border border-border bg-surface/80 text-white transition-colors hover:bg-surface-hover"
-                aria-label={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
+                className="flex h-[52px] w-[52px] items-center justify-center rounded-xl border border-white/20 bg-white/5 text-white transition-all hover:bg-white/10"
               >
-                {bookmarked ? (
-                  <BookmarkCheck className="h-5 w-5 text-accent" />
-                ) : (
-                  <Bookmark className="h-5 w-5" />
-                )}
+                {bookmarked ? <BookmarkCheck className="h-5 w-5 text-accent" /> : <Bookmark className="h-5 w-5" />}
               </button>
 
               <button
                 onClick={toggleWatchLater}
-                className="flex h-11 w-11 items-center justify-center rounded-md border border-border bg-surface/80 text-white transition-colors hover:bg-surface-hover"
-                aria-label={watchLater ? 'Remove from watch later' : 'Add to watch later'}
+                className="flex h-[52px] w-[52px] items-center justify-center rounded-xl border border-white/20 bg-white/5 text-white transition-all hover:bg-white/10"
               >
-                {watchLater ? (
-                  <CircleCheck className="h-5 w-5 text-accent" />
-                ) : (
-                  <Clock className="h-5 w-5" />
-                )}
+                {watchLater ? <CircleCheck className="h-5 w-5 text-accent" /> : <Clock className="h-5 w-5" />}
               </button>
             </div>
 
+            {/* Cast */}
             {content.cast.length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-sm font-semibold text-white">Cast</h3>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {(showAllCast ? content.cast : content.cast.slice(0, 6)).map((name) => (
+              <div className="mt-8">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Cast</h3>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(showAllCast ? content.cast : content.cast.slice(0, 8)).map((name) => (
                     <span
                       key={name}
-                      className="rounded-full bg-surface-hover px-3 py-1 text-xs text-muted"
+                      className="rounded-lg bg-white/5 border border-white/5 px-3 py-1.5 text-xs text-white/60 font-medium"
                     >
                       {name}
                     </span>
                   ))}
-                  {content.cast.length > 6 && (
+                  {content.cast.length > 8 && (
                     <button
                       onClick={() => setShowAllCast(!showAllCast)}
-                      className="flex items-center gap-1 rounded-full bg-surface-hover px-3 py-1 text-xs text-accent transition-colors hover:text-white"
+                      className="flex items-center gap-1 rounded-lg bg-accent/10 border border-accent/20 px-3 py-1.5 text-xs text-accent font-medium transition-colors hover:bg-accent/20"
                     >
                       {showAllCast ? (
                         <>Less <ChevronUp className="h-3 w-3" /></>
                       ) : (
-                        <>+{content.cast.length - 6} more <ChevronDown className="h-3 w-3" /></>
+                        <>+{content.cast.length - 8} more <ChevronDown className="h-3 w-3" /></>
                       )}
                     </button>
                   )}
@@ -343,28 +324,29 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
             )}
 
             {content.director && (
-              <div className="mt-4">
-                <h3 className="text-sm font-semibold text-white">Director</h3>
-                <p className="mt-1 text-sm text-muted">{content.director}</p>
+              <div className="mt-5">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Director</h3>
+                <p className="mt-2 text-sm text-white/60">{content.director}</p>
               </div>
             )}
           </div>
         </div>
 
+        {/* Episodes */}
         {seasons.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-xl font-bold text-white">Episodes</h2>
+          <div className="mt-14">
+            <h2 className="text-2xl font-bold text-white">Episodes</h2>
 
-            <div className="mt-4 flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+            <div className="mt-5 flex gap-2 overflow-x-auto scrollbar-hide pb-2">
               {seasons.map((s) => (
                 <button
                   key={s}
                   onClick={() => setSelectedSeason(s)}
                   className={cn(
-                    'flex-none rounded-md px-4 py-2 text-sm font-medium transition-colors',
+                    'flex-none rounded-xl px-5 py-2.5 text-sm font-bold transition-all',
                     selectedSeason === s
-                      ? 'bg-accent text-white'
-                      : 'border border-border bg-surface text-muted hover:text-white'
+                      ? 'bg-accent text-white shadow-lg shadow-accent/20'
+                      : 'border border-white/10 bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
                   )}
                 >
                   Season {s}
@@ -372,26 +354,26 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
               ))}
             </div>
 
-            <div className="mt-4 space-y-3">
+            <div className="mt-5 space-y-3">
               {currentEpisodes.map((ep) => (
                 <div
                   key={ep.id}
-                  className="flex gap-4 rounded-lg border border-border bg-surface/50 p-3 transition-colors hover:bg-surface-hover"
+                  className="flex gap-4 rounded-xl border border-white/5 bg-white/[0.02] p-4 transition-all hover:bg-white/[0.05] hover:border-white/10"
                 >
                   <div className="flex-none text-center">
-                    <span className="text-lg font-bold text-muted">
+                    <span className="text-xl font-black text-white/30">
                       {String(ep.number).padStart(2, '0')}
                     </span>
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-white truncate">{ep.title}</h4>
-                    <p className="mt-1 line-clamp-2 text-xs text-muted">{ep.description}</p>
-                    <div className="mt-2 flex items-center gap-3 text-xs text-muted">
+                    <h4 className="text-sm font-bold text-white truncate">{ep.title}</h4>
+                    <p className="mt-1.5 line-clamp-2 text-xs text-white/50 leading-relaxed">{ep.description}</p>
+                    <div className="mt-2.5 flex items-center gap-3 text-xs text-white/40">
                       {ep.duration > 0 && <span>{formatDuration(ep.duration)}</span>}
                       {ep.rating > 0 && (
-                        <span className="flex items-center gap-0.5">
-                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        <span className="flex items-center gap-0.5 text-yellow-400">
+                          <Star className="h-3 w-3 fill-current" />
                           {ep.rating.toFixed(1)}
                         </span>
                       )}
@@ -400,14 +382,12 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
                   </div>
 
                   {(ep.videoUrl || ep.huggingFaceUrl) && (
-                    <a
-                      href={ep.videoUrl || ep.huggingFaceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-hover"
+                    <Link
+                      href={`/player/${content.id}?episode=${ep.id}`}
+                      className="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-accent text-white shadow-lg shadow-accent/30 transition-transform hover:scale-110"
                     >
-                      <Play className="h-4 w-4 fill-current" />
-                    </a>
+                      <Play className="h-5 w-5 fill-current ml-0.5" />
+                    </Link>
                   )}
                 </div>
               ))}
@@ -415,13 +395,15 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
           </div>
         )}
 
+        {/* Related */}
         {related.length > 0 && (
-          <div className="mt-12 pb-12">
+          <div className="mt-14 pb-16">
             <ContentRow title="More Like This" items={related} />
           </div>
         )}
       </div>
 
+      {/* Trailer modal */}
       <Modal isOpen={showTrailer} onClose={() => setShowTrailer(false)}>
         <div className="aspect-video w-full">
           <iframe
@@ -431,7 +413,7 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
                 : content.trailerUrl
             }
             title={`${content.title} trailer`}
-            className="h-full w-full"
+            className="h-full w-full rounded-xl"
             allowFullScreen
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           />

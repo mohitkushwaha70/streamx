@@ -4,19 +4,24 @@ import { db } from '@/lib/db';
 import { HeroBanner } from '@/components/ui/hero-banner';
 import { ContentRow } from '@/components/ui/content-row';
 import { SkeletonHero, SkeletonRow } from '@/components/ui/skeleton';
-import {
-  fetchTrendingMovies,
-  fetchTrendingSeries,
-  fetchPopularMovies,
-  fetchTopRatedMovies,
-  fetchAnime,
-} from '@/services/tmdb';
 import type { ContentItem } from '@/types';
+import { Prisma } from '@prisma/client';
 
-function fillDefaults(item: Record<string, unknown>): ContentItem {
+async function getDbContent(where?: Prisma.ContentWhereInput, orderBy?: Prisma.ContentOrderByWithRelationInput, take?: number) {
+  try {
+    return await db.content.findMany({
+      where: { published: true, ...where },
+      orderBy: orderBy || { createdAt: 'desc' },
+      take: take || 30,
+    });
+  } catch {
+    return [];
+  }
+}
+
+function toContentItem(item: Record<string, unknown>): ContentItem {
   return {
-    id: String(item.id || item.tmdbId || ''),
-    tmdbId: (item.tmdbId as number) || undefined,
+    id: String(item.id || ''),
     title: String(item.title || ''),
     slug: String(item.slug || ''),
     type: (item.type as ContentItem['type']) || 'MOVIE',
@@ -26,19 +31,14 @@ function fillDefaults(item: Record<string, unknown>): ContentItem {
     backdrop: String(item.backdrop || ''),
     trailerUrl: (item.trailerUrl as string) || undefined,
     videoUrl: (item.videoUrl as string) || undefined,
-    huggingFaceUrl: undefined,
     genre: String(item.genre || ''),
-    genres: (item.genres as string[]) || [],
+    genres: Array.isArray(item.genres) ? (item.genres as string[]) : [],
     language: String(item.language || 'en'),
     country: String(item.country || ''),
     runtime: Number(item.runtime) || 0,
     rating: Number(item.rating) || 0,
-    releaseDate: item.releaseDate
-      ? item.releaseDate instanceof Date
-        ? item.releaseDate.toISOString()
-        : String(item.releaseDate)
-      : undefined,
-    cast: (item.cast as string[]) || [],
+    releaseDate: item.releaseDate ? new Date(item.releaseDate as string).toISOString() : undefined,
+    cast: Array.isArray(item.cast) ? (item.cast as string[]) : [],
     director: String(item.director || ''),
     seasons: Number(item.seasons) || 0,
     episodesCount: Number(item.episodesCount) || 0,
@@ -46,119 +46,51 @@ function fillDefaults(item: Record<string, unknown>): ContentItem {
     trending: Boolean(item.trending),
     published: Boolean(item.published ?? true),
     viewCount: Number(item.viewCount) || 0,
-    createdAt: item.createdAt
-      ? item.createdAt instanceof Date
-        ? item.createdAt.toISOString()
-        : String(item.createdAt)
-      : new Date().toISOString(),
-    updatedAt: item.updatedAt
-      ? item.updatedAt instanceof Date
-        ? item.updatedAt.toISOString()
-        : String(item.updatedAt)
-      : new Date().toISOString(),
+    createdAt: item.createdAt ? new Date(item.createdAt as string).toISOString() : new Date().toISOString(),
+    updatedAt: item.updatedAt ? new Date(item.updatedAt as string).toISOString() : new Date().toISOString(),
   };
 }
 
-function normalizeDbItems(items: Record<string, unknown>[]): ContentItem[] {
-  return items.map(fillDefaults);
-}
-
-function normalizeTmdbItems(items: Record<string, unknown>[]): ContentItem[] {
-  return items.map((item) => fillDefaults({ ...item, id: item.tmdbId, published: true }));
-}
-
-async function getDbContent(): Promise<ContentItem[]> {
-  try {
-    const items = await db.content.findMany({
-      where: { published: true },
-      orderBy: { createdAt: 'desc' },
-      take: 100,
-    });
-    return normalizeDbItems(items as unknown as Record<string, unknown>[]);
-  } catch {
-    return [];
-  }
-}
-
-function mergeWithDb(tmdbItems: ContentItem[], dbItems: ContentItem[]): ContentItem[] {
-  const dbSlugs = new Set(dbItems.map((d) => d.slug));
-  return [...dbItems, ...tmdbItems.filter((t) => !dbSlugs.has(t.slug))];
-}
-
 async function HeroSection() {
-  const dbItems = await getDbContent();
-  const featured = dbItems.filter((i) => i.featured);
-  const heroItems = featured.length > 0 ? featured : dbItems.slice(0, 5);
-  return <HeroBanner items={heroItems.slice(0, 5)} />;
+  const featured = await getDbContent({ featured: true }, { createdAt: 'desc' }, 5);
+  const latest = featured.length > 0 ? featured : await getDbContent({}, { createdAt: 'desc' }, 5);
+  return <HeroBanner items={latest.map((i) => toContentItem(i as unknown as Record<string, unknown>))} />;
 }
 
 async function TrendingSection() {
-  const [dbItems, tmdbMovies, tmdbSeries] = await Promise.all([
-    db.content.findMany({ where: { published: true, trending: true }, take: 20 }),
-    fetchTrendingMovies().catch(() => []),
-    fetchTrendingSeries().catch(() => []),
-  ]);
-
-  const dbTyped = normalizeDbItems(dbItems as unknown as Record<string, unknown>[]);
-  const merged = mergeWithDb(
-    normalizeTmdbItems([...tmdbMovies, ...tmdbSeries].sort(() => Math.random() - 0.5)),
-    dbTyped
-  );
-  return <ContentRow title="Trending Now" items={merged.slice(0, 20)} seeAllHref="/movies?sort=views" />;
+  const items = await getDbContent({ trending: true }, { viewCount: 'desc' }, 20);
+  const content = items.map((i) => toContentItem(i as unknown as Record<string, unknown>));
+  return <ContentRow title="Trending Now" items={content} seeAllHref="/movies?sort=views" />;
 }
 
 async function LatestSection() {
-  const dbItems = await getDbContent();
-  return (
-    <ContentRow
-      title="Latest Releases"
-      items={dbItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 20)}
-    />
-  );
+  const items = await getDbContent({}, { createdAt: 'desc' }, 20);
+  const content = items.map((i) => toContentItem(i as unknown as Record<string, unknown>));
+  return <ContentRow title="New Releases" items={content} />;
 }
 
 async function TopRatedSection() {
-  const [dbItems, tmdbData] = await Promise.all([
-    db.content.findMany({ where: { published: true }, orderBy: { rating: 'desc' }, take: 20 }),
-    fetchTopRatedMovies().catch(() => ({ results: [] as Record<string, unknown>[], total: 0 })),
-  ]);
-
-  const dbTyped = normalizeDbItems(dbItems as unknown as Record<string, unknown>[]);
-  const merged = mergeWithDb(normalizeTmdbItems(tmdbData.results), dbTyped);
-  return <ContentRow title="Top Rated" items={merged.slice(0, 20)} seeAllHref="/movies?sort=rating" />;
+  const items = await getDbContent({}, { rating: 'desc' }, 20);
+  const content = items.map((i) => toContentItem(i as unknown as Record<string, unknown>));
+  return <ContentRow title="Top Rated" items={content} seeAllHref="/movies?sort=rating" />;
 }
 
 async function MoviesSection() {
-  const [dbItems, tmdbData] = await Promise.all([
-    db.content.findMany({ where: { published: true, type: 'MOVIE' }, take: 20 }),
-    fetchPopularMovies().catch(() => ({ results: [] as Record<string, unknown>[] })),
-  ]);
-
-  const dbTyped = normalizeDbItems(dbItems as unknown as Record<string, unknown>[]);
-  const merged = mergeWithDb(normalizeTmdbItems(tmdbData.results), dbTyped);
-  return <ContentRow title="Movies" items={merged.slice(0, 20)} seeAllHref="/movies" />;
+  const items = await getDbContent({ type: 'MOVIE' }, { createdAt: 'desc' }, 20);
+  const content = items.map((i) => toContentItem(i as unknown as Record<string, unknown>));
+  return <ContentRow title="Movies" items={content} seeAllHref="/movies" />;
 }
 
 async function SeriesSection() {
-  const [dbItems, tmdbData] = await Promise.all([
-    db.content.findMany({ where: { published: true, type: 'SERIES' }, take: 20 }),
-    fetchTrendingSeries().catch(() => []),
-  ]);
-
-  const dbTyped = normalizeDbItems(dbItems as unknown as Record<string, unknown>[]);
-  const merged = mergeWithDb(normalizeTmdbItems(tmdbData), dbTyped);
-  return <ContentRow title="TV Shows" items={merged.slice(0, 20)} seeAllHref="/series" />;
+  const items = await getDbContent({ type: 'SERIES' }, { createdAt: 'desc' }, 20);
+  const content = items.map((i) => toContentItem(i as unknown as Record<string, unknown>));
+  return <ContentRow title="TV Shows" items={content} seeAllHref="/series" />;
 }
 
 async function AnimeSection() {
-  const [dbItems, tmdbData] = await Promise.all([
-    db.content.findMany({ where: { published: true, type: 'ANIME' }, take: 20 }),
-    fetchAnime().catch(() => ({ results: [] as Record<string, unknown>[] })),
-  ]);
-
-  const dbTyped = normalizeDbItems(dbItems as unknown as Record<string, unknown>[]);
-  const merged = mergeWithDb(normalizeTmdbItems(tmdbData.results), dbTyped);
-  return <ContentRow title="Anime" items={merged.slice(0, 20)} seeAllHref="/anime" />;
+  const items = await getDbContent({ type: 'ANIME' }, { createdAt: 'desc' }, 20);
+  const content = items.map((i) => toContentItem(i as unknown as Record<string, unknown>));
+  return <ContentRow title="Anime" items={content} seeAllHref="/anime" />;
 }
 
 export default function HomePage() {
@@ -168,7 +100,7 @@ export default function HomePage() {
         <HeroSection />
       </Suspense>
 
-      <div className="relative z-10 -mt-16 space-y-8 pb-12">
+      <div className="relative z-10 -mt-20 space-y-10 pb-16">
         <Suspense fallback={<SkeletonRow />}>
           <TrendingSection />
         </Suspense>

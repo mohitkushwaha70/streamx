@@ -55,12 +55,24 @@ const paymentRoutes = require('./routes/payment');
 const { changeEmitter } = require('./data/sample');
 const { getSourceIcon, getSourceColor } = require('./services/watchmode');
 const { avatars: allAvatars, categories: avatarCategories } = require('./data/avatars');
+const { cleanVideoTitle } = require('./services/metadata');
 
 const navAvatarMap = {};
 allAvatars.forEach(a => { navAvatarMap[a.id] = a.svg; });
 
 app.locals.getSourceIcon = getSourceIcon;
 app.locals.getSourceColor = getSourceColor;
+
+// Clean display titles - never show ".mp4", "?download=true", etc. in UI
+app.locals.displayTitle = function(title) {
+  if (!title) return 'Untitled';
+  var t = String(title);
+  // If it looks like a filename/URL fragment, clean it
+  if (/\.(mp4|mkv|webm|avi|mov|m3u8|mpd)/i.test(t) || /\?download/i.test(t) || /1080p|720p|480p/i.test(t)) {
+    return cleanVideoTitle(t);
+  }
+  return t;
+};
 
 changeEmitter.setMaxListeners(100);
 

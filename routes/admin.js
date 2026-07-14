@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../services/database');
+const metadata = require('../services/metadata');
 
 function isAdmin(req, res, next) {
   if (req.session.user && req.session.user.role === 'admin') return next();
@@ -12,6 +13,31 @@ router.use(isAdmin);
 
 const PREMIUM_MONTHLY = 199;
 const PREMIUM_YEARLY = 1999;
+
+// API: Clean video title from URL
+router.get('/api/clean-title', (req, res) => {
+  const url = req.query.url || '';
+  const cleaned = metadata.cleanVideoTitle(url);
+  const parts = metadata.parseFilenameParts(cleaned);
+  const contentType = metadata.detectContentType(url, cleaned);
+  const genre = metadata.detectGenre(url, cleaned);
+  res.json({ title: cleaned, year: parts.year, season: parts.season, episode: parts.episode, type: contentType, genre });
+});
+
+// API: Fetch TMDB metadata
+router.get('/api/metadata', async (req, res) => {
+  const title = req.query.title || '';
+  const type = req.query.type || 'movie';
+  if (!title) return res.json({ found: false });
+  try {
+    const meta = await metadata.fetchTmdbMetadata(title, type);
+    if (meta) return res.json({ found: true, ...meta });
+    res.json({ found: false });
+  } catch(e) {
+    console.error('[Admin API] Metadata error:', e.message);
+    res.json({ found: false });
+  }
+});
 
 function computeRevenue() {
   const allUsers = db.users.getAll();
@@ -540,7 +566,7 @@ router.get('/upload', (req, res) => {
 });
 
 router.post('/upload', (req, res) => {
-  const { title, genre, year, rating, videoUrl, videoType, poster, backdrop, description, duration, type: contentType, premium } = req.body;
+  const { title, genre, year, rating, videoUrl, videoType, poster, backdrop, description, duration, type: contentType, premium, cast, director, language } = req.body;
   if (!title || !videoUrl) {
     req.session.error = 'Title and Video URL are required!';
     return res.redirect('/admin/upload');
@@ -559,6 +585,7 @@ router.post('/upload', (req, res) => {
     poster: poster || `https://picsum.photos/seed/${Date.now()}/400/600`,
     backdrop: backdrop || `https://picsum.photos/seed/${Date.now()}bg/1200/600`,
     video_url: videoUrl, video_type: detectedType,
+    cast: cast || '', director: director || '', language: language || 'en',
     premium: premium === 'on' ? 1 : 0, badge: 'new'
   });
   db.logs.add('content', `Content "${title}" uploaded`, req.session.user.name);
@@ -583,7 +610,7 @@ router.post('/upload/edit/:id', (req, res) => {
     req.session.error = 'Content not found!';
     return res.redirect('/admin/upload');
   }
-  const { title, genre, year, rating, videoUrl, videoType, poster, backdrop, description, duration, type: contentType, premium } = req.body;
+  const { title, genre, year, rating, videoUrl, videoType, poster, backdrop, description, duration, type: contentType, premium, cast, director, language } = req.body;
   if (!title || !videoUrl) {
     req.session.error = 'Title and Video URL are required!';
     return res.redirect('/admin/upload/edit/' + id);
@@ -606,6 +633,9 @@ router.post('/upload/edit/:id', (req, res) => {
     poster: poster || item.poster,
     backdrop: backdrop || item.backdrop,
     video_url: videoUrl, video_type: detectedType,
+    cast: cast || item.cast || '',
+    director: director || item.director || '',
+    language: language || item.language || 'en',
     premium: premium === 'on' ? 1 : 0
   });
   db.logs.add('content', `Content "${title}" updated`, req.session.user.name);

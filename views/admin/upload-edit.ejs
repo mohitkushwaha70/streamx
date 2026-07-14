@@ -103,27 +103,41 @@ body{background:#060814;color:#E2E8F0;font-family:'Inter',sans-serif}
             </div>
           </div>
 
-          <form method="POST" action="/admin/upload/edit/<%= item.id %>">
+          <form method="POST" action="/admin/upload/edit/<%= item.id %>" id="editForm">
 
             <div class="upload-field">
               <label>Video URL</label>
-              <input type="url" name="videoUrl" value="<%= item.video_url || '' %>" required placeholder="https://huggingface.co/datasets/.../resolve/main/video.mp4">
+              <input type="url" name="videoUrl" id="editVideoUrl" value="<%= item.video_url || '' %>" required placeholder="https://huggingface.co/datasets/.../resolve/main/video.mp4">
             </div>
 
             <div class="upload-field">
-              <label>Title</label>
-              <input type="text" name="title" value="<%= item.title %>" required>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <label style="flex:1;">Title</label>
+                <button type="button" id="fetchMetaBtn" onclick="fetchEditMetadata()" style="padding:4px 12px;background:rgba(37,99,235,0.15);color:#60A5FA;border:1px solid rgba(37,99,235,0.3);border-radius:8px;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:4px;white-space:nowrap;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  Fetch Metadata
+                </button>
+              </div>
+              <input type="text" name="title" id="editTitle" value="<%= item.title %>" required>
+            </div>
+
+            <!-- Metadata Loading -->
+            <div id="editMetaLoading" style="display:none;padding:10px 16px;background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.2);border-radius:12px;margin-bottom:14px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:14px;height:14px;border:2px solid rgba(37,99,235,0.3);border-top-color:#3B82F6;border-radius:50%;animation:spinLoader 0.7s linear infinite;"></div>
+                <span style="color:#60A5FA;font-size:0.78rem;font-weight:500;">Fetching from TMDB...</span>
+              </div>
             </div>
 
             <div class="upload-field">
               <label>Description</label>
-              <textarea name="description" rows="3"><%= item.description || '' %></textarea>
+              <textarea name="description" id="editDescription" rows="3"><%= item.description || '' %></textarea>
             </div>
 
             <div class="upload-row">
               <div class="upload-field">
                 <label>Type</label>
-                <select name="type">
+                <select name="type" id="editType">
                   <option value="movie" <%= item.type==='movie'?'selected':'' %>>Movie</option>
                   <option value="series" <%= item.type==='series'?'selected':'' %>>Series</option>
                   <option value="anime" <%= item.type==='anime'?'selected':'' %>>Anime</option>
@@ -131,7 +145,7 @@ body{background:#060814;color:#E2E8F0;font-family:'Inter',sans-serif}
               </div>
               <div class="upload-field">
                 <label>Genre</label>
-                <select name="genre">
+                <select name="genre" id="editGenre">
                   <% ['Action','Comedy','Drama','Horror','Sci-Fi','Thriller','Romance','Adventure','Crime','Anime','Documentary','Fantasy'].forEach(function(g) { %>
                     <option value="<%= g %>" <%= (item.genre||'')===g?'selected':'' %>><%= g %></option>
                   <% }); %>
@@ -142,40 +156,57 @@ body{background:#060814;color:#E2E8F0;font-family:'Inter',sans-serif}
             <div class="upload-row">
               <div class="upload-field">
                 <label>Year</label>
-                <input type="number" name="year" value="<%= item.year || 2024 %>" min="1900" max="2030">
+                <input type="number" name="year" id="editYear" value="<%= item.year || 2024 %>" min="1900" max="2030">
               </div>
               <div class="upload-field">
                 <label>Rating</label>
-                <input type="number" name="rating" value="<%= item.rating || 7 %>" min="0" max="10" step="0.1">
+                <input type="number" name="rating" id="editRating" value="<%= item.rating || 7 %>" min="0" max="10" step="0.1">
               </div>
               <div class="upload-field">
                 <label>Duration</label>
-                <input type="text" name="duration" value="<%= item.duration || '' %>" placeholder="2h 15m">
+                <input type="text" name="duration" id="editDuration" value="<%= item.duration || '' %>" placeholder="2h 15m">
               </div>
             </div>
 
             <div class="upload-row">
               <div class="upload-field">
                 <label>Poster URL</label>
-                <input type="url" name="poster" value="<%= item.poster || '' %>" placeholder="https://...">
+                <input type="url" name="poster" id="editPoster" value="<%= item.poster || '' %>" placeholder="https://...">
               </div>
               <div class="upload-field">
                 <label>Backdrop URL</label>
-                <input type="url" name="backdrop" value="<%= item.backdrop || '' %>" placeholder="https://...">
+                <input type="url" name="backdrop" id="editBackdrop" value="<%= item.backdrop || '' %>" placeholder="https://...">
               </div>
             </div>
 
-            <div class="upload-field">
-              <label>Video Format</label>
-              <select name="videoType">
-                <option value="auto">Auto-detect</option>
-                <option value="mp4" <%= (item.video_type||'')==='mp4'?'selected':'' %>>MP4</option>
-                <option value="mkv" <%= (item.video_type||'')==='mkv'?'selected':'' %>>MKV</option>
-                <option value="webm" <%= (item.video_type||'')==='webm'?'selected':'' %>>WebM</option>
-                <option value="m3u8" <%= (item.video_type||'')==='m3u8'?'selected':'' %>>HLS (m3u8)</option>
-                <option value="mpd" <%= (item.video_type||'')==='mpd'?'selected':'' %>>DASH (mpd)</option>
-                <option value="youtube" <%= (item.video_type||'')==='youtube'?'selected':'' %>>YouTube</option>
-              </select>
+            <div class="upload-row">
+              <div class="upload-field">
+                <label>Cast</label>
+                <input type="text" name="cast" id="editCast" value="<%= item.cast || '' %>" placeholder="Actor 1, Actor 2">
+              </div>
+              <div class="upload-field">
+                <label>Director</label>
+                <input type="text" name="director" id="editDirector" value="<%= item.director || '' %>" placeholder="Director name">
+              </div>
+            </div>
+
+            <div class="upload-row">
+              <div class="upload-field">
+                <label>Language</label>
+                <input type="text" name="language" id="editLanguage" value="<%= item.language || 'en' %>" placeholder="en">
+              </div>
+              <div class="upload-field">
+                <label>Video Format</label>
+                <select name="videoType" id="editVideoType">
+                  <option value="auto">Auto-detect</option>
+                  <option value="mp4" <%= (item.video_type||'')==='mp4'?'selected':'' %>>MP4</option>
+                  <option value="mkv" <%= (item.video_type||'')==='mkv'?'selected':'' %>>MKV</option>
+                  <option value="webm" <%= (item.video_type||'')==='webm'?'selected':'' %>>WebM</option>
+                  <option value="m3u8" <%= (item.video_type||'')==='m3u8'?'selected':'' %>>HLS (m3u8)</option>
+                  <option value="mpd" <%= (item.video_type||'')==='mpd'?'selected':'' %>>DASH (mpd)</option>
+                  <option value="youtube" <%= (item.video_type||'')==='youtube'?'selected':'' %>>YouTube</option>
+                </select>
+              </div>
             </div>
 
             <div class="premium-toggle-wrap <%= item.premium ? 'active' : '' %>" onclick="this.classList.toggle('active');document.getElementById('premiumCheck').checked=this.classList.contains('active')">
@@ -197,4 +228,72 @@ body{background:#060814;color:#E2E8F0;font-family:'Inter',sans-serif}
     </main>
   </div>
 </div>
+
+<script>
+function fetchEditMetadata() {
+  var titleInput = document.getElementById('editTitle');
+  var title = titleInput.value.trim();
+  var typeSelect = document.getElementById('editType');
+  var type = typeSelect.value || 'movie';
+  if (!title) return;
+
+  var loading = document.getElementById('editMetaLoading');
+  var btn = document.getElementById('fetchMetaBtn');
+  loading.style.display = 'block';
+  btn.style.opacity = '0.5';
+  btn.style.pointerEvents = 'none';
+
+  fetch('/admin/api/metadata?title=' + encodeURIComponent(title) + '&type=' + encodeURIComponent(type))
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      loading.style.display = 'none';
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = '';
+      if (!data.found) return;
+
+      if (data.title) document.getElementById('editTitle').value = data.title;
+      if (data.description) document.getElementById('editDescription').value = data.description;
+      if (data.genre) document.getElementById('editGenre').value = data.genre;
+      if (data.year) document.getElementById('editYear').value = data.year;
+      if (data.rating) document.getElementById('editRating').value = data.rating;
+      if (data.duration) document.getElementById('editDuration').value = data.duration;
+      if (data.poster) document.getElementById('editPoster').value = data.poster;
+      if (data.backdrop) document.getElementById('editBackdrop').value = data.backdrop;
+      if (data.cast) document.getElementById('editCast').value = data.cast;
+      if (data.director) document.getElementById('editDirector').value = data.director;
+      if (data.language) document.getElementById('editLanguage').value = data.language;
+    })
+    .catch(function() {
+      loading.style.display = 'none';
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = '';
+    });
+}
+
+// Auto-clean title on URL change
+var editUrlInput = document.getElementById('editVideoUrl');
+var editTitleInput = document.getElementById('editTitle');
+var fetchUrlTimer = null;
+
+if (editUrlInput && editTitleInput) {
+  editUrlInput.addEventListener('input', function() {
+    var url = this.value.trim();
+    if (!url) return;
+    clearTimeout(fetchUrlTimer);
+    fetchUrlTimer = setTimeout(function() {
+      fetch('/admin/api/clean-title?url=' + encodeURIComponent(url))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.title && data.title !== 'Untitled Video') {
+            editTitleInput.value = data.title;
+          }
+          if (data.genre) document.getElementById('editGenre').value = data.genre;
+          if (data.year) document.getElementById('editYear').value = data.year;
+          if (data.type) document.getElementById('editType').value = data.type;
+        })
+        .catch(function() {});
+    }, 400);
+  });
+}
+</script>
 

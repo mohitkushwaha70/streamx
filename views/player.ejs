@@ -335,15 +335,18 @@
     aspectRatio: true,
     fullscreen: true,
     fullscreenWeb: true,
-    subtitleOffset: false,
+    subtitleOffset: true,
     miniProgressBar: true,
     mutex: true,
     backdrop: true,
     playsInline: true,
     autoPlayback: true,
     airplay: true,
-    theme: '#6c5ce7',
+    hotkey: true,
     lang: navigator.language.toLowerCase() === 'zh-cn' ? 'zh-cn' : 'en',
+    moreVideoAttr: {
+      crossOrigin: 'anonymous',
+    },
     settings: [
       {
         width: 200,
@@ -372,8 +375,6 @@
         }
       }
     ],
-    hotkey: true,
-    mutex: true,
     layers: [
       {
         name: 'episode-title',
@@ -383,10 +384,18 @@
         position: 'top-left'
       }
     ],
+    contextmenu: [
+      {
+        html: 'STREAMX Player',
+        click: function(contextmenu) {
+          contextmenu.show = false;
+        }
+      }
+    ],
     icons: {
       loading: '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"><div style="width:40px;height:40px;border:3px solid rgba(255,255,255,0.2);border-top-color:#6c5ce7;border-radius:50%;animation:art-loading 0.8s linear infinite;"></div></div>',
-      state: '',
-      indicator: ''
+      state: '<svg width="48" height="48" viewBox="0 0 24 24" fill="white" opacity="0.8"><path d="M8 5v14l11-7z"/></svg>',
+      indicator: '<svg width="16" height="16" viewBox="0 0 24 24" fill="#6c5ce7"><circle cx="12" cy="12" r="10"/></svg>'
     }
   });
 

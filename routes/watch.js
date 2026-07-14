@@ -16,11 +16,16 @@ function isOursDataset(url) {
 function toProxyUrl(url) {
   if (!url) return url;
   url = cleanUrl(url);
-  if (!isOursDataset(url)) return url;
-  let match = url.match(/\/resolve\/main\/(.+)/);
-  if (!match) match = url.match(/\/resolve\/(.+)/);
-  if (match) return `/stream/${decodeURIComponent(match[1])}`;
-  return url;
+  if (!url.includes('huggingface.co')) return url;
+
+  if (isOursDataset(url)) {
+    let match = url.match(/\/resolve\/main\/(.+)/);
+    if (!match) match = url.match(/\/resolve\/(.+)/);
+    if (match) return `/stream/${decodeURIComponent(match[1])}`;
+    return url;
+  }
+
+  return `/stream/hf/${encodeURIComponent(url)}`;
 }
 
 router.get('/:type/:id', (req, res) => {

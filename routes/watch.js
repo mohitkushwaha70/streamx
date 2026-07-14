@@ -2,8 +2,21 @@ const express = require('express');
 const router = express.Router();
 const db = require('../services/database');
 
+const HF_OUR_DATASET = 'mohit8287kushwaha/Mohit8287kushwahaStreamxvedios';
+
+function cleanUrl(url) {
+  if (!url) return '';
+  return url.replace(/\?download=true$/i, '').replace(/[?&]download=true$/i, '');
+}
+
+function isOursDataset(url) {
+  return url.includes(HF_OUR_DATASET);
+}
+
 function toProxyUrl(url) {
   if (!url) return url;
+  url = cleanUrl(url);
+  if (!isOursDataset(url)) return url;
   let match = url.match(/\/resolve\/main\/(.+)/);
   if (!match) match = url.match(/\/resolve\/(.+)/);
   if (match) return `/stream/${decodeURIComponent(match[1])}`;
@@ -31,7 +44,7 @@ router.get('/:type/:id', (req, res) => {
   }
 
   // Check video URL from content record
-  let videoUrl = item.video_url || '';
+  let videoUrl = cleanUrl(item.video_url || '');
 
   // Also check video_configs table (may have been set via admin)
   const videoCfg = db.videoConfigs.get(item.tmdb_id);
@@ -42,7 +55,7 @@ router.get('/:type/:id', (req, res) => {
     }
   }
 
-  // Apply proxy to any HuggingFace URLs
+  // Apply proxy only to our dataset HuggingFace URLs, pass others direct
   if (videoUrl && videoUrl.includes('huggingface.co')) {
     videoUrl = toProxyUrl(videoUrl);
   }
@@ -64,12 +77,11 @@ router.get('/:type/:id', (req, res) => {
   let currentEpisode = null;
   if (item.type === 'series' || item.type === 'anime') {
     episodes = db.episodes.findByContent(item.id);
-    // Proxy episode video URLs
+    // Proxy episode video URLs - clean download=true from all, proxy only our dataset
     episodes.forEach(e => {
-      if (e.video_url && e.video_url.includes('huggingface.co')) {
-        e.videoUrl = toProxyUrl(e.video_url);
-      } else {
-        e.videoUrl = e.video_url || '';
+      e.videoUrl = cleanUrl(e.video_url || '');
+      if (e.videoUrl && e.videoUrl.includes('huggingface.co')) {
+        e.videoUrl = toProxyUrl(e.videoUrl);
       }
     });
     currentEpisode = episodes.find(e => e.number === ep) || episodes[0] || null;

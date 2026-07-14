@@ -34,7 +34,7 @@ router.get('/*', async (req, res) => {
   const filePath = req.params[0];
   if (!filePath) return res.status(400).send('No file path');
 
-  const cleanPath = decodeURIComponent(filePath.replace(/^\/+/, ''));
+  const cleanPath = decodeURIComponent(filePath.replace(/^\/+/, '').split('?')[0]);
 
   try {
     const encodedPath = encodeURIComponent(cleanPath).replace(/%2F/g, '/');

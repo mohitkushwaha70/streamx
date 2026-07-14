@@ -3,31 +3,6 @@
 <div class="admin-layout">
   <%- include('../partials/admin-sidebar') %>
   <main class="admin-main">
-    <div class="admin-header" style="margin-bottom:20px;">
-      <div style="display:flex;align-items:center;gap:16px;">
-        <%
-          var aAv = admin.avatar || '';
-          var aIsImage = aAv.indexOf('/uploads/') === 0;
-          var aIsSvgKey = !aIsImage && navAvatarMap && navAvatarMap[aAv];
-        %>
-        <div class="admin-avatar">
-          <% if (aIsImage) { %>
-            <img src="<%= aAv %>" alt="<%= admin.name %>" onerror="this.onerror=null;this.src='/images/streamx-avatar-premium.svg';">
-          <% } else if (aIsSvgKey) { %>
-            <%- navAvatarMap[aAv] %>
-          <% } else { %>
-            <div class="admin-avatar-fallback"><%= admin.name ? admin.name.charAt(0).toUpperCase() : 'A' %></div>
-          <% } %>
-        </div>
-        <div>
-          <h1 style="margin-bottom:2px;">Dashboard</h1>
-          <p style="color: var(--text-muted); font-size: 0.8rem;">Welcome back, <%= admin.name %>.</p>
-        </div>
-      </div>
-      <div class="admin-header-right">
-
-      </div>
-    </div>
 
     <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
     <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>

@@ -286,7 +286,7 @@ select.form-input option { background: var(--bg-secondary); color: var(--text-pr
 .demo-item:hover { color: var(--text-primary); }
 
 /* ===== FOOTER ===== */
-.footer { padding: 60px 48px 30px; border-top: 1px solid var(--border); margin-top: 40px; }
+.footer { position: relative; z-index: 2; padding: 60px 48px 30px; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 40px; background: var(--bg-secondary); }
 .footer-grid { display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: 48px; margin-bottom: 40px; }
 .footer-brand .logo { font-size: 1.1rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
 .footer-brand .logo span { color: var(--blue-light); background: var(--gradient-blue); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }

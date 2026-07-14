@@ -266,6 +266,12 @@
 .sx-no-comments{text-align:center;padding:20px;color:var(--text3);font-size:.85rem}
 
 /* ========================================
+   FOOTER (override for player dark bg)
+   ======================================== */
+.footer{position:relative;z-index:2;background:var(--bg2);border-top:1px solid rgba(255,255,255,.06)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.06)}
+
+/* ========================================
    RESPONSIVE
    ======================================== */
 @media(max-width:1200px){.sx-sidebar{width:300px}.sx-card-post{width:160px;height:236px}}
@@ -859,12 +865,12 @@ loadComments();
 var pc={
   container:'#artplayer-app',url:VURL,type:VTYPE,
   poster:'<%=item.backdrop||item.poster%>',theme:'#E50914',
-  volume:.7,muted:false,autoplay:false,pip:false,
-  autoSize:false,autoMini:false,screenshot:false,setting:false,
-  loop:false,flip:false,playbackRate:false,aspectRatio:false,
-  fullscreen:false,fullscreenWeb:false,subtitleOffset:false,
-  miniProgressBar:false,mutex:true,backdrop:true,playsInline:true,
-  autoPlayback:true,airplay:false,hotkey:false,lock:false,
+  volume:.7,muted:false,autoplay:false,pip:true,
+  autoSize:false,autoMini:true,screenshot:false,setting:false,
+  loop:false,flip:false,playbackRate:true,aspectRatio:false,
+  fullscreen:true,fullscreenWeb:true,subtitleOffset:false,
+  miniProgressBar:true,mutex:true,backdrop:true,playsInline:true,
+  autoPlayback:true,airplay:true,hotkey:true,lock:true,
   lang:navigator.language.toLowerCase()==='zh-cn'?'zh-cn':'en',
   moreVideoAttr:{crossOrigin:'anonymous'},
   settings:[],controls:[],layers:[],

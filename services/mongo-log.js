@@ -7,7 +7,10 @@ let _db = null;
 async function getDb() {
   if (_db) return _db;
   try {
-    client = new MongoClient(MONGO_URI);
+    client = new MongoClient(MONGO_URI, {
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 5000,
+    });
     await client.connect();
     _db = client.db('streamx');
     console.log('[MongoDB] Connected');

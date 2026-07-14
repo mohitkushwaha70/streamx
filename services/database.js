@@ -37,7 +37,8 @@ async function init() {
   if (admin) getMongo()?.syncUser(admin);
 
   // Restore content from MongoDB if SQLite is empty (data loss recovery)
-  await restoreFromMongo();
+  // Non-blocking: don't await — let server start immediately
+  restoreFromMongo().catch(err => console.error('[Restore] background error:', err.message));
 
   return db;
 }

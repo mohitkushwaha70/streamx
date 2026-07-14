@@ -7,6 +7,13 @@ const compression = require('compression');
 
 try { require('dotenv').config(); } catch(e) {}
 
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err.message);
+});
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled rejection:', err?.message || err);
+});
+
 const db = require('./services/database');
 
 const app = express();
@@ -126,18 +133,21 @@ async function start() {
   await db.init();
   console.log('Database initialized');
 
-  const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`streamX running on port ${PORT}`);
-  });
+  function listen(port) {
+    const server = app.listen(port, '0.0.0.0', () => {
+      console.log(`streamX running on port ${port}`);
+    });
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.log(`Port ${port} in use, trying ${port + 1}`);
+        listen(port + 1);
+      } else {
+        console.error('Server error:', err.message);
+      }
+    });
+  }
 
-  server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-      console.log(`Port ${PORT} in use, trying ${PORT + 1}`);
-      app.listen(PORT + 1, '0.0.0.0', () => {
-        console.log(`streamX running on port ${PORT + 1}`);
-      });
-    }
-  });
+  listen(PORT);
 }
 
 start().catch(err => {

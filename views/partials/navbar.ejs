@@ -1,3 +1,6 @@
+<%
+  var navAvatarMap = (typeof navAvatarMap !== 'undefined' && navAvatarMap) ? navAvatarMap : {};
+%>
 <nav class="navbar" id="navbar">
   <a href="/" class="nav-logo" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
     <img src="/images/favicon.svg" alt="" style="width:32px;height:32px;border-radius:8px;">
@@ -20,30 +23,31 @@
     </form>
     <% if (user) { %>
       <%
-        const navAvatarColors = {
-          'blue': '#2563eb', 'purple': '#6c5ce7', 'red': '#dc2626', 'green': '#059669',
-          'orange': '#ea580c', 'pink': '#db2777', 'teal': '#0d9488', 'yellow': '#ca8a04',
-          'indigo': '#4f46e5', 'cyan': '#0891b2'
-        };
-        const navColor = navAvatarColors[user.avatar] || '#6c5ce7';
-        const isImageAvatar = user.avatar && (user.avatar.startsWith('/uploads/') || user.avatar.startsWith('data:'));
+        var uav = user.avatar || '';
+        var navIsImage = uav.indexOf('/uploads/') === 0 || uav.indexOf('data:') === 0;
+        var navIsSvgKey = !navIsImage && navAvatarMap[uav];
+        var navColor = '#3b82f6';
       %>
       <div class="nav-user">
-        <div class="avatar" style="<%= isImageAvatar ? 'padding:0;overflow:hidden;' : 'background:linear-gradient(135deg,' + navColor + ',' + navColor + 'dd);' %>display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:white;">
-          <% if (isImageAvatar) { %>
+        <div class="avatar" style="<%= navIsImage ? 'padding:0;overflow:hidden;' : '' %>display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:white;overflow:hidden;">
+          <% if (navIsImage) { %>
             <img src="<%= user.avatar %>" alt="<%= user.name %>" style="width:100%;height:100%;object-fit:cover;">
+          <% } else if (navIsSvgKey) { %>
+            <%- navAvatarMap[uav] %>
           <% } else { %>
-            <%= user.name ? user.name.charAt(0).toUpperCase() : 'U' %>
+            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,<%= navColor %>dd,<%= navColor %>);"><%= user.name ? user.name.charAt(0).toUpperCase() : 'U' %></div>
           <% } %>
         </div>
       </div>
       <div class="dropdown-menu" id="userMenu">
         <div class="dropdown-header">
-          <div class="avatar-lg" style="<%= isImageAvatar ? 'padding:0;overflow:hidden;' : 'background:linear-gradient(135deg,' + navColor + ',' + navColor + 'dd);' %>display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;color:white;">
-            <% if (isImageAvatar) { %>
+          <div class="avatar-lg" style="<%= navIsImage ? 'padding:0;overflow:hidden;' : '' %>display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;color:white;overflow:hidden;">
+            <% if (navIsImage) { %>
               <img src="<%= user.avatar %>" alt="<%= user.name %>" style="width:100%;height:100%;object-fit:cover;">
+            <% } else if (navIsSvgKey) { %>
+              <%- navAvatarMap[uav] %>
             <% } else { %>
-              <%= user.name ? user.name.charAt(0).toUpperCase() : 'U' %>
+              <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,<%= navColor %>dd,<%= navColor %>);"><%= user.name ? user.name.charAt(0).toUpperCase() : 'U' %></div>
             <% } %>
           </div>
           <div>

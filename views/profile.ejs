@@ -27,51 +27,25 @@
   position: relative;
   z-index: 2;
 }
-
-/* Avatar */
-.profile-avatar-wrap {
-  position: relative;
-  flex-shrink: 0;
-}
+.profile-avatar-wrap { position: relative; flex-shrink: 0; }
 .profile-avatar-lg {
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
+  width: 110px; height: 110px; border-radius: 50%;
   border: 4px solid var(--bg-primary, #0a0a0f);
   overflow: hidden;
-  background: linear-gradient(135deg, #6c5ce7, #a855f7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 32px rgba(108,92,231,0.4);
-  cursor: pointer;
-  transition: transform 0.3s, box-shadow 0.3s;
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 32px rgba(59,130,246,0.4);
+  cursor: pointer; transition: transform 0.3s, box-shadow 0.3s;
 }
-.profile-avatar-lg:hover {
-  transform: scale(1.05);
-  box-shadow: 0 12px 40px rgba(108,92,231,0.6);
-}
+.profile-avatar-lg:hover { transform: scale(1.05); box-shadow: 0 12px 40px rgba(59,130,246,0.6); }
 .profile-avatar-lg svg { width: 100%; height: 100%; }
-.profile-avatar-lg .avatar-initial {
-  font-size: 2.8rem;
-  font-weight: 900;
-  color: white;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
+.profile-avatar-lg img { width: 100%; height: 100%; object-fit: cover; }
 .profile-avatar-edit {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  width: 32px;
-  height: 32px;
-  background: #2563eb;
-  border: 3px solid var(--bg-primary, #0a0a0f);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.2s;
+  position: absolute; bottom: 4px; right: 4px;
+  width: 32px; height: 32px; background: #2563eb;
+  border: 3px solid var(--bg-primary, #0a0a0f); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.2s;
 }
 .profile-avatar-edit:hover { background: #3b82f6; }
 
@@ -80,129 +54,175 @@
 .profile-details p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; }
 .profile-actions { padding-bottom: 8px; }
 
-/* Tabs */
 .profile-tabs { display: flex; gap: 4px; background: var(--bg-card, #111); padding: 4px; border-radius: 12px; width: fit-content; margin-bottom: 24px; }
 .profile-tab { padding: 10px 24px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); background: transparent; cursor: pointer; border: none; transition: all 0.2s; }
 .profile-tab.active { background: var(--blue-primary, #2563eb); color: white; }
 .profile-tab:hover:not(.active) { color: var(--text-primary, #fff); }
 
-/* Stats */
 .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
 .profile-stat {
-  background: var(--bg-card, #111);
-  border: 1px solid var(--border, #222);
-  border-radius: 14px;
-  padding: 20px;
-  text-align: center;
-  transition: border-color 0.2s;
+  background: var(--bg-card, #111); border: 1px solid var(--border, #222);
+  border-radius: 14px; padding: 20px; text-align: center; transition: border-color 0.2s;
 }
-.profile-stat:hover { border-color: rgba(108,92,231,0.3); }
-.stat-num { display: block; font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #6c5ce7, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.profile-stat:hover { border-color: rgba(59,130,246,0.3); }
+.stat-num { display: block; font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #3b82f6, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
 
-/* Avatar Picker Modal */
-.avatar-modal {
-  position: fixed; inset: 0; z-index: 1000;
-  background: rgba(0,0,0,0.8);
+/* ===== AVATAR MODAL ===== */
+.av-modal {
+  position: fixed; inset: 0; z-index: 9999;
   display: none; align-items: center; justify-content: center;
-  backdrop-filter: blur(8px);
+  background: rgba(0,0,0,0.75); backdrop-filter: blur(12px);
+  padding: 20px; overflow-y: auto;
 }
-.avatar-modal.active { display: flex; }
-.avatar-picker {
-  background: #111827;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 24px;
-  padding: 32px;
-  max-width: 520px;
-  width: 90%;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+.av-modal.active { display: flex; }
+.av-modal-box {
+  background: linear-gradient(160deg, rgba(30,41,59,0.95), rgba(15,23,42,0.98));
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 24px; width: 100%; max-width: 600px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 60px rgba(59,130,246,0.08);
+  animation: avSlideUp 0.3s ease;
+  max-height: 90vh; overflow-y: auto;
 }
-.avatar-picker h2 {
-  color: white; font-size: 1.3rem; font-weight: 700;
-  margin-bottom: 8px; text-align: center;
+@keyframes avSlideUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+
+.av-modal-box::-webkit-scrollbar { width: 4px; }
+.av-modal-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+.av-header {
+  padding: 28px 28px 0; text-align: center;
 }
-.avatar-picker p {
-  color: var(--text-muted, #888); font-size: 0.85rem;
-  text-align: center; margin-bottom: 24px;
+.av-header h2 {
+  color: white; font-size: 1.25rem; font-weight: 700; margin-bottom: 4px;
 }
-.avatar-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-  margin-bottom: 24px;
+.av-header p { color: #64748b; font-size: 0.82rem; }
+
+.av-upload-zone {
+  margin: 20px 28px; padding: 20px;
+  border: 2px dashed rgba(59,130,246,0.25); border-radius: 16px;
+  text-align: center; cursor: pointer; transition: all 0.25s;
+  background: rgba(59,130,246,0.04);
 }
-.avatar-option {
-  aspect-ratio: 1;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 3px solid transparent;
-  overflow: hidden;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+.av-upload-zone:hover { border-color: rgba(59,130,246,0.5); background: rgba(59,130,246,0.08); }
+.av-upload-zone.dragover { border-color: #3b82f6; background: rgba(59,130,246,0.12); transform: scale(1.01); }
+.av-upload-zone.has-image { border-color: #22c55e; border-style: solid; background: rgba(34,197,94,0.06); }
+
+.av-upload-icon { margin-bottom: 8px; }
+.av-upload-text { color: #94a3b8; font-size: 0.85rem; }
+.av-upload-text strong { color: #60a5fa; }
+.av-upload-hint { color: #475569; font-size: 0.72rem; margin-top: 4px; }
+
+.av-upload-preview {
+  display: none; align-items: center; gap: 16px; text-align: left;
 }
-.avatar-option:hover {
-  border-color: rgba(108,92,231,0.5);
-  transform: scale(1.1);
+.av-upload-preview.active { display: flex; }
+.av-upload-preview-circle {
+  width: 64px; height: 64px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
+  border: 2px solid #3b82f6; box-shadow: 0 4px 16px rgba(59,130,246,0.3);
 }
-.avatar-option.selected {
-  border-color: #6c5ce7;
-  box-shadow: 0 0 20px rgba(108,92,231,0.5);
+.av-upload-preview-circle img { width: 100%; height: 100%; object-fit: cover; }
+.av-upload-info { flex: 1; }
+.av-upload-info .name { color: white; font-size: 0.85rem; font-weight: 600; }
+.av-upload-info .size { color: #64748b; font-size: 0.72rem; }
+.av-upload-remove {
+  background: none; border: none; color: #ef4444; cursor: pointer;
+  padding: 6px; border-radius: 8px; transition: background 0.2s;
 }
-.avatar-option svg { width: 100%; height: 100%; }
-.avatar-option .check-mark {
-  position: absolute;
-  inset: 0;
-  background: rgba(108,92,231,0.8);
-  display: none;
-  align-items: center;
-  justify-content: center;
+.av-upload-remove:hover { background: rgba(239,68,68,0.1); }
+
+.av-progress-wrap { display: none; margin-top: 10px; }
+.av-progress-wrap.active { display: block; }
+.av-progress-bar {
+  width: 100%; height: 4px; background: rgba(255,255,255,0.08);
+  border-radius: 2px; overflow: hidden;
 }
-.avatar-option.selected .check-mark { display: flex; }
-.avatar-actions { display: flex; gap: 12px; justify-content: center; }
-.avatar-btn {
-  padding: 12px 32px;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
+.av-progress-fill {
+  height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  border-radius: 2px; transition: width 0.3s; width: 0%;
 }
-.avatar-btn-cancel {
-  background: rgba(255,255,255,0.06);
-  color: var(--text-muted, #888);
-  border: 1px solid rgba(255,255,255,0.1);
+.av-progress-text { color: #64748b; font-size: 0.7rem; margin-top: 4px; text-align: center; }
+
+.av-upload-status {
+  display: none; margin-top: 8px; font-size: 0.78rem; font-weight: 500; text-align: center;
 }
-.avatar-btn-cancel:hover { background: rgba(255,255,255,0.1); color: white; }
-.avatar-btn-save {
-  background: linear-gradient(135deg, #6c5ce7, #3b82f6);
-  color: white;
+.av-upload-status.success { display: block; color: #22c55e; }
+.av-upload-status.error { display: block; color: #ef4444; }
+
+.av-divider {
+  display: flex; align-items: center; gap: 12px; margin: 16px 28px;
 }
-.avatar-btn-save:hover { box-shadow: 0 4px 20px rgba(108,92,231,0.5); transform: translateY(-1px); }
+.av-divider::before, .av-divider::after {
+  content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.06);
+}
+.av-divider span { color: #475569; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; white-space: nowrap; }
+
+.av-tabs {
+  display: flex; gap: 4px; padding: 0 28px; margin-bottom: 16px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.av-tabs::-webkit-scrollbar { display: none; }
+.av-tab {
+  padding: 7px 16px; border-radius: 10px; font-size: 0.78rem; font-weight: 600;
+  color: #64748b; background: transparent; border: 1px solid transparent;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+}
+.av-tab:hover { color: #94a3b8; background: rgba(255,255,255,0.04); }
+.av-tab.active { color: white; background: rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.3); }
+
+.av-grid {
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px;
+  padding: 0 28px 20px;
+}
+.av-item {
+  aspect-ratio: 1; border-radius: 50%; cursor: pointer;
+  border: 3px solid transparent; overflow: visible;
+  transition: all 0.2s ease; position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.av-item:hover { transform: scale(1.12); border-color: rgba(59,130,246,0.3); z-index: 2; }
+.av-item.selected {
+  border-color: #3b82f6;
+  box-shadow: 0 0 20px rgba(59,130,246,0.4), 0 0 40px rgba(59,130,246,0.15);
+}
+.av-item svg { width: 100%; height: 100%; border-radius: 50%; display: block; }
+.av-check {
+  position: absolute; inset: -3px; border-radius: 50%;
+  background: rgba(59,130,246,0.85); display: none;
+  align-items: center; justify-content: center; z-index: 3;
+  box-shadow: 0 2px 12px rgba(59,130,246,0.5);
+}
+.av-item.selected .av-check { display: flex; }
+
+.av-footer {
+  padding: 0 28px 24px; display: flex; gap: 12px; justify-content: flex-end;
+}
+.av-btn {
+  padding: 11px 28px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; border: none; transition: all 0.2s;
+}
+.av-btn-cancel {
+  background: rgba(255,255,255,0.06); color: #94a3b8;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.av-btn-cancel:hover { background: rgba(255,255,255,0.1); color: white; }
+.av-btn-save {
+  background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;
+  box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+}
+.av-btn-save:hover { box-shadow: 0 6px 24px rgba(59,130,246,0.5); transform: translateY(-1px); }
+.av-btn-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 /* Settings */
 .settings-form { max-width: 500px; }
 .form-group { margin-bottom: 20px; }
 .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
 .form-input {
-  width: 100%;
-  padding: 14px 16px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 12px;
-  color: white;
-  font-size: 0.95rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  outline: none;
-  box-sizing: border-box;
+  width: 100%; padding: 14px 16px; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+  color: white; font-size: 0.95rem; transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none; box-sizing: border-box;
 }
-.form-input:focus {
-  border-color: #6c5ce7;
-  box-shadow: 0 0 0 3px rgba(108,92,231,0.2);
-}
+.form-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
 .form-input[readonly] { opacity: 0.5; cursor: not-allowed; }
 
 /* Content cards */
@@ -213,7 +233,7 @@
 .continue-card .thumb { display: block; position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 16/9; background: #111; }
 .continue-card .thumb img { width: 100%; height: 100%; object-fit: cover; }
 .continue-card .progress-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.2); }
-.continue-card .progress-bar .fill { height: 100%; background: #6c5ce7; }
+.continue-card .progress-bar .fill { height: 100%; background: #3b82f6; }
 .continue-card .progress-pct { position: absolute; bottom: 6px; right: 6px; font-size: 0.7rem; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px; color: white; }
 .continue-card .info { padding: 8px 0; }
 .continue-card .info h4 { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -222,31 +242,21 @@
 @media (max-width: 768px) {
   .profile-info-bar { flex-direction: column; align-items: center; text-align: center; padding: 0 16px; }
   .stats-row { grid-template-columns: repeat(2, 1fr); }
-  .avatar-grid { grid-template-columns: repeat(4, 1fr); }
+  .av-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .av-modal-box { max-width: 100%; border-radius: 20px; }
+}
+@media (max-width: 480px) {
+  .av-grid { grid-template-columns: repeat(3, 1fr); }
 }
 </style>
 
 <%
-  // Avatar SVGs - premium character avatars
-  const avatarSvgs = {
-    'blue': `<svg viewBox="0 0 100 100"><defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2563eb"/><stop offset="100%" style="stop-color:#3b82f6"/></linearGradient></defs><rect fill="url(#g1)" width="100" height="100" rx="50"/><circle cx="50" cy="38" r="16" fill="white"/><ellipse cx="50" cy="72" rx="24" ry="18" fill="white"/></svg>`,
-    'purple': `<svg viewBox="0 0 100 100"><defs><linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#6c5ce7"/><stop offset="100%" style="stop-color:#a855f7"/></linearGradient></defs><rect fill="url(#g2)" width="100" height="100" rx="50"/><circle cx="50" cy="38" r="16" fill="white"/><ellipse cx="50" cy="72" rx="24" ry="18" fill="white"/></svg>`,
-    'red': `<svg viewBox="0 0 100 100"><defs><linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#dc2626"/><stop offset="100%" style="stop-color:#ef4444"/></linearGradient></defs><rect fill="url(#g3)" width="100" height="100" rx="50"/><circle cx="50" cy="38" r="16" fill="white"/><ellipse cx="50" cy="72" rx="24" ry="18" fill="white"/></svg>`,
-    'green': `<svg viewBox="0 0 100 100"><defs><linearGradient id="g4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#059669"/><stop offset="100%" style="stop-color:#10b981"/></linearGradient></defs><rect fill="url(#g4)" width="100" height="100" rx="50"/><circle cx="50" cy="38" r="16" fill="white"/><ellipse cx="50" cy="72" rx="24" ry="18" fill="white"/></svg>`,
-    'orange': `<svg viewBox="0 0 100 100"><defs><linearGradient id="g5" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ea580c"/><stop offset="100%" style="stop-color:#f97316"/></linearGradient></defs><rect fill="url(#g5)" width="100" height="100" rx="50"/><circle cx="50" cy="38" r="16" fill="white"/><ellipse cx="50" cy="72" rx="24" ry="18" fill="white"/></svg>`,
-    'pink': `<svg viewBox="0 0 100 100"><defs><linearGradient id="g6" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#db2777"/><stop offset="100%" style="stop-color:#ec4899"/></linearGradient></defs><rect fill="url(#g6)" width="100" height="100" rx="50"/><circle cx="50" cy="38" r="16" fill="white"/><ellipse cx="50" cy="72" rx="24" ry="18" fill="white"/></svg>`,
-    'teal': `<svg viewBox="0 0 100 100"><defs><linearGradient id="g7" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#0d9488"/><stop offset="100%" style="stop-color:#14b8a6"/></linearGradient></defs><rect fill="url(#g7)" width="100" height="100" rx="50"/><circle cx="50" cy="38" r="16" fill="white"/><ellipse cx="50" cy="72" rx="24" ry="18" fill="white"/></svg>`,
-    'yellow': `<svg viewBox="0 0 100 100"><defs><linearGradient id="g8" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ca8a04"/><stop offset="100%" style="stop-color:#eab308"/></linearGradient></defs><rect fill="url(#g8)" width="100" height="100" rx="50"/><circle cx="50" cy="38" r="16" fill="white"/><ellipse cx="50" cy="72" rx="24" ry="18" fill="white"/></svg>`,
-    'indigo': `<svg viewBox="0 0 100 100"><defs><linearGradient id="g9" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#4f46e5"/><stop offset="100%" style="stop-color:#6366f1"/></linearGradient></defs><rect fill="url(#g9)" width="100" height="100" rx="50"/><circle cx="50" cy="38" r="16" fill="white"/><ellipse cx="50" cy="72" rx="24" ry="18" fill="white"/></svg>`,
-    'cyan': `<svg viewBox="0 0 100 100"><defs><linearGradient id="g10" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#0891b2"/><stop offset="100%" style="stop-color:#06b6d4"/></linearGradient></defs><rect fill="url(#g10)" width="100" height="100" rx="50"/><circle cx="50" cy="38" r="16" fill="white"/><ellipse cx="50" cy="72" rx="24" ry="18" fill="white"/></svg>`
-  };
-%>
-
-<%
-  const avatarKeys = Object.keys(avatarSvgs);
-  const currentAvatar = user.avatar || 'blue';
-  const isCurrentImage = currentAvatar.startsWith('/uploads/') || currentAvatar.startsWith('data:');
-  const currentSvg = avatarSvgs[currentAvatar] || avatarSvgs['blue'];
+  const currentAvatar = user.avatar || '';
+  const isUploaded = currentAvatar.startsWith('/uploads/');
+  const isDataUrl = currentAvatar.startsWith('data:');
+  const isImage = isUploaded || isDataUrl;
+  const isSvgKey = !isImage && avatarMap[currentAvatar];
+  const currentSvg = isSvgKey ? avatarMap[currentAvatar] : (avatarMap['min1'] || '');
 %>
 
 <main class="main-content page-content">
@@ -255,14 +265,16 @@
       <div class="profile-cover"></div>
       <div class="profile-info-bar">
         <div class="profile-avatar-wrap">
-          <div class="profile-avatar-lg" id="profileAvatarDisplay" onclick="openAvatarPicker()">
-            <% if (isCurrentImage) { %>
-              <img src="<%= currentAvatar %>" alt="Avatar" style="width:100%;height:100%;object-fit:cover;">
+          <div class="profile-avatar-lg" id="profileAvatarDisplay" onclick="openAvModal()">
+            <% if (isImage) { %>
+              <img src="<%= currentAvatar %>" alt="Avatar">
+            <% } else if (isSvgKey) { %>
+              <%- currentSvg %>
             <% } else { %>
-              <%= currentSvg %>
+              <div style="font-size:2.8rem;font-weight:900;color:white;text-shadow:0 2px 8px rgba(0,0,0,0.3);"><%= user.name ? user.name.charAt(0).toUpperCase() : 'U' %></div>
             <% } %>
           </div>
-          <div class="profile-avatar-edit" onclick="openAvatarPicker()">
+          <div class="profile-avatar-edit" onclick="openAvModal()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
           </div>
         </div>
@@ -286,28 +298,15 @@
 
       <div class="profile-section" id="tab-overview">
         <div class="stats-row">
-          <div class="profile-stat">
-            <span class="stat-num"><%= continueWatching.length %></span>
-            <span class="stat-label">Continue Watching</span>
-          </div>
-          <div class="profile-stat">
-            <span class="stat-num"><%= userWatchlist.length %></span>
-            <span class="stat-label">Watchlist</span>
-          </div>
-          <div class="profile-stat">
-            <span class="stat-num"><%= userFavorites.length %></span>
-            <span class="stat-label">Favorites</span>
-          </div>
-          <div class="profile-stat">
-            <span class="stat-num"><%= userSaved.length %></span>
-            <span class="stat-label">Saved</span>
-          </div>
+          <div class="profile-stat"><span class="stat-num"><%= continueWatching.length %></span><span class="stat-label">Continue Watching</span></div>
+          <div class="profile-stat"><span class="stat-num"><%= userWatchlist.length %></span><span class="stat-label">Watchlist</span></div>
+          <div class="profile-stat"><span class="stat-num"><%= userFavorites.length %></span><span class="stat-label">Favorites</span></div>
+          <div class="profile-stat"><span class="stat-num"><%= userSaved.length %></span><span class="stat-label">Saved</span></div>
         </div>
-
         <% if (continueWatching.length > 0) { %>
         <h3 style="margin-bottom: 16px;">Continue Watching</h3>
         <div class="content-row">
-          <% continueWatching.forEach(item => { %>
+          <% continueWatching.forEach(function(item) { %>
           <div class="continue-card">
             <a href="/watch/<%= item.type %>/<%= item.id %>" class="thumb">
               <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">
@@ -333,7 +332,7 @@
         <h3 style="margin-bottom: 16px;">Account Settings</h3>
         <div class="settings-form">
           <form method="POST" action="/profile" id="profileForm">
-            <input type="hidden" name="avatar" id="selectedAvatar" value="<%= isCurrentImage && currentAvatar.startsWith('/uploads/') ? currentAvatar : (isCurrentImage ? '' : currentAvatar) %>">
+            <input type="hidden" name="avatar" id="selectedAvatarInput" value="<%= isUploaded ? currentAvatar : (isSvgKey ? currentAvatar : '') %>">
             <div class="form-group">
               <label>Full Name</label>
               <input type="text" name="name" class="form-input" value="<%= user.name %>">
@@ -345,14 +344,16 @@
             <div class="form-group">
               <label>Current Avatar</label>
               <div style="display:flex;align-items:center;gap:12px;">
-                <div style="width:48px;height:48px;border-radius:50%;overflow:hidden;" id="settingsAvatarPreview">
-                  <% if (isCurrentImage) { %>
+                <div style="width:48px;height:48px;border-radius:50%;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,#3b82f6,#60a5fa);" id="settingsAvatarPreview">
+                  <% if (isImage) { %>
                     <img src="<%= currentAvatar %>" alt="Avatar" style="width:100%;height:100%;object-fit:cover;">
+                  <% } else if (isSvgKey) { %>
+                    <%- currentSvg %>
                   <% } else { %>
-                    <%= currentSvg %>
+                    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:1.1rem;"><%= user.name ? user.name.charAt(0).toUpperCase() : 'U' %></div>
                   <% } %>
                 </div>
-                <button type="button" class="btn btn-primary btn-sm" onclick="openAvatarPicker()" style="font-size:0.8rem;">Change Avatar</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="openAvModal()" style="font-size:0.8rem;">Change Avatar</button>
               </div>
             </div>
             <div class="form-group">
@@ -367,155 +368,280 @@
   </div>
 </main>
 
-<!-- Avatar Picker Modal -->
-<div class="avatar-modal" id="avatarModal">
-  <div class="avatar-picker">
-    <h2>Choose Your Avatar</h2>
-    <p>Pick a profile picture that represents you</p>
-
-    <!-- Upload Image Button -->
-    <div style="text-align:center;margin-bottom:20px;">
-      <label for="avatarFileInput" style="display:inline-flex;align-items:center;gap:8px;padding:10px 24px;background:linear-gradient(135deg,#3B82F6,#2563EB);color:white;border-radius:12px;cursor:pointer;font-size:0.85rem;font-weight:600;transition:all 0.2s;box-shadow:0 4px 16px rgba(59,130,246,0.3);">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-        Upload Image
-      </label>
-      <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
-      <div id="uploadStatus" style="color:var(--text-muted);font-size:0.75rem;margin-top:8px;display:none;"></div>
+<!-- ===== AVATAR MODAL ===== -->
+<div class="av-modal" id="avModal">
+  <div class="av-modal-box">
+    <div class="av-header">
+      <h2>Choose Your Avatar</h2>
+      <p>Upload a photo or pick from our premium collection</p>
     </div>
 
-    <!-- Image Preview -->
-    <div id="avatarImagePreview" style="display:none;text-align:center;margin-bottom:16px;">
-      <div style="width:80px;height:80px;border-radius:50%;overflow:hidden;margin:0 auto 8px;border:3px solid #3B82F6;box-shadow:0 4px 16px rgba(59,130,246,0.4);">
-        <img id="avatarPreviewImg" src="" alt="Preview" style="width:100%;height:100%;object-fit:cover;">
-      </div>
-      <div style="color:#3B82F6;font-size:0.8rem;font-weight:600;">Image selected</div>
-    </div>
-
-    <div style="text-align:center;margin-bottom:12px;">
-      <span style="color:var(--text-muted);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Or pick a color avatar</span>
-    </div>
-
-    <div class="avatar-grid">
-      <% avatarKeys.forEach(key => { %>
-      <div class="avatar-option <%= key === currentAvatar && !isCurrentImage ? 'selected' : '' %>" data-avatar="<%= key %>" onclick="selectAvatar('<%= key %>')">
-        <%= avatarSvgs[key] %>
-        <div class="check-mark">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+    <div class="av-upload-zone" id="avUploadZone" onclick="document.getElementById('avFileInput').click()">
+      <div class="av-upload-default" id="avUploadDefault">
+        <div class="av-upload-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
         </div>
+        <div class="av-upload-text"><strong>Click to upload</strong> or drag & drop</div>
+        <div class="av-upload-hint">JPG, PNG, WEBP — Max 5MB</div>
       </div>
-      <% }) %>
+      <div class="av-upload-preview" id="avUploadPreview">
+        <div class="av-upload-preview-circle"><img id="avPreviewImg" src="" alt=""></div>
+        <div class="av-upload-info"><div class="name" id="avFileName"></div><div class="size" id="avFileSize"></div></div>
+        <button class="av-upload-remove" onclick="event.stopPropagation();clearAvUpload()" title="Remove">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="av-progress-wrap" id="avProgressWrap">
+        <div class="av-progress-bar"><div class="av-progress-fill" id="avProgressFill"></div></div>
+        <div class="av-progress-text" id="avProgressText">Uploading...</div>
+      </div>
+      <div class="av-upload-status" id="avUploadStatus"></div>
     </div>
-    <div class="avatar-actions">
-      <button class="avatar-btn avatar-btn-cancel" onclick="closeAvatarPicker()">Cancel</button>
-      <button class="avatar-btn avatar-btn-save" onclick="saveAvatar()">Save Avatar</button>
+    <input type="file" id="avFileInput" accept="image/jpeg,image/jpg,image/png,image/webp" style="display:none" onchange="handleAvUpload(this)">
+
+    <div class="av-divider"><span>Or choose a preset</span></div>
+
+    <div class="av-tabs" id="avTabs"></div>
+    <div class="av-grid" id="avGrid"></div>
+
+    <div class="av-footer">
+      <button class="av-btn av-btn-cancel" onclick="closeAvModal()">Cancel</button>
+      <button class="av-btn av-btn-save" id="avSaveBtn" onclick="saveAv()">Save Avatar</button>
     </div>
   </div>
 </div>
 
 <script>
+(function() {
+  var avatarMap = <%- JSON.stringify(avatarMap) %>;
+  var categories = <%- JSON.stringify(categories) %>;
+  var currentAvatar = '<%= currentAvatar %>';
+
+  var pendingAvatarId = '';
+  var pendingImageUrl = '';
+  var activeTab = 'male';
+  var fileInput = document.getElementById('avFileInput');
+
+  /* ===== RENDER CATEGORIES ===== */
+  function renderTabs() {
+    var tabsEl = document.getElementById('avTabs');
+    var html = '';
+    categories.forEach(function(cat) {
+      html += '<button class="av-tab' + (cat.id === activeTab ? ' active' : '') + '" onclick="window._avTabClick(\'' + cat.id + '\')">' + cat.name + '</button>';
+    });
+    tabsEl.innerHTML = html;
+  }
+
+  function renderGrid() {
+    var grid = document.getElementById('avGrid');
+    var filtered = [];
+    for (var i = 0; i < categories.length; i++) {
+      if (categories[i].id === activeTab) {
+        var catId = categories[i].id;
+        for (var j = 0; j < window._avAllAvatars.length; j++) {
+          if (window._avAllAvatars[j].category === catId) filtered.push(window._avAllAvatars[j]);
+        }
+        break;
+      }
+    }
+    var html = '';
+    filtered.forEach(function(av) {
+      var isSelected = pendingAvatarId === av.id;
+      html += '<div class="av-item' + (isSelected ? ' selected' : '') + '" data-av-id="' + av.id + '" onclick="window._avItemClick(\'' + av.id + '\')">' + av.svg + '<div class="av-check"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>';
+    });
+    grid.innerHTML = html;
+  }
+
+  window._avAllAvatars = <%- JSON.stringify(avatars) %>;
+
+  window._avTabClick = function(catId) {
+    activeTab = catId;
+    renderTabs();
+    renderGrid();
+  };
+
+  window._avItemClick = function(avId) {
+    pendingAvatarId = avId;
+    pendingImageUrl = '';
+    clearAvUploadUI();
+    document.querySelectorAll('.av-item').forEach(function(el) { el.classList.remove('selected'); });
+    var el = document.querySelector('[data-av-id="' + avId + '"]');
+    if (el) el.classList.add('selected');
+  };
+
+  /* ===== MODAL OPEN / CLOSE ===== */
+  window.openAvModal = function() {
+    document.getElementById('avModal').classList.add('active');
+    pendingAvatarId = '';
+    pendingImageUrl = '';
+    clearAvUploadUI();
+    renderTabs();
+    renderGrid();
+  };
+
+  window.closeAvModal = function() {
+    document.getElementById('avModal').classList.remove('active');
+    pendingAvatarId = '';
+    pendingImageUrl = '';
+    clearAvUploadUI();
+  };
+
+  /* ===== UPLOAD ===== */
+  var ALLOWED = ['image/jpeg','image/jpg','image/png','image/webp'];
+  var MAX_SIZE = 5 * 1024 * 1024;
+
+  function clearAvUploadUI() {
+    fileInput.value = '';
+    document.getElementById('avUploadZone').classList.remove('has-image');
+    document.getElementById('avUploadDefault').style.display = '';
+    document.getElementById('avUploadPreview').classList.remove('active');
+    document.getElementById('avProgressWrap').classList.remove('active');
+    var st = document.getElementById('avUploadStatus');
+    st.className = 'av-upload-status';
+    st.textContent = '';
+  }
+  window.clearAvUpload = clearAvUploadUI;
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  window.handleAvUpload = function(input) {
+    var file = input.files[0];
+    if (!file) return;
+
+    var st = document.getElementById('avUploadStatus');
+    st.className = 'av-upload-status';
+    st.textContent = '';
+
+    if (ALLOWED.indexOf(file.type) === -1) {
+      st.className = 'av-upload-status error';
+      st.textContent = 'Unsupported format. Use JPG, PNG, or WEBP.';
+      input.value = '';
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      st.className = 'av-upload-status error';
+      st.textContent = 'Image too large. Maximum 5MB.';
+      input.value = '';
+      return;
+    }
+
+    pendingAvatarId = '';
+    document.querySelectorAll('.av-item').forEach(function(el) { el.classList.remove('selected'); });
+
+    document.getElementById('avUploadDefault').style.display = 'none';
+    var preview = document.getElementById('avUploadPreview');
+    preview.classList.add('active');
+    document.getElementById('avFileName').textContent = file.name;
+    document.getElementById('avFileSize').textContent = formatSize(file.size);
+    document.getElementById('avPreviewImg').src = URL.createObjectURL(file);
+    document.getElementById('avUploadZone').classList.add('has-image');
+
+    var formData = new FormData();
+    formData.append('avatar', file);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/profile/avatar', true);
+
+    var progressWrap = document.getElementById('avProgressWrap');
+    var progressFill = document.getElementById('avProgressFill');
+    var progressText = document.getElementById('avProgressText');
+    progressWrap.classList.add('active');
+    progressFill.style.width = '0%';
+    progressText.textContent = 'Uploading...';
+
+    xhr.upload.onprogress = function(e) {
+      if (e.lengthComputable) {
+        var pct = Math.round((e.loaded / e.total) * 100);
+        progressFill.style.width = pct + '%';
+        progressText.textContent = pct < 100 ? 'Uploading... ' + pct + '%' : 'Processing...';
+      }
+    };
+
+    xhr.onload = function() {
+      progressWrap.classList.remove('active');
+      try {
+        var data = JSON.parse(xhr.responseText);
+        if (xhr.status === 200 && data.success) {
+          pendingImageUrl = data.avatar;
+          st.className = 'av-upload-status success';
+          st.textContent = 'Upload successful!';
+        } else {
+          st.className = 'av-upload-status error';
+          st.textContent = data.error || 'Upload failed.';
+        }
+      } catch(ex) {
+        st.className = 'av-upload-status error';
+        st.textContent = 'Upload failed. Please try again.';
+      }
+    };
+
+    xhr.onerror = function() {
+      progressWrap.classList.remove('active');
+      st.className = 'av-upload-status error';
+      st.textContent = 'Network error. Check your connection.';
+    };
+
+    xhr.send(formData);
+  };
+
+  /* ===== DRAG & DROP ===== */
+  var zone = document.getElementById('avUploadZone');
+  zone.addEventListener('dragover', function(e) { e.preventDefault(); e.stopPropagation(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', function(e) { e.preventDefault(); e.stopPropagation(); zone.classList.remove('dragover'); });
+  zone.addEventListener('drop', function(e) {
+    e.preventDefault(); e.stopPropagation();
+    zone.classList.remove('dragover');
+    var files = e.dataTransfer.files;
+    if (files.length > 0) {
+      fileInput.files = files;
+      handleAvUpload(fileInput);
+    }
+  });
+
+  /* ===== SAVE ===== */
+  window.saveAv = function() {
+    var val = pendingImageUrl || pendingAvatarId;
+    if (!val) return;
+
+    document.getElementById('selectedAvatarInput').value = val;
+
+    var display = document.getElementById('profileAvatarDisplay');
+    var settingsPreview = document.getElementById('settingsAvatarPreview');
+    var displayHtml = '';
+
+    if (pendingImageUrl) {
+      displayHtml = '<img src="' + pendingImageUrl + '" alt="Avatar">';
+    } else if (avatarMap[pendingImageUrl || pendingAvatarId]) {
+      displayHtml = avatarMap[pendingAvatarId];
+    }
+
+    if (displayHtml) {
+      display.innerHTML = displayHtml;
+      settingsPreview.innerHTML = displayHtml;
+    }
+
+    closeAvModal();
+
+    document.getElementById('profileForm').submit();
+  };
+
+  /* ===== MODAL BACKDROP CLICK ===== */
+  document.getElementById('avModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAvModal();
+  });
+})();
+
 function showTab(tab) {
-  document.querySelectorAll('.profile-section').forEach(s => s.style.display = 'none');
-  document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.profile-section').forEach(function(s) { s.style.display = 'none'; });
+  document.querySelectorAll('.profile-tab').forEach(function(t) { t.classList.remove('active'); });
   document.getElementById('tab-' + tab).style.display = 'block';
   if (tab === 'overview') document.querySelectorAll('.profile-tab')[0].classList.add('active');
   if (tab === 'settings') document.querySelectorAll('.profile-tab')[2].classList.add('active');
 }
-
-const avatarSvgs = <%- JSON.stringify(avatarSvgs) %>;
-let pendingAvatar = '<%= isCurrentImage ? "" : currentAvatar %>';
-let pendingImageUrl = null;
-
-function openAvatarPicker() {
-  document.getElementById('avatarModal').classList.add('active');
-}
-
-function closeAvatarPicker() {
-  document.getElementById('avatarModal').classList.remove('active');
-  pendingImageUrl = null;
-  document.getElementById('avatarImagePreview').style.display = 'none';
-  document.getElementById('uploadStatus').style.display = 'none';
-}
-
-function selectAvatar(key) {
-  pendingAvatar = key;
-  pendingImageUrl = null;
-  document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
-  document.querySelector('[data-avatar="' + key + '"]').classList.add('selected');
-  document.getElementById('avatarImagePreview').style.display = 'none';
-  document.getElementById('uploadStatus').style.display = 'none';
-}
-
-function handleAvatarUpload(e) {
-  var file = e.target.files[0];
-  if (!file) return;
-  var status = document.getElementById('uploadStatus');
-  status.style.display = 'block';
-  status.style.color = '#94a3b8';
-  status.textContent = 'Uploading...';
-
-  if (file.size > 2 * 1024 * 1024) {
-    status.style.color = '#f87171';
-    status.textContent = 'Image too large. Max 2MB.';
-    return;
-  }
-
-  var formData = new FormData();
-  formData.append('avatar', file);
-
-  fetch('/profile/avatar', {
-    method: 'POST',
-    body: formData
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(data) {
-    if (data.success) {
-      pendingImageUrl = data.avatar;
-      pendingAvatar = '';
-      document.getElementById('avatarPreviewImg').src = data.avatar;
-      document.getElementById('avatarImagePreview').style.display = 'block';
-      document.querySelectorAll('.avatar-option').forEach(function(el) { el.classList.remove('selected'); });
-      status.style.color = '#4ade80';
-      status.textContent = 'Image uploaded! Click Save.';
-    } else {
-      status.style.color = '#f87171';
-      status.textContent = data.error || 'Upload failed.';
-    }
-  })
-  .catch(function(err) {
-    status.style.color = '#f87171';
-    status.textContent = 'Upload failed. Try again.';
-  });
-}
-
-function saveAvatar() {
-  var avatarVal = pendingImageUrl || pendingAvatar;
-  if (!avatarVal) {
-    alert('Select an avatar or upload an image first.');
-    return;
-  }
-  document.getElementById('selectedAvatar').value = avatarVal;
-
-  var display = document.getElementById('profileAvatarDisplay');
-  if (pendingImageUrl) {
-    display.innerHTML = '<img src="' + pendingImageUrl + '" alt="Avatar" style="width:100%;height:100%;object-fit:cover;">';
-  } else if (avatarSvgs[pendingAvatar]) {
-    display.innerHTML = avatarSvgs[pendingAvatar];
-  }
-
-  var preview = document.getElementById('settingsAvatarPreview');
-  if (pendingImageUrl) {
-    preview.innerHTML = '<img src="' + pendingImageUrl + '" alt="Avatar" style="width:100%;height:100%;object-fit:cover;">';
-  } else if (avatarSvgs[pendingAvatar]) {
-    preview.innerHTML = avatarSvgs[pendingAvatar];
-  }
-
-  closeAvatarPicker();
-  document.getElementById('profileForm').submit();
-}
-
-document.getElementById('avatarModal').addEventListener('click', function(e) {
-  if (e.target === this) closeAvatarPicker();
-});
 </script>
 
 <%- include('partials/footer') %>

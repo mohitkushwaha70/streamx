@@ -33,6 +33,7 @@ app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
   res.locals.success = req.session.success;
   res.locals.error = req.session.error;
+  res.locals.navAvatarMap = navAvatarMap;
   delete req.session.success;
   delete req.session.error;
   next();
@@ -53,6 +54,10 @@ const searchRoutes = require('./routes/search');
 const paymentRoutes = require('./routes/payment');
 const { changeEmitter } = require('./data/sample');
 const { getSourceIcon, getSourceColor } = require('./services/watchmode');
+const { avatars: allAvatars, categories: avatarCategories } = require('./data/avatars');
+
+const navAvatarMap = {};
+allAvatars.forEach(a => { navAvatarMap[a.id] = a.svg; });
 
 app.locals.getSourceIcon = getSourceIcon;
 app.locals.getSourceColor = getSourceColor;

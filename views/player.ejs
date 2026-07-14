@@ -465,19 +465,6 @@
       </div>
     </div>
 
-    <!-- ============ ABOUT ============ -->
-    <div class="sx-about">
-      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>About This <%= item.type === 'series' ? 'Series' : 'Movie' %></h2>
-      <div class="sx-about-grid">
-        <div class="sx-about-row"><div class="sx-about-label">Genre</div><div class="sx-about-val"><%= item.genre || 'N/A' %></div></div>
-        <div class="sx-about-row"><div class="sx-about-label">Cast</div><div class="sx-about-val"><%= item.cast || 'N/A' %></div></div>
-        <div class="sx-about-row"><div class="sx-about-label">Director</div><div class="sx-about-val"><%= item.director || 'N/A' %></div></div>
-        <div class="sx-about-row"><div class="sx-about-label">Duration</div><div class="sx-about-val"><%= (currentEpisode && currentEpisode.duration) || item.duration || 'N/A' %></div></div>
-        <div class="sx-about-row"><div class="sx-about-label">Language</div><div class="sx-about-val"><%= item.language ? item.language.toUpperCase() : 'N/A' %></div></div>
-        <div class="sx-about-row"><div class="sx-about-label">Release Date</div><div class="sx-about-val"><%= item.release_date || item.year || 'N/A' %></div></div>
-      </div>
-    </div>
-
     <!-- ============ CAST ============ -->
     <% if (item.cast) { %>
     <div class="sx-cast-section">
@@ -502,6 +489,17 @@
       </div>
       <% } %>
 
+      <!-- ============ COMMENTS ============ -->
+      <div class="sx-comments" id="sxComments">
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comments <span id="commentCount" style="font-size:.75rem;color:var(--text3);font-weight:400;margin-left:4px"></span></h2>
+        <div class="sx-comment-input-wrap">
+          <div class="sx-comment-avatar"><%= user ? (user.name ? user.name.charAt(0).toUpperCase() : 'U') : 'G' %></div>
+          <textarea class="sx-comment-input" id="commentInput" placeholder="Add a comment..." rows="1"></textarea>
+          <button class="sx-comment-submit" onclick="postComment()">Post</button>
+        </div>
+        <div class="sx-comment-list" id="commentList"></div>
+      </div>
+
       <% if (trending.length > 0) { %>
       <div class="sx-sec">
         <div class="sx-sec-hdr"><h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Trending Now</h2></div>
@@ -520,17 +518,6 @@
         <div class="sx-sec-hdr"><h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>You May Also Like</h2></div>
         <div class="sx-scroll" id="sxRecRow"></div>
       </div>
-    </div>
-
-    <!-- ============ COMMENTS ============ -->
-    <div class="sx-comments" id="sxComments">
-      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comments <span id="commentCount" style="font-size:.75rem;color:var(--text3);font-weight:400;margin-left:4px"></span></h2>
-      <div class="sx-comment-input-wrap">
-        <div class="sx-comment-avatar"><%= user ? (user.name ? user.name.charAt(0).toUpperCase() : 'U') : 'G' %></div>
-        <textarea class="sx-comment-input" id="commentInput" placeholder="Add a comment..." rows="1"></textarea>
-        <button class="sx-comment-submit" onclick="postComment()">Post</button>
-      </div>
-      <div class="sx-comment-list" id="commentList"></div>
     </div>
 
   </div>

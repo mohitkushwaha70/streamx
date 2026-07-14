@@ -22,6 +22,7 @@ async function resolveUrl(url) {
 async function streamUpstream(cdnUrl, rangeHeader, req, res) {
   const headers = {};
   if (rangeHeader) headers['Range'] = rangeHeader;
+  if (HF_TOKEN) headers['Authorization'] = `Bearer ${HF_TOKEN}`;
 
   const upstream = await fetch(cdnUrl, {
     headers,

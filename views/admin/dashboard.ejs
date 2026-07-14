@@ -3,13 +3,8 @@
 <div class="admin-layout">
   <%- include('../partials/admin-sidebar') %>
   <main class="admin-main">
-    <div class="admin-header">
-      <div>
-        <h1>Dashboard</h1>
-        <p style="color: var(--text-muted); font-size: 0.85rem;">Welcome back, <%= admin.name %>. Here's your platform overview.</p>
-      </div>
-      <div class="admin-header-right">
-        <span class="plan-badge premium">Premium Admin</span>
+    <div class="admin-header" style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:16px;">
         <%
           var aAv = admin.avatar || '';
           var aIsImage = aAv.indexOf('/uploads/') === 0;
@@ -24,10 +19,13 @@
             <div class="admin-avatar-fallback"><%= admin.name ? admin.name.charAt(0).toUpperCase() : 'A' %></div>
           <% } %>
         </div>
-        <div class="admin-header-user">
-          <strong><%= admin.name %></strong>
-          <span style="color: var(--text-muted); font-size: 0.8rem;"><%= admin.email %></span>
+        <div>
+          <h1 style="margin-bottom:2px;">Dashboard</h1>
+          <p style="color: var(--text-muted); font-size: 0.8rem;">Welcome back, <%= admin.name %>.</p>
         </div>
+      </div>
+      <div class="admin-header-right">
+        <span class="plan-badge premium">Premium Admin</span>
       </div>
     </div>
 

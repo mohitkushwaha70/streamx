@@ -34,6 +34,7 @@ app.use((req, res, next) => {
   res.locals.success = req.session.success;
   res.locals.error = req.session.error;
   res.locals.navAvatarMap = navAvatarMap;
+  res.locals.displayTitle = app.locals.displayTitle;
   delete req.session.success;
   delete req.session.error;
   next();

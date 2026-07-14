@@ -22,6 +22,7 @@ const PORT = process.env.PORT || 3000;
 app.use(compression());
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+app.set('trust proxy', 1);
 
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '7d', etag: true }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));

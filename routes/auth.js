@@ -17,7 +17,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: '/auth/google/callback'
+    proxy: true
   }, (accessToken, refreshToken, profile, done) => {
     let user = db.users.findByEmail(profile.emails?.[0]?.value || '');
     if (!user) {
@@ -136,7 +136,10 @@ router.get('/google', (req, res, next) => {
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     return res.redirect('/auth/login?error=google_not_configured');
   }
-  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+  const proto = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+  const host = req.headers['x-forwarded-host'] || req.headers['x-forwarded-for']?.split(',')[0] || req.get('host') || 'localhost:3000';
+  const callbackURL = proto + '://' + host + '/auth/google/callback';
+  passport.authenticate('google', { scope: ['profile', 'email'], callbackURL })(req, res, next);
 });
 
 router.get('/google/callback', (req, res, next) => {

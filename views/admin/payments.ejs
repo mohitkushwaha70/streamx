@@ -162,7 +162,21 @@
                 <td>
                   <div class="user-cell">
                     <% if (payUser) { %>
-                    <div class="avatar-sm"><%= payUser.avatar %></div>
+                    <%
+                      var pAv = payUser.avatar || '';
+                      var pIsImage = pAv.indexOf('/uploads/') === 0;
+                      var pIsSvgKey = !pIsImage && navAvatarMap && navAvatarMap[pAv];
+                    %>
+                    <div class="avatar-sm">
+                      <% if (pIsImage) { %>
+                        <img src="<%= pAv %>" alt="<%= payUser.name %>" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <div class="avatar-fallback-sm" style="display:none"><%= payUser.name ? payUser.name.charAt(0).toUpperCase() : 'U' %></div>
+                      <% } else if (pIsSvgKey) { %>
+                        <%- navAvatarMap[pAv] %>
+                      <% } else { %>
+                        <div class="avatar-fallback-sm"><%= payUser.name ? payUser.name.charAt(0).toUpperCase() : 'U' %></div>
+                      <% } %>
+                    </div>
                     <strong><%= payUser.name %></strong>
                     <% } else { %>
                     <span style="color: var(--text-muted);">Unknown</span>

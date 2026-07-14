@@ -31,8 +31,8 @@
             <tr>
               <td>
                 <div class="user-cell">
-                  <img src="<%= m.poster %>" class="table-thumb" alt="">
-                  <strong><%= m.title %></strong>
+                  <img src="<%= m.poster %>" class="table-thumb" alt="<%= displayTitle(m.title) %>" onerror="this.onerror=null;this.src='/placeholder.jpg';">
+                  <strong><%= displayTitle(m.title) %></strong>
                 </div>
               </td>
               <td><span class="table-badge"><%= m.genre %></span></td>

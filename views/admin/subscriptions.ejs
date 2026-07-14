@@ -164,7 +164,11 @@
           <tbody>
             <% premiumUsers.forEach(u => { %>
               <tr>
-                <td><div class="user-cell"><div class="avatar-sm" style="background: linear-gradient(135deg, #f59e0b, #f97316);"><%= u.avatar %></div><strong><%= u.name %></strong></div></td>
+                <td><div class="user-cell"><%
+                  var sAv = u.avatar || '';
+                  var sIsImage = sAv.indexOf('/uploads/') === 0;
+                  var sIsSvgKey = !sIsImage && navAvatarMap && navAvatarMap[sAv];
+                %><div class="avatar-sm" style="background: linear-gradient(135deg, #f59e0b, #f97316);"><% if (sIsImage) { %><img src="<%= sAv %>" alt="<%= u.name %>" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="avatar-fallback-sm" style="display:none"><%= u.name ? u.name.charAt(0).toUpperCase() : 'U' %></div><% } else if (sIsSvgKey) { %><%- navAvatarMap[sAv] %><% } else { %><div class="avatar-fallback-sm"><%= u.name ? u.name.charAt(0).toUpperCase() : 'U' %></div><% } %></div><strong><%= u.name %></strong></div></td>
                 <td style="color:var(--text-muted)"><%= u.email %></td>
                 <td style="color:var(--text-muted);"><%= u.watch_time ? Math.floor(u.watch_time / 60) + 'h ' + (u.watch_time % 60) + 'm' : '0m' %></td>
                 <td style="color:var(--text-muted);"><%= u.devices || 1 %></td>

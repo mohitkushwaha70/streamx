@@ -785,8 +785,8 @@
                 <td><%= i + 1 %></td>
                 <td>
                   <div class="user-cell">
-                    <% if (m.poster) { %><img src="<%= m.poster %>" class="table-thumb" alt="<%= m.title %>"><% } %>
-                    <strong><%= m.title %></strong>
+                    <% if (m.poster) { %><img src="<%= m.poster %>" class="table-thumb" alt="<%= displayTitle(m.title) %>" onerror="this.onerror=null;this.src='/placeholder.jpg';"><% } %>
+                    <strong><%= displayTitle(m.title) %></strong>
                   </div>
                 </td>
                 <td><span class="table-badge"><%= m.type %></span></td>

@@ -10,7 +10,24 @@
       </div>
       <div class="admin-header-right">
         <span class="plan-badge premium">Premium Admin</span>
-        <div class="avatar"><%= admin.avatar %></div>
+        <%
+          var aAv = admin.avatar || '';
+          var aIsImage = aAv.indexOf('/uploads/') === 0;
+          var aIsSvgKey = !aIsImage && navAvatarMap && navAvatarMap[aAv];
+        %>
+        <div class="admin-avatar">
+          <% if (aIsImage) { %>
+            <img src="<%= aAv %>" alt="<%= admin.name %>" onerror="this.onerror=null;this.src='/images/streamx-avatar-premium.svg';">
+          <% } else if (aIsSvgKey) { %>
+            <%- navAvatarMap[aAv] %>
+          <% } else { %>
+            <div class="admin-avatar-fallback"><%= admin.name ? admin.name.charAt(0).toUpperCase() : 'A' %></div>
+          <% } %>
+        </div>
+        <div class="admin-header-user">
+          <strong><%= admin.name %></strong>
+          <span style="color: var(--text-muted); font-size: 0.8rem;"><%= admin.email %></span>
+        </div>
       </div>
     </div>
 
@@ -109,7 +126,7 @@
           <% trendingContent.forEach(item => { %>
           <div class="trending-item">
             <div class="trending-poster">
-              <img src="<%= item.poster %>" alt="<%= item.title %>" onerror="this.style.display='none'">
+              <img src="<%= item.poster %>" alt="<%= item.title %>" onerror="this.onerror=null;this.src='/placeholder.jpg';">
               <div class="trending-overlay">
                 <span class="trending-type"><%= item.mediaType === 'movie' ? 'Movie' : 'TV' %></span>
               </div>
@@ -137,7 +154,7 @@
             <tbody>
               <% recentMovies.forEach(m => { %>
               <tr>
-                <td><strong><%= m.title %></strong></td>
+                <td><strong><%= displayTitle(m.title) %></strong></td>
                 <td><span class="table-badge"><%= m.genre %></span></td>
                 <td>★ <%= m.rating %></td>
                 <td><span class="plan-badge <%= m.premium ? 'premium' : 'free' %>"><%= m.premium ? 'Premium' : 'Free' %></span></td>
@@ -162,7 +179,25 @@
             <tbody>
               <% recentUsers.forEach(u => { %>
               <tr>
-                <td><div class="user-cell"><div class="avatar-sm"><%= u.avatar %></div><strong><%= u.name %></strong></div></td>
+                <td>
+                  <div class="user-cell">
+                    <%
+                      var uAv = u.avatar || '';
+                      var uIsImage = uAv.indexOf('/uploads/') === 0;
+                      var uIsSvgKey = !uIsImage && navAvatarMap && navAvatarMap[uAv];
+                    %>
+                    <div class="avatar-sm">
+                      <% if (uIsImage) { %>
+                        <img src="<%= uAv %>" alt="<%= u.name %>" onerror="this.onerror=null;this.style.display='none';this.parentNode.innerHTML='<div class=\\'avatar-fallback-sm\\'>' + '<%= u.name ? u.name.charAt(0).toUpperCase() : 'U' %>' + '</div>';">
+                      <% } else if (uIsSvgKey) { %>
+                        <%- navAvatarMap[uAv] %>
+                      <% } else { %>
+                        <div class="avatar-fallback-sm"><%= u.name ? u.name.charAt(0).toUpperCase() : 'U' %></div>
+                      <% } %>
+                    </div>
+                    <strong><%= u.name %></strong>
+                  </div>
+                </td>
                 <td style="color: var(--text-muted)"><%= u.email %></td>
                 <td><span class="plan-badge <%= u.plan %>"><%= u.plan %></span></td>
               </tr>

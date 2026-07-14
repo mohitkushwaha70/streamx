@@ -7,3 +7,4 @@ streamx/data/
 *.log
 /tmp/
 .replit
+public/uploads/avatars/

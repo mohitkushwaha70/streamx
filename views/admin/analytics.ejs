@@ -119,7 +119,7 @@
             <% mostWatched.forEach((m, i) => { %>
               <tr>
                 <td><%= i + 1 %></td>
-                <td><strong><%= m.title %></strong></td>
+                <td><strong><%= displayTitle(m.title) %></strong></td>
                 <td><span class="table-badge"><%= m.genre %></span></td>
                 <td style="color:#f59e0b;">★ <%= m.rating %></td>
                 <td><%= m.views.toLocaleString() %></td>

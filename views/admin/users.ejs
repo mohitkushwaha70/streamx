@@ -105,7 +105,21 @@
               <td><%= i + 1 %></td>
               <td>
                 <div class="user-cell">
-                  <div class="avatar-sm" style="<%= u.plan === 'premium' ? 'background: linear-gradient(135deg, #f59e0b, #f97316);' : '' %>"><%= u.avatar %></div>
+                  <%
+                    var uAv = u.avatar || '';
+                    var uIsImage = uAv.indexOf('/uploads/') === 0;
+                    var uIsSvgKey = !uIsImage && navAvatarMap && navAvatarMap[uAv];
+                  %>
+                  <div class="avatar-sm" style="<%= u.plan === 'premium' ? 'background: linear-gradient(135deg, #f59e0b, #f97316);' : '' %>">
+                    <% if (uIsImage) { %>
+                      <img src="<%= uAv %>" alt="<%= u.name %>" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
+                      <div class="avatar-fallback-sm" style="display:none"><%= u.name ? u.name.charAt(0).toUpperCase() : 'U' %></div>
+                    <% } else if (uIsSvgKey) { %>
+                      <%- navAvatarMap[uAv] %>
+                    <% } else { %>
+                      <div class="avatar-fallback-sm"><%= u.name ? u.name.charAt(0).toUpperCase() : 'U' %></div>
+                    <% } %>
+                  </div>
                   <div>
                     <strong><%= u.name %></strong>
                     <% if (u.banned) { %>

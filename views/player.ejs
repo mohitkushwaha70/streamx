@@ -13,12 +13,271 @@
 .player-right-title { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 .player-right-title svg { color: var(--blue-light); }
 
-/* ArtPlayer container */
-#artplayer-app { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 0; overflow: hidden; }
+/* ===== ArtPlayer Container ===== */
+#artplayer-app { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 0; overflow: hidden; position: relative; }
 
-/* ArtPlayer top controls styling */
-.art-control-top { gap: 4px !important; }
-.art-control-top .art-control-item { padding: 0 !important; }
+/* ===== HIDE TOP CONTROLS ===== */
+.art-layer, .art-top, .art-control-top { display: none !important; }
+.art-bottom { z-index: 100 !important; }
+
+/* ===== BOTTOM CONTROL BAR — Glassmorphism ===== */
+.art-bottom {
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.85) 0%,
+    rgba(0, 0, 0, 0.6) 60%,
+    transparent 100%
+  ) !important;
+  backdrop-filter: blur(12px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  opacity: 0;
+  transform: translateY(0);
+  transition: opacity 0.35s ease, transform 0.35s ease !important;
+  padding-bottom: 8px !important;
+}
+
+/* Show controls on hover/active */
+#artplayer-app:hover .art-bottom,
+#artplayer-app.art-show-controls .art-bottom {
+  opacity: 1 !important;
+}
+
+/* Episode title layer — show with controls */
+.art-layer {
+  display: block !important;
+  opacity: 0;
+  transition: opacity 0.35s ease !important;
+}
+#artplayer-app:hover .art-layer,
+#artplayer-app.art-show-controls .art-layer {
+  opacity: 1 !important;
+}
+
+/* ===== NETFLIX-STYLE PROGRESS BAR ===== */
+.art-progress {
+  position: relative !important;
+  padding: 10px 12px 0 12px !important;
+  height: auto !important;
+  margin-bottom: 2px !important;
+}
+
+.art-progress .art-control-progress {
+  position: relative !important;
+  height: 3px !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-radius: 2px !important;
+  overflow: visible !important;
+  transition: height 0.2s ease !important;
+}
+
+/* Expand progress bar on hover */
+.art-progress:hover .art-control-progress,
+.art-progress .art-control-progress:hover {
+  height: 6px !important;
+}
+
+.art-progress .art-control-progress-inner {
+  height: 100% !important;
+  background: #6c5ce7 !important;
+  border-radius: 2px !important;
+  position: relative !important;
+  transition: background 0.2s ease !important;
+}
+
+/* Progress indicator (scrubber) */
+.art-progress .art-indicator {
+  width: 14px !important;
+  height: 14px !important;
+  background: #6c5ce7 !important;
+  border: 2px solid #fff !important;
+  border-radius: 50% !important;
+  position: absolute !important;
+  top: 50% !important;
+  transform: translateY(-50%) scale(0) !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+  box-shadow: 0 0 8px rgba(108, 92, 231, 0.6) !important;
+  z-index: 10 !important;
+}
+
+.art-progress:hover .art-indicator {
+  transform: translateY(-50%) scale(1) !important;
+}
+
+/* Buffered progress */
+.art-progress .art-progress-loaded {
+  background: rgba(255, 255, 255, 0.25) !important;
+  height: 100% !important;
+  border-radius: 2px !important;
+}
+
+/* ===== CONTROLS ROW ===== */
+.art-controls {
+  display: flex !important;
+  align-items: center !important;
+  padding: 4px 12px 4px 12px !important;
+  gap: 2px !important;
+  height: 40px !important;
+}
+
+.art-controls .art-control {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 6px !important;
+  cursor: pointer !important;
+  color: #fff !important;
+  opacity: 0.9 !important;
+  transition: opacity 0.2s ease, transform 0.15s ease !important;
+  border-radius: 6px !important;
+  height: 32px !important;
+}
+
+.art-controls .art-control:hover {
+  opacity: 1 !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  transform: scale(1.05) !important;
+}
+
+.art-controls .art-control svg {
+  width: 20px !important;
+  height: 20px !important;
+  fill: #fff !important;
+}
+
+/* Volume slider */
+.art-settings .art-setting-volume {
+  min-width: 120px !important;
+}
+
+/* Time display */
+.art-time {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  padding: 0 8px !important;
+  white-space: nowrap !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* Settings panel glassmorphism */
+.art-settings {
+  background: rgba(15, 15, 25, 0.88) !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+  padding: 8px 0 !important;
+}
+
+.art-settings .art-setting-item {
+  padding: 8px 16px !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-size: 13px !important;
+  transition: background 0.15s ease !important;
+}
+
+.art-settings .art-setting-item:hover {
+  background: rgba(108, 92, 231, 0.2) !important;
+}
+
+.art-settings .art-setting-item.art-setting-active {
+  color: #6c5ce7 !important;
+}
+
+/* Settings tooltip */
+.art-setting-tooltip {
+  background: rgba(15, 15, 25, 0.88) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 10px !important;
+}
+
+/* Context menu glassmorphism */
+.art-contextmenus {
+  background: rgba(15, 15, 25, 0.88) !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+.art-contextmenu {
+  padding: 8px 16px !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-size: 13px !important;
+}
+
+.art-contextmenu:hover {
+  background: rgba(108, 92, 231, 0.2) !important;
+}
+
+/* Mini progress bar (when controls hidden) */
+.art-mini-progressbar {
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 3px !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  z-index: 99 !important;
+}
+
+.art-mini-progressbar-inner {
+  height: 100% !important;
+  background: #6c5ce7 !important;
+  transition: width 0.3s linear !important;
+}
+
+/* Center play state icon */
+.art-state {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 50 !important;
+  opacity: 0;
+  transition: opacity 0.3s ease !important;
+  pointer-events: none !important;
+}
+
+.art-state svg {
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .player-main { flex-direction: column; }
+  .player-right { width: 100%; max-height: none; position: static; border-left: none; border-top: 1px solid #1a1a1a; }
+  .art-controls { padding: 4px 8px 4px 8px !important; gap: 1px !important; }
+  .art-progress { padding: 8px 8px 0 8px !important; }
+}
+
+@media (max-width: 768px) {
+  .art-controls { padding: 2px 6px 2px 6px !important; gap: 0 !important; height: 36px !important; }
+  .art-controls .art-control { padding: 0 4px !important; height: 28px !important; }
+  .art-controls .art-control svg { width: 18px !important; height: 18px !important; }
+  .art-time { font-size: 11px !important; padding: 0 4px !important; }
+  .art-progress { padding: 6px 6px 0 6px !important; }
+  .art-progress .art-indicator { width: 12px !important; height: 12px !important; }
+  .art-bottom { padding-bottom: 4px !important; }
+}
+
+@media (max-width: 480px) {
+  .art-controls .art-control { padding: 0 3px !important; height: 26px !important; }
+  .art-controls .art-control svg { width: 16px !important; height: 16px !important; }
+  .art-time { font-size: 10px !important; }
+}
 
 /* ===== VIDEO INFO ===== */
 .video-info { padding: 20px 24px; }
@@ -82,12 +341,24 @@
 .share-avatar:hover { transform: scale(1.1); }
 .share-close { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.5rem; float: right; }
 
-/* ===== MOBILE ===== */
-@media (max-width: 1024px) {
-  .player-main { flex-direction: column; }
-  .player-right { width: 100%; max-height: none; position: static; border-left: none; border-top: 1px solid #1a1a1a; }
-  .episode-thumb { width: 120px; height: 68px; }
+/* ===== LOADING SPINNER ===== */
+@keyframes art-loading { to { transform: rotate(360deg); } }
+
+/* ===== EPISODE TITLE LAYER (bottom-left above controls) ===== */
+.art-layer[data-name="episode-title"] {
+  display: block !important;
+  bottom: 56px !important;
+  top: auto !important;
+  left: 12px !important;
+  opacity: 0;
+  transition: opacity 0.35s ease !important;
 }
+#artplayer-app:hover .art-layer[data-name="episode-title"],
+#artplayer-app.art-show-controls .art-layer[data-name="episode-title"] {
+  opacity: 1 !important;
+}
+
+/* ===== MOBILE RESPONSIVE (player) ===== */
 @media (max-width: 768px) {
   .video-actions { gap: 6px; }
   .video-actions .action-btn { padding: 6px 10px; font-size: 0.75rem; }
@@ -302,6 +573,8 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.min.js"></script>
 <script>
 (function() {
@@ -309,6 +582,8 @@
     function getVideoMimeType(url) {
       if (!url) return 'video/mp4';
       const lower = url.toLowerCase();
+      if (lower.endsWith('.m3u8') || lower.includes('.m3u8?')) return 'm3u8';
+      if (lower.endsWith('.mpd') || lower.includes('.mpd?')) return 'mpd';
       if (lower.endsWith('.mkv') || lower.includes('.mkv?')) return 'video/x-matroska';
       if (lower.endsWith('.webm') || lower.includes('.webm?')) return 'video/webm';
       if (lower.endsWith('.ogg') || lower.includes('.ogg?')) return 'video/ogg';
@@ -318,7 +593,22 @@
     const videoMime = getVideoMimeType(videoSrc);
   %>
 
-  const art = new Artplayer({
+  var container = document.getElementById('artplayer-app');
+  var hideTimer = null;
+
+  function showControls() {
+    container.classList.add('art-show-controls');
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function() {
+      container.classList.remove('art-show-controls');
+    }, 3000);
+  }
+
+  container.addEventListener('mousemove', showControls);
+  container.addEventListener('mousedown', showControls);
+  container.addEventListener('touchstart', showControls);
+
+  var playerConfig = {
     container: '#artplayer-app',
     url: '<%= videoSrc %>',
     type: '<%= videoMime %>',
@@ -373,56 +663,18 @@
         name: 'watchlist-btn',
         position: 'right',
         index: 10,
-        html: '<div title="Add to Watchlist" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;cursor:pointer;opacity:0.8;border-radius:8px;transition:all 0.2s;" onmouseover="this.style.opacity=1;this.style.background=\'rgba(255,255,255,0.1)\'" onmouseout="this.style.opacity=0.8;this.style.background=\'transparent\'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></div>',
+        html: '<div title="Add to Watchlist" style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;cursor:pointer;border-radius:6px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(255,255,255,0.12)\'" onmouseout="this.style.background=\'transparent\'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></div>',
         click: function() {
           document.querySelector('form[action="/watchlist/add"] button').click();
         }
-      },
-      // TOP toolbar buttons - Netflix/JioHoster style
-      {
-        name: 'top-screenshot',
-        position: 'top',
-        index: 10,
-        html: '<div title="Screenshot" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;cursor:pointer;border-radius:8px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(255,255,255,0.15)\'" onmouseout="this.style.background=\'transparent\'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>',
-        click: function() { art.screenshot(); }
-      },
-      {
-        name: 'top-pip',
-        position: 'top',
-        index: 20,
-        html: '<div title="Picture in Picture" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;cursor:pointer;border-radius:8px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(255,255,255,0.15)\'" onmouseout="this.style.background=\'transparent\'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><rect x="11" y="9" width="9" height="7" rx="1" ry="1" fill="rgba(255,255,255,0.3)"/></svg></div>',
-        click: function() { art.pip = !art.pip; }
-      },
-      {
-        name: 'top-speed',
-        position: 'top',
-        index: 30,
-        html: '<div title="Playback Speed" id="topSpeedBtn" style="display:flex;align-items:center;justify-content:center;height:34px;padding:0 10px;cursor:pointer;border-radius:8px;font-size:0.75rem;font-weight:600;color:white;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(255,255,255,0.15)\'" onmouseout="this.style.background=\'transparent\'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="margin-right:4px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>1x</span></div>',
-        click: function() {
-          var speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
-          var current = art.playbackRate || 1;
-          var idx = speeds.indexOf(current);
-          var next = speeds[(idx + 1) % speeds.length];
-          art.playbackRate = next;
-          var btn = document.getElementById('topSpeedBtn');
-          if (btn) btn.querySelector('span').textContent = next + 'x';
-        }
-      },
-      {
-        name: 'top-fullscreen',
-        position: 'top',
-        index: 40,
-        html: '<div title="Fullscreen" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;cursor:pointer;border-radius:8px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(255,255,255,0.15)\'" onmouseout="this.style.background=\'transparent\'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></div>',
-        click: function() { art.fullScreen = !art.fullScreen; }
       }
     ],
     layers: [
       {
         name: 'episode-title',
-        html: '<div style="position:absolute;top:16px;left:16px;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);padding:6px 14px;border-radius:8px;color:white;font-size:0.85rem;font-weight:600;pointer-events:none;"><%= item.title %><% if (currentEpisode) { %> &mdash; E<%= currentEpisode.number %><% } %></div>',
+        html: '<div style="background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);padding:6px 14px;border-radius:8px;color:white;font-size:0.85rem;font-weight:600;pointer-events:none;display:inline-block;"><%= item.title %><% if (currentEpisode) { %> &mdash; E<%= currentEpisode.number %><% } %></div>',
         tooltip: '<%= item.title %>',
-        index: 1,
-        position: 'top-left'
+        index: 1
       }
     ],
     contextmenu: [
@@ -438,9 +690,45 @@
       state: '<svg width="48" height="48" viewBox="0 0 24 24" fill="white" opacity="0.8"><path d="M8 5v14l11-7z"/></svg>',
       indicator: '<svg width="16" height="16" viewBox="0 0 24 24" fill="#6c5ce7"><circle cx="12" cy="12" r="10"/></svg>'
     }
+  };
+
+  if (videoMime === 'm3u8' || videoMime === 'mpd') {
+    playerConfig.customType = {
+      m3u8: function(video, url) {
+        if (Hls.isSupported()) {
+          var hls = new Hls();
+          hls.loadSource(url);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.ERROR, function(event, data) {
+            if (data.fatal) {
+              art.notice.show = 'Stream error: ' + data.type;
+            }
+          });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = url;
+        } else {
+          art.notice.show = 'HLS not supported in this browser';
+        }
+      },
+      mpd: function(video, url) {
+        if (typeof dashjs !== 'undefined') {
+          var dashPlayer = dashjs.MediaPlayer().create();
+          dashPlayer.initialize(video, url, false);
+        } else {
+          art.notice.show = 'DASH player not loaded';
+        }
+      }
+    };
+  }
+
+  const art = new Artplayer(playerConfig);
+
+  showControls();
+
+  art.on('video:error', function() {
+    art.notice.show = 'Unable to play this video. Try another source.';
   });
 
-  // Continue watching - track progress
   art.on('video:timeupdate', function() {
     if (!art.duration) return;
     const progress = Math.floor((art.currentTime / art.duration) * 100);
@@ -458,7 +746,6 @@
     }
   });
 
-  // Auto-play next episode on ended
   art.on('video:ended', function() {
     var nextCard = document.querySelector('.episode-card.active + .episode-card');
     if (nextCard) {
@@ -467,11 +754,3 @@
   });
 })();
 </script>
-
-<style>
-@keyframes art-loading {
-  to { transform: rotate(360deg); }
-}
-</style>
-
-<%- include('partials/footer') %>

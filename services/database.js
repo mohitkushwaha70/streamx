@@ -36,6 +36,9 @@ async function init() {
   const admin = users.findByEmail('admin@streamx.com');
   if (admin) getMongo()?.syncUser(admin);
 
+  // Restore content from MongoDB if SQLite is empty (data loss recovery)
+  await restoreFromMongo();
+
   return db;
 }
 
@@ -663,6 +666,75 @@ function rowToObj(execResult, values) {
 
 function tryParse(json) {
   try { return JSON.parse(json); } catch { return json; }
+}
+
+// ===== MONGODB RESTORE =====
+async function restoreFromMongo() {
+  const count = content.count();
+  if (count > 0) return; // SQLite already has data
+
+  const mongo = getMongo();
+  if (!mongo) return;
+
+  try {
+    const mdb = await mongo.getDb();
+    if (!mdb) return;
+
+    const mongoContent = await mdb.collection('content').find({}).toArray();
+    if (mongoContent.length === 0) {
+      console.log('[Restore] MongoDB content empty, nothing to restore');
+      return;
+    }
+
+    console.log(`[Restore] Restoring ${mongoContent.length} items from MongoDB...`);
+
+    for (const doc of mongoContent) {
+      db.run(
+        `INSERT INTO content (tmdb_id, title, type, genre, genres, year, rating, vote_count,
+         duration, description, poster, backdrop, video_url, video_type, trailer_key, cast,
+         director, language, popularity, release_date, seasons, episodes_count, premium, badge)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          doc.tmdbId || null, doc.title || '', doc.type || 'movie',
+          doc.genre || '', JSON.stringify(doc.genres || []),
+          doc.year || 0, doc.rating || 0, doc.voteCount || 0,
+          doc.duration || '', doc.description || '',
+          doc.poster || '', doc.backdrop || '',
+          doc.videoUrl || '', doc.videoType || 'mp4',
+          doc.trailerKey || '', doc.cast || '',
+          doc.director || '', doc.language || 'en',
+          doc.popularity || 0, doc.releaseDate || '',
+          doc.seasons || 0, doc.episodesCount || 0,
+          doc.premium ? 1 : 0, doc.badge || ''
+        ]
+      );
+    }
+
+    save();
+    console.log(`[Restore] Restored ${mongoContent.length} items from MongoDB to SQLite`);
+
+    // Also restore episodes
+    const mongoEpisodes = await mdb.collection('episodes').find({}).toArray();
+    if (mongoEpisodes.length > 0) {
+      for (const ep of mongoEpisodes) {
+        // Find the content by sqliteId or title
+        const cItem = content.findByTmdbId(ep.tmdbId, ep.type) || content.getAll().find(c => c.title === ep.title);
+        if (cItem) {
+          db.run(
+            `INSERT INTO episodes (content_id, number, season, title, description, duration, video_url, air_date, rating)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [cItem.id, ep.number || 1, ep.season || 1, ep.title || '',
+             ep.description || '', ep.duration || '', ep.videoUrl || '',
+             ep.airDate || '', ep.rating || '']
+          );
+        }
+      }
+      save();
+      console.log(`[Restore] Restored ${mongoEpisodes.length} episodes`);
+    }
+  } catch (err) {
+    console.error('[Restore] Failed:', err.message);
+  }
 }
 
 module.exports = {

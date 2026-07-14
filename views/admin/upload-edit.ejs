@@ -1,0 +1,200 @@
+<%- include('../partials/header', { pageTitle: 'Edit Content — StreamX Admin' }) %>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#060814;color:#E2E8F0;font-family:'Inter',sans-serif}
+.admin-layout{display:flex;min-height:100vh}
+.admin-main{flex:1;padding:24px 16px}
+
+.upload-page{position:relative;min-height:100vh;background:#060814}
+.upload-glow-bg{position:fixed;top:-120px;right:-120px;width:400px;height:400px;background:radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 70%);pointer-events:none;z-index:0}
+
+.upload-card-wrapper{position:relative;max-width:720px;margin:0 auto 32px;z-index:1}
+.upload-card-border{position:absolute;inset:-1px;border-radius:21px;background:linear-gradient(135deg,rgba(99,102,241,0.4),rgba(168,85,247,0.2),rgba(59,130,246,0.3));z-index:-1;opacity:0.7;transition:opacity .3s}
+.upload-card-wrapper:hover .upload-card-border{opacity:1}
+
+.upload-card{background:linear-gradient(160deg,#0B1220 0%,#111827 100%);border-radius:20px;padding:32px;box-shadow:0 8px 40px rgba(0,0,0,0.5);position:relative;z-index:1}
+
+.upload-card-header{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.upload-icon-box{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#2563EB,#3B82F6);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(37,99,235,0.3);flex-shrink:0}
+.upload-card-header h3{font-size:1.2rem;font-weight:700;color:#F1F5F9;margin-bottom:2px}
+.upload-card-header p{font-size:0.82rem;color:#64748B}
+
+.upload-field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.upload-field label{color:#64748B;font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em}
+.upload-field input,.upload-field textarea,.upload-field select{
+  width:100%;padding:12px 16px;background:rgba(6,10,20,0.8);border:1.5px solid rgba(51,65,85,0.5);
+  color:#F1F5F9;border-radius:14px;font-size:0.88rem;font-family:'Inter',sans-serif;outline:none;
+  transition:border-color .3s,box-shadow .3s;box-sizing:border-box;
+}
+.upload-field input:focus,.upload-field textarea:focus,.upload-field select:focus{border-color:#2563EB;box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
+.upload-field textarea{resize:vertical;min-height:70px}
+.upload-field select{cursor:pointer;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center}
+.upload-field select option{background:#0f1729;color:#F1F5F9}
+
+.upload-row{display:flex;gap:14px}
+.upload-row .upload-field{flex:1}
+
+.premium-toggle-wrap{
+  display:flex;align-items:center;gap:10px;padding:10px 18px;
+  background:rgba(6,10,20,0.8);border:1.5px solid rgba(51,65,85,0.5);
+  border-radius:14px;cursor:pointer;transition:border-color .3s;height:46px;box-sizing:border-box;margin-bottom:16px}
+.premium-toggle-wrap:hover{border-color:rgba(250,204,21,0.4)}
+.premium-toggle-wrap.active{border-color:rgba(250,204,21,0.4)}
+.premium-toggle-wrap .star-icon{color:#475569;transition;color .3s}
+.premium-toggle-wrap.active .star-icon{color:#FACC15}
+.premium-toggle-wrap .toggle-label-text{color:#64748B;font-size:0.85rem;font-weight:500;transition:color .3s}
+.premium-toggle-wrap.active .toggle-label-text{color:#FACC15}
+.toggle-switch{width:36px;height:20px;background:#1E293B;border-radius:10px;position:relative;transition:background .3s;margin-left:auto}
+.toggle-switch::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#475569;border-radius:50%;transition:transform .3s,background .3s}
+.premium-toggle-wrap.active .toggle-switch{background:rgba(250,204,21,0.25)}
+.premium-toggle-wrap.active .toggle-switch::after{transform:translateX(16px);background:#FACC15}
+.premium-toggle-wrap input[type="checkbox"]{display:none}
+
+.upload-btn-row{display:flex;gap:12px;margin-top:8px}
+.upload-btn{flex:1;padding:14px;border:none;border-radius:14px;font-size:0.9rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;transition:all .3s}
+.upload-btn.primary{background:linear-gradient(135deg,#2563EB,#3B82F6);color:#fff;box-shadow:0 4px 16px rgba(37,99,235,0.25)}
+.upload-btn.primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(37,99,235,0.4)}
+.upload-btn.secondary{background:rgba(30,41,59,0.6);color:#94A3B8;border:1.5px solid rgba(51,65,85,0.4)}
+.upload-btn.secondary:hover{background:rgba(30,41,59,0.9);color:#E2E8F0}
+
+.upload-alert{padding:12px 18px;border-radius:12px;margin-bottom:20px;display:flex;align-items:center;gap:10px;font-size:0.88rem;font-weight:500}
+.upload-alert-success{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);color:#4ADE80}
+.upload-alert-danger{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#F87171}
+
+@media(max-width:640px){
+  .upload-card{padding:22px 18px}
+  .upload-row{flex-direction:column}
+}
+</style>
+
+<div class="upload-page">
+  <div class="upload-glow-bg"></div>
+  <div class="admin-layout">
+    <%- include('../partials/admin-sidebar') %>
+    <main class="admin-main" style="padding:24px 16px;">
+
+      <% if (success) { %>
+        <div class="upload-alert upload-alert-success">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <%= success %>
+        </div>
+      <% } %>
+      <% if (error) { %>
+        <div class="upload-alert upload-alert-danger">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          <%= error %>
+        </div>
+      <% } %>
+
+      <div class="upload-card-wrapper">
+        <div class="upload-card-border"></div>
+        <div class="upload-card">
+
+          <div class="upload-card-header">
+            <div class="upload-icon-box" style="background:linear-gradient(135deg,#F59E0B,#D97706);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+            </div>
+            <div>
+              <h3>Edit: <%= item.title %></h3>
+              <p>Update content details below</p>
+            </div>
+          </div>
+
+          <form method="POST" action="/admin/upload/edit/<%= item.id %>">
+
+            <div class="upload-field">
+              <label>Video URL</label>
+              <input type="url" name="videoUrl" value="<%= item.video_url || '' %>" required placeholder="https://huggingface.co/datasets/.../resolve/main/video.mp4">
+            </div>
+
+            <div class="upload-field">
+              <label>Title</label>
+              <input type="text" name="title" value="<%= item.title %>" required>
+            </div>
+
+            <div class="upload-field">
+              <label>Description</label>
+              <textarea name="description" rows="3"><%= item.description || '' %></textarea>
+            </div>
+
+            <div class="upload-row">
+              <div class="upload-field">
+                <label>Type</label>
+                <select name="type">
+                  <option value="movie" <%= item.type==='movie'?'selected':'' %>>Movie</option>
+                  <option value="series" <%= item.type==='series'?'selected':'' %>>Series</option>
+                  <option value="anime" <%= item.type==='anime'?'selected':'' %>>Anime</option>
+                </select>
+              </div>
+              <div class="upload-field">
+                <label>Genre</label>
+                <select name="genre">
+                  <% ['Action','Comedy','Drama','Horror','Sci-Fi','Thriller','Romance','Adventure','Crime','Anime','Documentary','Fantasy'].forEach(function(g) { %>
+                    <option value="<%= g %>" <%= (item.genre||'')===g?'selected':'' %>><%= g %></option>
+                  <% }); %>
+                </select>
+              </div>
+            </div>
+
+            <div class="upload-row">
+              <div class="upload-field">
+                <label>Year</label>
+                <input type="number" name="year" value="<%= item.year || 2024 %>" min="1900" max="2030">
+              </div>
+              <div class="upload-field">
+                <label>Rating</label>
+                <input type="number" name="rating" value="<%= item.rating || 7 %>" min="0" max="10" step="0.1">
+              </div>
+              <div class="upload-field">
+                <label>Duration</label>
+                <input type="text" name="duration" value="<%= item.duration || '' %>" placeholder="2h 15m">
+              </div>
+            </div>
+
+            <div class="upload-row">
+              <div class="upload-field">
+                <label>Poster URL</label>
+                <input type="url" name="poster" value="<%= item.poster || '' %>" placeholder="https://...">
+              </div>
+              <div class="upload-field">
+                <label>Backdrop URL</label>
+                <input type="url" name="backdrop" value="<%= item.backdrop || '' %>" placeholder="https://...">
+              </div>
+            </div>
+
+            <div class="upload-field">
+              <label>Video Format</label>
+              <select name="videoType">
+                <option value="auto">Auto-detect</option>
+                <option value="mp4" <%= (item.video_type||'')==='mp4'?'selected':'' %>>MP4</option>
+                <option value="mkv" <%= (item.video_type||'')==='mkv'?'selected':'' %>>MKV</option>
+                <option value="webm" <%= (item.video_type||'')==='webm'?'selected':'' %>>WebM</option>
+                <option value="m3u8" <%= (item.video_type||'')==='m3u8'?'selected':'' %>>HLS (m3u8)</option>
+                <option value="mpd" <%= (item.video_type||'')==='mpd'?'selected':'' %>>DASH (mpd)</option>
+                <option value="youtube" <%= (item.video_type||'')==='youtube'?'selected':'' %>>YouTube</option>
+              </select>
+            </div>
+
+            <div class="premium-toggle-wrap <%= item.premium ? 'active' : '' %>" onclick="this.classList.toggle('active');document.getElementById('premiumCheck').checked=this.classList.contains('active')">
+              <svg class="star-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span class="toggle-label-text"><%= item.premium ? 'Premium' : 'Free' %></span>
+              <div class="toggle-switch"></div>
+              <input type="checkbox" name="premium" id="premiumCheck" <%= item.premium ? 'checked' : '' %>>
+            </div>
+
+            <div class="upload-btn-row">
+              <a href="/admin/upload" class="upload-btn secondary">Cancel</a>
+              <button type="submit" class="upload-btn primary">Save Changes</button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+

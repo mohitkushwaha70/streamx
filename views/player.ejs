@@ -593,6 +593,9 @@
     const videoMime = getVideoMimeType(videoSrc);
   %>
 
+  var videoUrl = '<%= videoSrc %>';
+  var videoType = '<%= videoMime %>';
+
   var container = document.getElementById('artplayer-app');
   var hideTimer = null;
 
@@ -610,8 +613,8 @@
 
   var playerConfig = {
     container: '#artplayer-app',
-    url: '<%= videoSrc %>',
-    type: '<%= videoMime %>',
+    url: videoUrl,
+    type: videoType,
     poster: '<%= item.backdrop || item.poster %>',
     theme: '#6c5ce7',
     volume: 0.7,
@@ -647,10 +650,10 @@
         html: 'Quality',
         tooltip: 'Auto',
         selector: [
-          { default: true, html: '<span style="color:#6c5ce7">Auto</span>', url: '<%= videoSrc %>' },
-          { html: '1080p', url: '<%= videoSrc %>' },
-          { html: '720p', url: '<%= videoSrc %>' },
-          { html: '480p', url: '<%= videoSrc %>' }
+          { default: true, html: '<span style="color:#6c5ce7">Auto</span>', url: videoUrl },
+          { html: '1080p', url: videoUrl },
+          { html: '720p', url: videoUrl },
+          { html: '480p', url: videoUrl }
         ],
         onSelect: function(item) {
           art.switchQuality(item.url, item.html);
@@ -692,10 +695,10 @@
     }
   };
 
-  if (videoMime === 'm3u8' || videoMime === 'mpd') {
+  if (videoType === 'm3u8' || videoType === 'mpd') {
     playerConfig.customType = {
       m3u8: function(video, url) {
-        if (Hls.isSupported()) {
+        if (typeof Hls !== 'undefined' && Hls.isSupported()) {
           var hls = new Hls();
           hls.loadSource(url);
           hls.attachMedia(video);

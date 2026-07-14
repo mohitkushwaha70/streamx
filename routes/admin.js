@@ -566,6 +566,53 @@ router.post('/upload', (req, res) => {
   res.redirect('/admin/upload');
 });
 
+router.get('/upload/edit/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const item = db.content.findById(id);
+  if (!item) {
+    req.session.error = 'Content not found!';
+    return res.redirect('/admin/upload');
+  }
+  res.render('admin/upload-edit', { item, success: req.session.success, error: req.session.error });
+});
+
+router.post('/upload/edit/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const item = db.content.findById(id);
+  if (!item) {
+    req.session.error = 'Content not found!';
+    return res.redirect('/admin/upload');
+  }
+  const { title, genre, year, rating, videoUrl, videoType, poster, backdrop, description, duration, type: contentType, premium } = req.body;
+  if (!title || !videoUrl) {
+    req.session.error = 'Title and Video URL are required!';
+    return res.redirect('/admin/upload/edit/' + id);
+  }
+  let detectedType = videoType || item.video_type || 'mp4';
+  if (!videoType || videoType === 'auto') {
+    if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
+    else if (videoUrl && videoUrl.includes('.m3u8')) detectedType = 'm3u8';
+    else if (videoUrl && videoUrl.includes('.mpd')) detectedType = 'mpd';
+    else if (videoUrl && videoUrl.includes('.webm')) detectedType = 'webm';
+    else if (videoUrl && videoUrl.includes('.mkv')) detectedType = 'mkv';
+    else detectedType = 'mp4';
+  }
+  db.content.update(id, {
+    title, type: contentType || item.type, genre: genre || '',
+    genres: genre ? genre.split(',').map(g => g.trim()) : item.genres || [],
+    year: parseInt(year) || item.year, rating: parseFloat(rating) || 0,
+    duration: duration || '',
+    description: description || '',
+    poster: poster || item.poster,
+    backdrop: backdrop || item.backdrop,
+    video_url: videoUrl, video_type: detectedType,
+    premium: premium === 'on' ? 1 : 0
+  });
+  db.logs.add('content', `Content "${title}" updated`, req.session.user.name);
+  req.session.success = `"${title}" updated successfully!`;
+  res.redirect('/admin/upload');
+});
+
 router.get('/upload/delete/:id', (req, res) => {
   const id = parseInt(req.params.id);
   const item = db.content.findById(id);

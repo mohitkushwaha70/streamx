@@ -53,6 +53,7 @@ const downloadRoutes = require('./routes/download');
 const videoProxyRoutes = require('./routes/video-proxy');
 const searchRoutes = require('./routes/search');
 const paymentRoutes = require('./routes/payment');
+const apiRoutes = require('./routes/api');
 const { changeEmitter } = require('./data/sample');
 const { getSourceIcon, getSourceColor } = require('./services/watchmode');
 const { avatars: allAvatars, categories: avatarCategories } = require('./data/avatars');
@@ -107,6 +108,7 @@ app.use('/profile', profileRoutes);
 app.use('/watchlist', watchlistRoutes);
 app.use('/download', downloadRoutes);
 app.use('/stream', videoProxyRoutes);
+app.use('/api', apiRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use((err, req, res, next) => {

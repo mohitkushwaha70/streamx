@@ -10,17 +10,25 @@
   <section class="section">
     <div class="pricing-grid">
       <!-- Free -->
-      <div class="pricing-card">
-        <h3>Basic</h3>
-        <p style="color: var(--text-muted); font-size: 0.85rem;">For casual viewers</p>
-        <div class="price">Free<small></small></div>
+      <div class="pricing-card" style="border-color: rgba(37,99,235,0.2);">
+        <h3>Free</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Start watching right now</p>
+        <div class="price">₹0<small>/forever</small></div>
         <ul>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Limited content</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> 480p quality</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> 1 device</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> With ads</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Access all non-premium content</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Stream on 1 device</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> HD quality</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> No credit card needed</li>
         </ul>
-        <a href="/auth/register" class="btn btn-outline" style="width:100%;">Get Started</a>
+        <% if (user) { %>
+          <% if (user.plan === 'free') { %>
+            <button class="btn btn-primary" style="width:100%;" disabled>Current Plan</button>
+          <% } else { %>
+            <a href="/" class="btn btn-outline" style="width:100%;">Back to Browse</a>
+          <% } %>
+        <% } else { %>
+          <a href="/auth/register" class="btn btn-primary" style="width:100%;">Start Watching Free</a>
+        <% } %>
       </div>
 
       <!-- Premium Monthly -->

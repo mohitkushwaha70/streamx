@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Main blue gradient -->
+    <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#60A5FA"/>
+    </linearGradient>
+    <!-- Inner highlight gradient for 3D depth -->
+    <radialGradient id="innerGlow" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#93C5FD" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#60A5FA" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Soft outer glow -->
+    <radialGradient id="outerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="70%" stop-color="#3B82F6" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#3B82F6" stop-opacity="0.15"/>
+    </radialGradient>
+    <!-- Dark glass overlay -->
+    <linearGradient id="glassOverlay" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.12"/>
+      <stop offset="45%" stop-color="white" stop-opacity="0.03"/>
+      <stop offset="100%" stop-color="black" stop-opacity="0.08"/>
+    </linearGradient>
+    <!-- Ring gradient -->
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#3B82F6" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#2563EB" stop-opacity="0.6"/>
+    </linearGradient>
+    <!-- Drop shadow filter -->
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="20" flood-color="#3B82F6" flood-opacity="0.35"/>
+    </filter>
+    <!-- Inner shadow for depth -->
+    <filter id="innerShadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur"/>
+      <feOffset dx="0" dy="3" result="offsetBlur"/>
+      <feComposite in="SourceGraphic" in2="offsetBlur" operator="over"/>
+    </filter>
+    <!-- Subtle noise texture -->
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feBlend in="SourceGraphic" mode="overlay" result="noisy"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.08"/>
+      </feComponentTransfer>
+      <feComposite in="SourceGraphic" operator="over"/>
+    </filter>
+    <!-- Clip for circle -->
+    <clipPath id="circleClip">
+      <circle cx="512" cy="512" r="380"/>
+    </clipPath>
+  </defs>
+
+  <!-- Outer soft glow halo -->
+  <circle cx="512" cy="512" r="480" fill="url(#outerGlow)"/>
+
+  <!-- Shadow disc (blurred behind) -->
+  <circle cx="512" cy="520" r="385" fill="#3B82F6" opacity="0.2" filter="url(#softShadow)"/>
+
+  <!-- Outer ring border -->
+  <circle cx="512" cy="512" r="395" fill="none" stroke="url(#ringGrad)" stroke-width="2.5" opacity="0.6"/>
+
+  <!-- Main avatar circle - dark base -->
+  <circle cx="512" cy="512" r="380" fill="#0F172A"/>
+
+  <!-- Blue gradient overlay for 3D look -->
+  <circle cx="512" cy="512" r="380" fill="url(#mainGrad)" opacity="0.85"/>
+
+  <!-- Inner radial highlight - top-left light source -->
+  <circle cx="512" cy="512" r="380" fill="url(#innerGlow)"/>
+
+  <!-- Glassmorphism overlay -->
+  <circle cx="512" cy="512" r="380" fill="url(#glassOverlay)"/>
+
+  <!-- Subtle noise texture for premium feel -->
+  <circle cx="512" cy="512" r="380" fill="transparent" filter="url(#noise)" opacity="0.4"/>
+
+  <!-- Inner ring accent -->
+  <circle cx="512" cy="512" r="360" fill="none" stroke="white" stroke-width="1" opacity="0.08"/>
+
+  <!-- User silhouette - head -->
+  <circle cx="512" cy="390" r="95" fill="white" opacity="0.92"/>
+
+  <!-- User silhouette - body/shoulders -->
+  <ellipse cx="512" cy="640" rx="155" ry="120" fill="white" opacity="0.92"/>
+
+  <!-- Head-body overlap cleanup (dark to blend) -->
+  <ellipse cx="512" cy="490" rx="90" ry="40" fill="url(#mainGrad)" opacity="0.0"/>
+
+  <!-- Highlight rim on head - top left -->
+  <path d="M 440 350 Q 460 290 530 300" fill="none" stroke="white" stroke-width="2" opacity="0.25" stroke-linecap="round"/>
+
+  <!-- Bottom glass highlight -->
+  <ellipse cx="512" cy="780" rx="200" ry="8" fill="white" opacity="0.05"/>
+
+  <!-- Top specular highlight - premium shine -->
+  <ellipse cx="460" cy="320" rx="120" ry="30" fill="white" opacity="0.1" transform="rotate(-15 460 320)"/>
+
+  <!-- Small "X" mark for StreamX branding -->
+  <g transform="translate(512,512)" opacity="0">
+    <!-- Hidden - user can add if desired -->
+  </g>
+</svg>

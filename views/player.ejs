@@ -4,65 +4,423 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.css">
 
 <style>
-.player-page { padding: 0 !important; background: #000; }
-.player-main { display: flex; gap: 0; max-width: 1600px; margin: 0 auto; }
-.player-left { flex: 1; min-width: 0; }
-.player-right { width: 380px; flex-shrink: 0; padding: 16px; background: #0a0a0f; border-left: 1px solid #1a1a1a; max-height: calc(100vh - 60px); overflow-y: auto; position: sticky; top: 60px; }
-.player-right::-webkit-scrollbar { width: 4px; }
-.player-right::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-.player-right-title { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-.player-right-title svg { color: #3B82F6; }
-
-#artplayer-app {
-  width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 0;
-  overflow: hidden; position: relative;
+/* ============================================================
+   WATCH PAGE - Netflix/JioHotstar Cinematic Style
+   ============================================================ */
+.watch-page {
+  padding: 0 !important;
+  background: #000;
+  min-height: 100vh;
 }
 
-/* ============================================================
-   HIDE ALL ArtPlayer DEFAULT UI (top bar, settings, tips, etc.)
-   ============================================================ */
+/* Player container - full width */
+.watch-player-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: #000;
+}
+
+#artplayer-app {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Hide all ArtPlayer default UI */
 .art-top, .art-control-top, .art-settings, .art-info,
 .art-mask, .art-tip, .art-notice, .art-setting,
 .art-control-progress-tip { display: none !important; }
+.art-state { position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%,-50%) !important; z-index: 50 !important; pointer-events: none !important; }
+.art-state svg { filter: drop-shadow(0 2px 12px rgba(0,0,0,0.5)); }
+.art-notice { display: none !important; }
 
 /* ============================================================
-   BACK BUTTON (top-left, appears on hover)
+   OVERLAY - TOP BAR (back + title)
    ============================================================ */
-.sx-back {
-  position: absolute; top: 16px; left: 16px; z-index: 200;
-  width: 42px; height: 42px; border-radius: 12px;
-  background: rgba(0,0,0,0.55); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255,255,255,0.08); cursor: pointer;
+.wx-top-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+#artplayer-app:hover .wx-top-bar,
+#artplayer-app.sx-controls-visible .wx-top-bar { opacity: 1; }
+
+.wx-back {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.06);
   display: flex; align-items: center; justify-content: center;
-  opacity: 0; transition: opacity 0.3s ease, transform 0.2s ease;
-  color: white; text-decoration: none;
+  color: white;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
-#artplayer-app:hover .sx-back, #artplayer-app.sx-controls-visible .sx-back { opacity: 1; }
-.sx-back:hover { background: rgba(59,130,246,0.6); transform: scale(1.08); border-color: rgba(59,130,246,0.4); }
+.wx-back:hover { background: rgba(255,255,255,0.18); transform: scale(1.06); }
+.wx-back svg { width: 20px; height: 20px; }
+
+.wx-title-group {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; gap: 10px;
+}
+.wx-ep-badge {
+  background: rgba(59,130,246,0.2);
+  color: #60a5fa;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.wx-title-text {
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wx-top-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.wx-top-btn {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.wx-top-btn:hover { background: rgba(255,255,255,0.18); }
+.wx-top-btn svg { width: 18px; height: 18px; }
 
 /* ============================================================
-   EPISODE TITLE (appears on hover above controls)
+   OVERLAY - BOTTOM BAR
    ============================================================ */
-.sx-ep-title {
-  position: absolute; bottom: 84px; left: 16px; z-index: 150;
-  background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  padding: 8px 16px; border-radius: 10px;
-  color: white; font-size: 0.85rem; font-weight: 600;
-  pointer-events: none; opacity: 0; transition: opacity 0.3s ease;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+.wx-bottom-bar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  z-index: 100;
+  background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 50%, transparent 100%);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  padding-bottom: 6px;
 }
-#artplayer-app:hover .sx-ep-title, #artplayer-app.sx-controls-visible .sx-ep-title { opacity: 1; }
+#artplayer-app:hover .wx-bottom-bar,
+#artplayer-app.sx-controls-visible .wx-bottom-bar { opacity: 1; }
+
+/* Progress bar */
+.wx-progress-wrap {
+  position: relative;
+  padding: 14px 16px 4px 16px;
+}
+.wx-progress-track {
+  position: relative;
+  height: 4px;
+  background: rgba(255,255,255,0.18);
+  border-radius: 2px;
+  overflow: visible;
+  cursor: pointer;
+  transition: height 0.2s ease, background 0.2s ease;
+}
+.wx-progress-wrap:hover .wx-progress-track { height: 6px; }
+
+.wx-progress-buffered {
+  position: absolute; top: 0; left: 0; height: 100%;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+  pointer-events: none;
+}
+.wx-progress-played {
+  position: absolute; top: 0; left: 0; height: 100%;
+  background: #3B82F6;
+  border-radius: 2px;
+  pointer-events: none;
+}
+.wx-progress-thumb {
+  width: 14px; height: 14px;
+  background: #3B82F6;
+  border: 2.5px solid #fff;
+  border-radius: 50%;
+  position: absolute; top: 50%;
+  transform: translateY(-50%) scale(0);
+  pointer-events: none;
+  z-index: 10;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 0 12px rgba(59,130,246,0.6);
+}
+.wx-progress-wrap:hover .wx-progress-thumb { transform: translateY(-50%) scale(1); }
+
+/* Hover thumbnail preview */
+.wx-thumb-preview {
+  position: absolute; bottom: calc(100% + 12px); transform: translateX(-50%);
+  width: 160px; height: 90px;
+  border-radius: 8px; overflow: hidden;
+  background: #111;
+  border: 2px solid rgba(255,255,255,0.12);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.7);
+  display: none; pointer-events: none; z-index: 110;
+}
+.wx-progress-wrap:hover .wx-thumb-preview { display: block; }
+.wx-thumb-preview img { width: 100%; height: 100%; object-fit: cover; }
+.wx-thumb-preview .wx-thumb-time {
+  position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.85); padding: 2px 8px; border-radius: 4px;
+  color: white; font-size: 0.7rem; font-weight: 600;
+}
+
+/* Controls row */
+.wx-controls {
+  display: flex;
+  align-items: center;
+  padding: 2px 12px;
+  gap: 2px;
+  height: 44px;
+}
+.wx-controls .wx-ctrl {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  cursor: pointer;
+  color: #fff;
+  opacity: 0.92;
+  transition: opacity 0.2s ease, transform 0.15s ease, background 0.2s ease;
+  border-radius: 8px;
+  height: 34px;
+  position: relative;
+}
+.wx-controls .wx-ctrl:hover {
+  opacity: 1;
+  background: rgba(255,255,255,0.1);
+  transform: scale(1.06);
+}
+.wx-controls .wx-ctrl svg {
+  width: 20px; height: 20px;
+  fill: #fff;
+  flex-shrink: 0;
+}
+.wx-controls .wx-spacer { flex: 1; pointer-events: none; }
+
+/* Volume slider */
+.wx-volume-wrap { display: flex; align-items: center; }
+.wx-volume-slider {
+  width: 0; overflow: hidden;
+  transition: width 0.25s ease;
+  display: flex; align-items: center;
+}
+.wx-volume-wrap:hover .wx-volume-slider { width: 80px; }
+.wx-volume-slider .wx-vol-track {
+  width: 100%; height: 3px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+  position: relative; cursor: pointer;
+}
+.wx-volume-slider .wx-vol-fill {
+  height: 100%;
+  background: #3B82F6;
+  border-radius: 2px;
+}
+.wx-volume-slider .wx-vol-thumb {
+  width: 12px; height: 12px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute; top: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 6px rgba(0,0,0,0.4);
+}
+
+/* Time display */
+.wx-time {
+  font-size: 13px; font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  padding: 0 8px;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+/* Settings popup */
+.wx-settings-panel {
+  position: absolute; bottom: 64px; right: 12px; z-index: 300;
+  background: rgba(10,12,20,0.94);
+  backdrop-filter: blur(28px) saturate(150%);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.65);
+  padding: 8px 0;
+  min-width: 280px; max-height: 65vh;
+  overflow-y: auto;
+  display: none;
+}
+.wx-settings-panel.open { display: block; animation: wxSlideUp 0.2s ease; }
+@keyframes wxSlideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.wx-settings-panel::-webkit-scrollbar { width: 4px; }
+.wx-settings-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+
+.wx-sp-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 20px;
+  color: rgba(255,255,255,0.85); font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.wx-sp-item:hover { background: rgba(59,130,246,0.1); }
+.wx-sp-item.active { color: #3B82F6; font-weight: 600; }
+.wx-sp-item .wx-sp-label { font-weight: 500; }
+.wx-sp-item .wx-sp-value {
+  color: rgba(255,255,255,0.4); font-size: 0.8rem;
+  display: flex; align-items: center; gap: 4px;
+}
+.wx-sp-item .wx-sp-value svg { width: 14px; height: 14px; fill: rgba(255,255,255,0.3); }
+.wx-sp-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 4px 0; }
+
+.wx-toggle {
+  width: 36px; height: 20px; border-radius: 10px;
+  position: relative;
+  background: rgba(255,255,255,0.2);
+  transition: background 0.2s ease;
+  cursor: pointer;
+}
+.wx-toggle.on { background: #3B82F6; }
+.wx-toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+}
+.wx-toggle.on::after { transform: translateX(16px); }
 
 /* ============================================================
-   MINI PROGRESS BAR (visible when controls are hidden)
+   OVERLAY - SKIP INTRO / RECAP BUTTONS
    ============================================================ */
-.sx-mini-progress {
+.wx-skip-overlay {
+  position: absolute;
+  bottom: 100px; right: 20px;
+  z-index: 180;
+  display: none;
+  animation: wxFadeIn 0.3s ease;
+}
+.wx-skip-overlay.visible { display: block; }
+@keyframes wxFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.wx-skip-btn {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: white;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+.wx-skip-btn:hover { background: rgba(255,255,255,0.22); transform: scale(1.04); }
+
+/* ============================================================
+   OVERLAY - NEXT EPISODE NOTIFICATION
+   ============================================================ */
+.wx-next-ep {
+  position: absolute;
+  bottom: 100px; right: 20px;
+  z-index: 180;
+  display: none;
+  animation: wxFadeIn 0.3s ease;
+}
+.wx-next-ep.visible { display: block; }
+
+.wx-next-card {
+  background: rgba(10,12,20,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+  width: 320px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.wx-next-card:hover { background: rgba(20,22,32,0.95); border-color: rgba(59,130,246,0.3); }
+
+.wx-next-thumb {
+  width: 120px; height: 68px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  background: #111;
+}
+.wx-next-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.wx-next-play {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 32px; height: 32px;
+  background: rgba(0,0,0,0.6);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.wx-next-play svg { width: 16px; height: 16px; fill: white; }
+
+.wx-next-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.wx-next-label { font-size: 0.65rem; color: #3B82F6; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.wx-next-title { font-size: 0.85rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+.wx-next-ep-num { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+.wx-next-timer { font-size: 0.7rem; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+.wx-next-close {
+  position: absolute; top: -8px; right: -8px;
+  width: 24px; height: 24px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: white;
+  font-size: 0.7rem;
+  transition: background 0.2s ease;
+}
+.wx-next-close:hover { background: rgba(255,255,255,0.3); }
+
+/* ============================================================
+   MINI PROGRESS BAR (visible when controls hidden)
+   ============================================================ */
+.wx-mini-progress {
   position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
   background: rgba(255,255,255,0.12); z-index: 99;
   opacity: 1; transition: opacity 0.3s ease;
 }
-.sx-mini-progress-inner { height: 100%; background: #3B82F6; transition: width 0.3s linear; }
-#artplayer-app.sx-controls-visible .sx-mini-progress { opacity: 0; }
+.wx-mini-progress-inner { height: 100%; background: #3B82F6; transition: width 0.3s linear; }
+#artplayer-app.sx-controls-visible .wx-mini-progress { opacity: 0; }
 
 /* ============================================================
    THEATER MODE OVERLAY
@@ -74,237 +432,258 @@
   right: 0 !important; width: 100vw !important; height: 100vh !important;
   z-index: 9999 !important; aspect-ratio: unset !important; border-radius: 0 !important;
 }
-#artplayer-app.theater-mode .sx-bottom-bar { padding-bottom: 12px !important; }
-#artplayer-app.theater-mode .sx-back { top: 20px !important; left: 20px !important; }
-#artplayer-app.theater-mode .sx-ep-title { bottom: 100px !important; }
-#artplayer-app.theater-mode .sx-mini-progress { height: 4px !important; }
-
-/* ============================================================
-   BOTTOM BAR CONTAINER (gradient + glass)
-   ============================================================ */
-.sx-bottom-bar {
-  position: absolute !important; bottom: 0 !important; left: 0 !important; right: 0 !important;
-  z-index: 100 !important; padding: 0 !important; margin: 0 !important;
-  background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.7) 50%, transparent 100%) !important;
-  backdrop-filter: blur(18px) saturate(180%) !important; -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
-  opacity: 0; transition: opacity 0.35s ease !important; padding-bottom: 8px !important;
-}
-#artplayer-app:hover .sx-bottom-bar, #artplayer-app.sx-controls-visible .sx-bottom-bar { opacity: 1 !important; }
-
-/* ============================================================
-   PROGRESS BAR
-   ============================================================ */
-.sx-progress-wrap {
-  position: relative !important; padding: 12px 16px 4px 16px !important;
-  height: auto !important; margin-bottom: 0 !important;
-}
-.sx-progress-track {
-  position: relative !important; height: 4px !important;
-  background: rgba(255,255,255,0.18) !important; border-radius: 2px !important;
-  overflow: visible !important; cursor: pointer !important;
-  transition: height 0.2s ease, background 0.2s ease !important;
-}
-.sx-progress-wrap:hover .sx-progress-track { height: 6px !important; }
-
-.sx-progress-buffered {
-  position: absolute; top: 0; left: 0; height: 100%;
-  background: rgba(255,255,255,0.2) !important; border-radius: 2px !important;
-  pointer-events: none;
-}
-.sx-progress-played {
-  position: absolute; top: 0; left: 0; height: 100%;
-  background: #3B82F6 !important; border-radius: 2px !important;
-  pointer-events: none;
-}
-.sx-progress-thumb {
-  width: 14px; height: 14px; background: #3B82F6; border: 2.5px solid #fff;
-  border-radius: 50%; position: absolute; top: 50%;
-  transform: translateY(-50%) scale(0); pointer-events: none; z-index: 10;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 0 12px rgba(59,130,246,0.6);
-}
-.sx-progress-wrap:hover .sx-progress-thumb { transform: translateY(-50%) scale(1); }
-
-/* Hover thumbnail preview */
-.sx-thumb-preview {
-  position: absolute; bottom: calc(100% + 12px); transform: translateX(-50%);
-  width: 160px; height: 90px; border-radius: 8px; overflow: hidden;
-  background: #111; border: 2px solid rgba(255,255,255,0.12);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.7);
-  display: none; pointer-events: none; z-index: 110;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-.sx-progress-wrap:hover .sx-thumb-preview { display: block; }
-.sx-thumb-preview img { width: 100%; height: 100%; object-fit: cover; }
-.sx-thumb-preview .sx-thumb-time {
-  position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
-  background: rgba(0,0,0,0.85); padding: 2px 8px; border-radius: 4px;
-  color: white; font-size: 0.7rem; font-weight: 600;
-}
-
-/* ============================================================
-   CONTROLS ROW
-   ============================================================ */
-.sx-controls {
-  display: flex !important; align-items: center !important;
-  padding: 2px 12px 2px 12px !important; gap: 2px !important; height: 44px !important;
-}
-.sx-controls .sx-ctrl {
-  display: flex !important; align-items: center !important; justify-content: center !important;
-  padding: 0 6px !important; cursor: pointer !important; color: #fff !important;
-  opacity: 0.92 !important; transition: opacity 0.2s ease, transform 0.15s ease, background 0.2s ease !important;
-  border-radius: 8px !important; height: 34px !important; position: relative !important;
-}
-.sx-controls .sx-ctrl:hover {
-  opacity: 1 !important; background: rgba(255,255,255,0.1) !important; transform: scale(1.06) !important;
-}
-.sx-controls .sx-ctrl svg { width: 20px !important; height: 20px !important; fill: #fff !important; flex-shrink: 0 !important; }
-.sx-controls .sx-spacer { flex: 1 !important; pointer-events: none !important; }
-
-/* Volume slider expand on hover */
-.sx-volume-wrap { display: flex !important; align-items: center !important; }
-.sx-volume-slider {
-  width: 0; overflow: hidden; transition: width 0.25s ease; display: flex; align-items: center;
-}
-.sx-volume-wrap:hover .sx-volume-slider { width: 80px; }
-.sx-volume-slider .sx-vol-track {
-  width: 100%; height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px;
-  position: relative; cursor: pointer;
-}
-.sx-volume-slider .sx-vol-fill {
-  height: 100%; background: #3B82F6; border-radius: 2px;
-}
-.sx-volume-slider .sx-vol-thumb {
-  width: 12px; height: 12px; background: #fff; border-radius: 50%;
-  position: absolute; top: 50%; transform: translate(-50%, -50%);
-  box-shadow: 0 0 6px rgba(0,0,0,0.4);
-}
-
-/* Time display */
-.sx-time {
-  font-size: 13px !important; font-weight: 500 !important;
-  color: rgba(255,255,255,0.85) !important; padding: 0 8px !important;
-  white-space: nowrap !important; letter-spacing: 0.02em !important;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-}
-
-/* ============================================================
-   SETTINGS POPUP
-   ============================================================ */
-.sx-settings-panel {
-  position: absolute; bottom: 64px; right: 12px; z-index: 300;
-  background: rgba(10,12,20,0.94); backdrop-filter: blur(28px) saturate(150%);
-  -webkit-backdrop-filter: blur(28px) saturate(150%);
-  border: 1px solid rgba(255,255,255,0.08); border-radius: 16px;
-  box-shadow: 0 12px 48px rgba(0,0,0,0.65); padding: 8px 0;
-  min-width: 280px; max-height: 65vh; overflow-y: auto;
-  display: none; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-.sx-settings-panel.open { display: block; animation: sxSlideUp 0.2s ease; }
-@keyframes sxSlideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-.sx-settings-panel::-webkit-scrollbar { width: 4px; }
-.sx-settings-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
-
-.sx-settings-panel .sx-sp-title {
-  padding: 12px 20px 6px; color: rgba(255,255,255,0.4); font-size: 0.65rem;
-  font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
-}
-.sx-settings-panel .sx-sp-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 11px 20px; color: rgba(255,255,255,0.85); font-size: 0.85rem;
-  cursor: pointer; transition: background 0.15s ease;
-}
-.sx-settings-panel .sx-sp-item:hover { background: rgba(59,130,246,0.1); }
-.sx-settings-panel .sx-sp-item.active { color: #3B82F6; font-weight: 600; }
-.sx-settings-panel .sx-sp-item .sx-sp-label { font-weight: 500; }
-.sx-settings-panel .sx-sp-item .sx-sp-value {
-  color: rgba(255,255,255,0.4); font-size: 0.8rem; display: flex; align-items: center; gap: 4px;
-}
-.sx-settings-panel .sx-sp-item .sx-sp-value svg { width: 14px; height: 14px; fill: rgba(255,255,255,0.3); }
-.sx-settings-panel .sx-sp-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 4px 0; }
-
-/* Toggle switch */
-.sx-toggle {
-  width: 36px; height: 20px; border-radius: 10px; position: relative;
-  background: rgba(255,255,255,0.2); transition: background 0.2s ease; cursor: pointer;
-}
-.sx-toggle.on { background: #3B82F6; }
-.sx-toggle::after {
-  content: ''; position: absolute; top: 2px; left: 2px;
-  width: 16px; height: 16px; border-radius: 50%; background: #fff;
-  transition: transform 0.2s ease;
-}
-.sx-toggle.on::after { transform: translateX(16px); }
+#artplayer-app.theater-mode .wx-bottom-bar { padding-bottom: 12px !important; }
+#artplayer-app.theater-mode .wx-top-bar { padding: 20px !important; }
+#artplayer-app.theater-mode .wx-mini-progress { height: 4px !important; }
 
 /* ============================================================
    NOTIFICATION TOAST
    ============================================================ */
-.sx-notice {
+.wx-notice {
   position: absolute; top: 20px; right: 20px; z-index: 300;
-  background: rgba(10,12,20,0.9); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
-  padding: 10px 18px; color: white; font-size: 0.85rem; font-weight: 500;
-  animation: sxNoticeIn 0.3s ease; pointer-events: none;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: rgba(10,12,20,0.9);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 10px 18px;
+  color: white; font-size: 0.85rem; font-weight: 500;
+  animation: wxNoticeIn 0.3s ease;
+  pointer-events: none;
 }
-@keyframes sxNoticeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-
-/* Center state icon */
-.art-state { position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%,-50%) !important; z-index: 50 !important; pointer-events: none !important; }
-.art-state svg { filter: drop-shadow(0 2px 12px rgba(0,0,0,0.5)); }
-.art-notice { display: none !important; }
+@keyframes wxNoticeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 
 /* ============================================================
-   VIDEO INFO (below player)
+   CONTENT BELOW PLAYER
    ============================================================ */
-.video-info { padding: 20px 24px; }
-.video-info h1 { font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
-.video-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
-.video-meta .rating { color: #f59e0b; font-weight: 700; font-size: 0.9rem; }
-.video-meta span { font-size: 0.85rem; color: var(--text-muted); }
-.video-meta .premium-badge { background: linear-gradient(135deg, #f59e0b, #f97316); color: #000; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
-.video-meta .quality-badge { background: rgba(59,130,246,0.15); color: #3B82F6; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(59,130,246,0.3); }
-.video-desc { color: var(--text-secondary); line-height: 1.7; font-size: 0.9rem; margin-bottom: 16px; }
-.video-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-.video-actions .action-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: var(--text-secondary); font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
-.video-actions .action-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
-.video-actions .action-btn.liked { color: #ef4444; border-color: rgba(239,68,68,0.3); }
-.video-actions .action-btn svg { flex-shrink: 0; }
+.watch-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 32px 60px;
+}
 
-.episodes-section { padding: 20px 24px; border-top: 1px solid #1a1a1a; }
-.episodes-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.episodes-header h2 { font-size: 1.1rem; font-weight: 700; color: #fff; }
-.season-tabs { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; }
-.season-tab { padding: 6px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: var(--transition); white-space: nowrap; text-decoration: none; }
-.season-tab.active { background: #3B82F6; color: #fff; border-color: #3B82F6; }
-.season-tab:hover { border-color: rgba(59,130,246,0.5); color: #fff; }
-.episode-card { display: flex; gap: 14px; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; margin-bottom: 8px; transition: all 0.2s; cursor: pointer; text-decoration: none; color: inherit; }
-.episode-card:hover { background: rgba(255,255,255,0.08); border-color: rgba(59,130,246,0.3); }
-.episode-card.active { background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.3); }
-.episode-thumb { width: 160px; height: 90px; border-radius: 8px; overflow: hidden; flex-shrink: 0; position: relative; background: #111; }
-.episode-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.episode-thumb .ep-num { position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.8); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
-.episode-thumb .ep-now { position: absolute; top: 6px; right: 6px; background: #3B82F6; color: #fff; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
-.episode-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
-.episode-info h4 { font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.episode-info p { font-size: 0.8rem; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5; }
-.episode-info .ep-duration { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; }
+/* Back row (mobile-visible, hidden on desktop where we have overlay) */
+.watch-back-row {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.watch-back-link {
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.85rem; font-weight: 500;
+  transition: color 0.2s;
+}
+.watch-back-link:hover { color: #fff; }
+.watch-back-link svg { width: 18px; height: 18px; }
 
-.recommended-section { padding: 20px 24px; border-top: 1px solid #1a1a1a; }
-.rec-scroll { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 8px; }
-.rec-scroll::-webkit-scrollbar { height: 4px; }
-.rec-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-.rec-card { min-width: 200px; flex-shrink: 0; text-decoration: none; color: inherit; }
-.rec-card .rec-thumb { width: 200px; height: 112px; border-radius: 8px; overflow: hidden; position: relative; background: #111; }
-.rec-card .rec-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
-.rec-card:hover .rec-thumb img { transform: scale(1.05); }
-.rec-card .rec-play { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); opacity: 0; transition: all 0.3s; }
-.rec-card:hover .rec-play { opacity: 1; }
-.rec-card .rec-info { padding: 8px 0; }
-.rec-card .rec-info h4 { font-size: 0.8rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rec-card .rec-info p { font-size: 0.75rem; color: var(--text-muted); }
+/* Title + meta */
+.watch-title-row { margin-bottom: 16px; }
+.watch-title {
+  font-size: 1.6rem; font-weight: 800; color: #fff;
+  margin-bottom: 8px; line-height: 1.3;
+}
+.watch-meta {
+  display: flex; align-items: center; gap: 14px;
+  flex-wrap: wrap;
+}
+.watch-meta .rating { color: #f59e0b; font-weight: 700; font-size: 0.9rem; }
+.watch-meta span { font-size: 0.85rem; color: rgba(255,255,255,0.5); }
+.watch-meta .premium-badge {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: #000; padding: 3px 10px;
+  border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+}
+.watch-meta .quality-badge {
+  background: rgba(59,130,246,0.15);
+  color: #3B82F6; padding: 3px 10px;
+  border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+  border: 1px solid rgba(59,130,246,0.3);
+}
 
+/* Actions row */
+.watch-actions {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px;
+}
+.watch-action-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  color: rgba(255,255,255,0.6);
+  font-size: 0.8rem; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  font-family: inherit;
+}
+.watch-action-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.watch-action-btn.liked { color: #ef4444; border-color: rgba(239,68,68,0.3); }
+.watch-action-btn svg { flex-shrink: 0; }
+
+/* Description */
+.watch-desc {
+  color: rgba(255,255,255,0.65);
+  line-height: 1.7; font-size: 0.9rem;
+  margin-bottom: 28px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.watch-desc.expanded {
+  -webkit-line-clamp: unset;
+}
+.watch-desc-toggle {
+  color: #3B82F6;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 6px;
+  display: inline-block;
+}
+
+/* Divider */
+.watch-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 28px 0; }
+
+/* Section header */
+.watch-section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+.watch-section-header h2 {
+  font-size: 1.1rem; font-weight: 700; color: #fff;
+  display: flex; align-items: center; gap: 8px;
+}
+.watch-section-header h2 svg { width: 20px; height: 20px; color: #3B82F6; }
+.watch-section-toggle {
+  color: rgba(255,255,255,0.4);
+  font-size: 0.8rem;
+  display: flex; align-items: center; gap: 4px;
+  transition: color 0.2s;
+}
+.watch-section-header:hover .watch-section-toggle { color: rgba(255,255,255,0.7); }
+.watch-section-body { transition: max-height 0.35s ease, opacity 0.25s ease; overflow: hidden; }
+.watch-section-body.collapsed { max-height: 0; opacity: 0; }
+
+/* Season tabs */
+.watch-season-tabs { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; }
+.watch-season-tab {
+  padding: 6px 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  color: rgba(255,255,255,0.5);
+  font-size: 0.8rem; font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.watch-season-tab.active { background: #3B82F6; color: #fff; border-color: #3B82F6; }
+.watch-season-tab:hover { border-color: rgba(59,130,246,0.5); color: #fff; }
+
+/* Episode cards */
+.watch-episode-card {
+  display: flex; gap: 14px;
+  padding: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  transition: all 0.2s;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+.watch-episode-card:hover { background: rgba(255,255,255,0.08); border-color: rgba(59,130,246,0.3); }
+.watch-episode-card.active { background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.3); }
+
+.watch-ep-thumb {
+  width: 160px; height: 90px;
+  border-radius: 8px; overflow: hidden;
+  flex-shrink: 0; position: relative;
+  background: #111;
+}
+.watch-ep-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.watch-ep-num {
+  position: absolute; bottom: 6px; left: 6px;
+  background: rgba(0,0,0,0.8); color: #fff;
+  font-size: 0.7rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 4px;
+}
+.watch-ep-now {
+  position: absolute; top: 6px; right: 6px;
+  background: #3B82F6; color: #fff;
+  font-size: 0.65rem; font-weight: 700;
+  padding: 2px 6px; border-radius: 4px;
+}
+
+.watch-ep-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.watch-ep-info h4 { font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.watch-ep-info p { font-size: 0.8rem; color: rgba(255,255,255,0.45); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5; }
+.watch-ep-info .watch-ep-duration { font-size: 0.75rem; color: rgba(255,255,255,0.35); margin-top: 6px; }
+
+/* Horizontal scroll recommendation cards */
+.watch-rec-scroll {
+  display: flex; gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.watch-rec-scroll::-webkit-scrollbar { height: 4px; }
+.watch-rec-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+.watch-rec-card {
+  min-width: 200px; flex-shrink: 0;
+  text-decoration: none; color: inherit;
+  transition: transform 0.2s;
+}
+.watch-rec-card:hover { transform: translateY(-2px); }
+
+.watch-rec-thumb {
+  width: 200px; height: 112px;
+  border-radius: 8px; overflow: hidden;
+  position: relative; background: #111;
+}
+.watch-rec-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+.watch-rec-card:hover .watch-rec-thumb img { transform: scale(1.05); }
+.watch-rec-play {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  opacity: 0; transition: all 0.3s;
+}
+.watch-rec-card:hover .watch-rec-play { opacity: 1; }
+.watch-rec-info { padding: 8px 0; }
+.watch-rec-info h4 { font-size: 0.8rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.watch-rec-info p { font-size: 0.75rem; color: rgba(255,255,255,0.4); }
+
+/* Where to watch streaming links */
+.watch-streaming { display: flex; gap: 12px; flex-wrap: wrap; }
+.watch-stream-link {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  text-decoration: none; color: #fff;
+  transition: all 0.3s;
+  min-width: 160px;
+}
+.watch-stream-link:hover { background: rgba(255,255,255,0.12); }
+.watch-stream-link img { width: 28px; height: 28px; border-radius: 6px; object-fit: contain; }
+.watch-stream-link .stream-name { font-weight: 600; font-size: 0.85rem; }
+.watch-stream-link .stream-action { font-size: 0.7rem; }
+.watch-stream-link .stream-action.free { color: #4ade80; }
+.watch-stream-link .stream-action.rent { color: #f59e0b; }
+.watch-stream-link .stream-action.buy { color: #3b82f6; }
+.watch-stream-link .stream-action.stream { color: #4ade80; }
+
+/* ============================================================
+   SHARE MODAL
+   ============================================================ */
 .share-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: none; align-items: center; justify-content: center; }
 .share-modal.active { display: flex; }
 .share-box { background: #111; border: 1px solid #222; border-radius: 16px; padding: 28px; max-width: 420px; width: 90%; }
@@ -312,244 +691,516 @@
 .share-link { display: flex; gap: 8px; margin-bottom: 16px; }
 .share-link input { flex: 1; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.85rem; }
 .share-link button { background: #3B82F6; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; cursor: pointer; }
-.share-people { display: flex; gap: 12px; flex-wrap: wrap; }
-.share-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #3B82F6, #7c3aed); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; color: #fff; cursor: pointer; transition: all 0.2s; }
-.share-avatar:hover { transform: scale(1.1); }
-.share-close { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.5rem; float: right; }
+.share-close { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 1.5rem; float: right; }
 
 /* ============================================================
-   RESPONSIVE
+   SIDEBAR TOGGLE (desktop)
    ============================================================ */
-@media (max-width: 1024px) {
-  .player-main { flex-direction: column; }
-  .player-right { width: 100%; max-height: none; position: static; border-left: none; border-top: 1px solid #1a1a1a; }
-  .sx-controls { padding: 4px 8px !important; gap: 1px !important; }
-  .sx-progress-wrap { padding: 10px 10px 4px 10px !important; }
+.wx-sidebar-toggle {
+  display: none;
+  position: absolute;
+  top: 16px; right: 16px;
+  z-index: 200;
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: none;
+  align-items: center; justify-content: center;
+  color: white; cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0;
 }
-@media (max-width: 768px) {
-  .sx-controls { padding: 2px 6px !important; gap: 0 !important; height: 38px !important; }
-  .sx-controls .sx-ctrl { padding: 0 4px !important; height: 30px !important; }
-  .sx-controls .sx-ctrl svg { width: 18px !important; height: 18px !important; }
-  .sx-time { font-size: 11px !important; padding: 0 4px !important; }
-  .sx-progress-wrap { padding: 8px 8px 4px 8px !important; }
-  .sx-progress-thumb { width: 12px !important; height: 12px !important; }
-  .sx-bottom-bar { padding-bottom: 4px !important; }
-  .sx-back { top: 8px; left: 8px; width: 36px; height: 36px; border-radius: 10px; }
-  .sx-ep-title { bottom: 60px; left: 8px; font-size: 0.8rem; padding: 6px 12px; }
-  .sx-settings-panel { right: 8px; min-width: 240px; }
-  .video-actions { gap: 6px; }
-  .video-actions .action-btn { padding: 6px 10px; font-size: 0.75rem; }
-  .episode-thumb { width: 100px; height: 56px; }
-  .rec-card { min-width: 160px; }
-  .rec-card .rec-thumb { width: 160px; height: 90px; }
+#artplayer-app:hover .wx-sidebar-toggle,
+#artplayer-app.sx-controls-visible .wx-sidebar-toggle { opacity: 1; }
+.wx-sidebar-toggle:hover { background: rgba(59,130,246,0.6); }
+.wx-sidebar-toggle svg { width: 20px; height: 20px; }
+
+/* ============================================================
+   SIDEBAR (desktop right panel, toggleable)
+   ============================================================ */
+.watch-sidebar {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 380px;
+  background: #0a0a0f;
+  border-left: 1px solid rgba(255,255,255,0.06);
+  z-index: 9990;
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  display: none;
 }
-@media (max-width: 480px) {
-  .sx-controls .sx-ctrl { padding: 0 3px !important; height: 26px !important; }
-  .sx-controls .sx-ctrl svg { width: 16px !important; height: 16px !important; }
-  .sx-time { font-size: 10px !important; }
-  .sx-volume-slider { display: none !important; }
+.watch-sidebar.open { transform: translateX(0); }
+.watch-sidebar::-webkit-scrollbar { width: 4px; }
+.watch-sidebar::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+.watch-sidebar-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: sticky; top: 0;
+  background: #0a0a0f;
+  z-index: 5;
 }
+.watch-sidebar-title {
+  font-size: 0.95rem; font-weight: 700; color: #fff;
+  display: flex; align-items: center; gap: 8px;
+}
+.watch-sidebar-title svg { color: #3B82F6; }
+.watch-sidebar-close {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.watch-sidebar-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.watch-sidebar-close svg { width: 16px; height: 16px; }
+
+.watch-sidebar-content { padding: 12px 16px; }
+.watch-sidebar-section { margin-bottom: 24px; }
+.watch-sidebar-section-title {
+  font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.4);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+
+/* Sidebar episode card - compact */
+.wx-side-ep {
+  display: flex; gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-decoration: none; color: inherit;
+}
+.wx-side-ep:hover { background: rgba(255,255,255,0.06); }
+.wx-side-ep.active { background: rgba(59,130,246,0.1); }
+.wx-side-ep-thumb {
+  width: 100px; height: 56px;
+  border-radius: 6px; overflow: hidden;
+  flex-shrink: 0; position: relative;
+  background: #111;
+}
+.wx-side-ep-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.wx-side-ep-num {
+  position: absolute; bottom: 4px; left: 4px;
+  background: rgba(0,0,0,0.8); color: #fff;
+  font-size: 0.65rem; font-weight: 700;
+  padding: 1px 6px; border-radius: 3px;
+}
+.wx-side-ep-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.wx-side-ep-info h4 { font-size: 0.8rem; font-weight: 600; color: #fff; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wx-side-ep-info p { font-size: 0.7rem; color: rgba(255,255,255,0.35); }
+
+/* Sidebar recommendation card - compact */
+.wx-side-rec {
+  display: flex; gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-decoration: none; color: inherit;
+}
+.wx-side-rec:hover { background: rgba(255,255,255,0.06); }
+.wx-side-rec-thumb {
+  width: 80px; height: 45px;
+  border-radius: 6px; overflow: hidden;
+  flex-shrink: 0; background: #111;
+}
+.wx-side-rec-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.wx-side-rec-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.wx-side-rec-info h4 { font-size: 0.8rem; font-weight: 600; color: #fff; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wx-side-rec-info p { font-size: 0.7rem; color: rgba(255,255,255,0.35); }
 
 /* ============================================================
    LOADING SPINNER
    ============================================================ */
 @keyframes art-loading { to { transform: rotate(360deg); } }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (min-width: 1025px) {
+  .watch-back-row { display: none !important; }
+  .wx-sidebar-toggle { display: flex; }
+  .watch-sidebar { display: block; }
+  #artplayer-app { cursor: none; }
+}
+
+@media (max-width: 1024px) {
+  .watch-content { padding: 20px 20px 48px; }
+  .watch-back-row { display: flex; }
+  .wx-title-text { font-size: 0.85rem; }
+  .watch-title { font-size: 1.3rem; }
+  .watch-ep-thumb { width: 120px; height: 68px; }
+  .watch-rec-card { min-width: 170px; }
+  .watch-rec-thumb { width: 170px; height: 96px; }
+}
+
+@media (max-width: 768px) {
+  .watch-content { padding: 16px 16px 40px; }
+  .wx-controls { padding: 2px 6px; gap: 0; height: 38px; }
+  .wx-controls .wx-ctrl { padding: 0 4px; height: 30px; }
+  .wx-controls .wx-ctrl svg { width: 18px; height: 18px; }
+  .wx-time { font-size: 11px; padding: 0 4px; }
+  .wx-progress-wrap { padding: 10px 10px 4px 10px; }
+  .wx-progress-thumb { width: 12px; height: 12px; }
+  .wx-bottom-bar { padding-bottom: 4px; }
+  .wx-top-bar { padding: 10px 12px; }
+  .wx-back { width: 36px; height: 36px; }
+  .wx-title-text { font-size: 0.8rem; }
+  .wx-settings-panel { right: 8px; min-width: 240px; }
+  .watch-title { font-size: 1.15rem; }
+  .watch-actions { gap: 6px; }
+  .watch-action-btn { padding: 6px 10px; font-size: 0.75rem; }
+  .watch-ep-thumb { width: 100px; height: 56px; }
+  .watch-rec-card { min-width: 150px; }
+  .watch-rec-thumb { width: 150px; height: 84px; }
+  .wx-next-card { width: 280px; }
+  .wx-next-thumb { width: 100px; height: 56px; }
+}
+
+@media (max-width: 480px) {
+  .wx-controls .wx-ctrl { padding: 0 3px; height: 26px; }
+  .wx-controls .wx-ctrl svg { width: 16px; height: 16px; }
+  .wx-time { font-size: 10px; }
+  .wx-volume-slider { display: none !important; }
+  .wx-top-right { display: none; }
+}
 </style>
 
-<main class="main-content player-page">
-  <div class="player-main">
-    <div class="player-left">
-      <div id="artplayer-app"></div>
-      <div class="theater-overlay" id="theaterOverlay" onclick="window.sxExitTheater()"></div>
+<main class="main-content watch-page">
+  <div class="watch-player-wrap">
+    <div id="artplayer-app"></div>
+    <div class="theater-overlay" id="theaterOverlay" onclick="wxExitTheater()"></div>
 
-      <div class="video-info">
-        <h1><%= displayTitle(item.title) %><% if (currentEpisode) { %> - E<%= currentEpisode.number %>: <%= currentEpisode.title %><% } %></h1>
-        <div class="video-meta">
-          <span class="rating">&#9733; <%= item.rating %></span>
-          <span><%= item.year %></span>
-          <span><%= item.genre %></span>
-          <% if (currentEpisode) { %><span><%= currentEpisode.duration %></span><% } else if (item.duration) { %><span><%= item.duration %></span><% } %>
-          <% if (item.premium) { %><span class="premium-badge">PREMIUM</span><% } %>
-          <span class="quality-badge">HD 1080p</span>
-          <% if (item.cast) { %><span><%= item.cast %></span><% } %>
-        </div>
-        <p class="video-desc"><%= currentEpisode ? currentEpisode.description : item.description %></p>
-        <div class="video-actions">
-          <button class="action-btn" onclick="this.classList.toggle('liked')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-            Like
-          </button>
-          <button class="action-btn" onclick="document.getElementById('shareModal').classList.add('active')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-            Share
-          </button>
-          <form action="/watchlist/add" method="POST" style="display:inline">
-            <input type="hidden" name="id" value="<%= item.id %>">
-            <button type="submit" class="action-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-              Watchlist
-            </button>
-          </form>
-          <a href="/download/<%= type %>/<%= item.id %>" class="action-btn" style="text-decoration:none;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download
-          </a>
-        </div>
-      </div>
+    <!-- MINI PROGRESS BAR -->
+    <div class="wx-mini-progress"><div class="wx-mini-progress-inner" id="wxMiniProgInner"></div></div>
 
-      <%
-        const hasSub = streaming && streaming.subscription && streaming.subscription.length > 0;
-        const hasFree = streaming && streaming.free && streaming.free.length > 0;
-        const hasRent = streaming && streaming.rent && streaming.rent.length > 0;
-        const hasBuy = streaming && streaming.buy && streaming.buy.length > 0;
-      %>
-      <% if (hasSub || hasFree || hasRent || hasBuy) { %>
-      <div class="episodes-section" style="border-top: 1px solid #1a1a1a;">
-        <div class="episodes-header"><h2>Where to Watch</h2></div>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <% if (hasSub) { streaming.subscription.forEach(s => { %>
-          <a href="<%= s.url %>" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; text-decoration: none; color: #fff; transition: all 0.3s; min-width: 160px;">
-            <% if (s.logo) { %><img src="<%= s.logo %>" alt="<%= s.name %>" style="width: 28px; height: 28px; border-radius: 6px; object-fit: contain;"><% } else { %><span style="font-size: 1.3rem;"><%= getSourceIcon(s.name) %></span><% } %>
-            <div><div style="font-weight: 600; font-size: 0.85rem;"><%= s.name %></div><div style="font-size: 0.7rem; color: #4ade80;">Stream Now</div></div>
-          </a>
-          <% }) } %>
-          <% if (hasFree) { streaming.free.forEach(s => { %>
-          <a href="<%= s.url %>" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; text-decoration: none; color: #fff; transition: all 0.3s; min-width: 160px;">
-            <% if (s.logo) { %><img src="<%= s.logo %>" alt="<%= s.name %>" style="width: 28px; height: 28px; border-radius: 6px; object-fit: contain;"><% } else { %><span style="font-size: 1.3rem;"><%= getSourceIcon(s.name) %></span><% } %>
-            <div><div style="font-weight: 600; font-size: 0.85rem;"><%= s.name %></div><div style="font-size: 0.7rem; color: #4ade80;">Free</div></div>
-          </a>
-          <% }) } %>
-          <% if (hasRent) { streaming.rent.forEach(s => { %>
-          <a href="<%= s.url %>" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; text-decoration: none; color: #fff; transition: all 0.3s; min-width: 160px;">
-            <% if (s.logo) { %><img src="<%= s.logo %>" alt="<%= s.name %>" style="width: 28px; height: 28px; border-radius: 6px; object-fit: contain;"><% } else { %><span style="font-size: 1.3rem;"><%= getSourceIcon(s.name) %></span><% } %>
-            <div><div style="font-weight: 600; font-size: 0.85rem;"><%= s.name %></div><div style="font-size: 0.7rem; color: #f59e0b;">Rent</div></div>
-          </a>
-          <% }) } %>
-          <% if (hasBuy) { streaming.buy.forEach(s => { %>
-          <a href="<%= s.url %>" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; text-decoration: none; color: #fff; transition: all 0.3s; min-width: 160px;">
-            <% if (s.logo) { %><img src="<%= s.logo %>" alt="<%= s.name %>" style="width: 28px; height: 28px; border-radius: 6px; object-fit: contain;"><% } else { %><span style="font-size: 1.3rem;"><%= getSourceIcon(s.name) %></span><% } %>
-            <div><div style="font-weight: 600; font-size: 0.85rem;"><%= s.name %></div><div style="font-size: 0.7rem; color: #3b82f6;">Buy</div></div>
-          </a>
-          <% }) } %>
-        </div>
-      </div>
-      <% } %>
-
-      <% if (episodes.length > 0) { %>
-      <div class="episodes-section">
-        <div class="episodes-header"><h2>Episodes</h2></div>
-        <% if (totalSeasons > 1) { %>
-        <div class="season-tabs">
-          <% for (let s = 1; s <= totalSeasons; s++) { %>
-          <a href="?season=<%= s %>&ep=1" class="season-tab <%= s === currentSeason ? 'active' : '' %>">Season <%= s %></a>
-          <% } %>
-        </div>
+    <!-- TOP BAR -->
+    <div class="wx-top-bar">
+      <a href="javascript:history.back()" class="wx-back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <div class="wx-title-group">
+        <% if (currentEpisode) { %>
+        <span class="wx-ep-badge">E<%= currentEpisode.number %></span>
         <% } %>
-        <% episodes.forEach(e => { %>
-        <a href="/watch/<%= type %>/<%= item.id %>?ep=<%= e.number %>" class="episode-card <%= e.number === ep ? 'active' : '' %>">
-          <div class="episode-thumb">
-            <img src="<%= item.poster %>" alt="<%= e.title %>" loading="lazy">
-            <span class="ep-num">E<%= e.number %></span>
-            <% if (e.number === ep) { %><span class="ep-now">NOW</span><% } %>
-          </div>
-          <div class="episode-info">
-            <h4><%= e.title %></h4>
-            <p><%= e.description %></p>
-            <span class="ep-duration"><%= e.duration %></span>
-          </div>
-        </a>
-        <% }) %>
+        <span class="wx-title-text"><%= displayTitle(item.title) %><% if (currentEpisode) { %> &mdash; <%= currentEpisode.title %><% } %></span>
       </div>
-      <% } %>
-
-      <% if (related.length > 0) { %>
-      <div class="recommended-section">
-        <div class="episodes-header"><h2>More Like This</h2></div>
-        <div class="rec-scroll">
-          <% related.forEach(r => { %>
-          <a href="/<%= type === 'movie' ? 'movies' : 'series' %>/<%= r.id %>" class="rec-card">
-            <div class="rec-thumb">
-              <img src="<%= r.poster %>" alt="<%= r.title %>" loading="lazy">
-              <div class="rec-play"><svg width="28" height="28" viewBox="0 0 24 24" fill="white" opacity="0.9"><path d="M8 5v14l11-7z"/></svg></div>
-            </div>
-            <div class="rec-info"><h4><%= r.title %></h4><p>&#9733; <%= r.rating %> &bull; <%= r.genre %></p></div>
-          </a>
-          <% }) %>
+      <div class="wx-top-right">
+        <div class="wx-top-btn" title="Theater Mode" onclick="wxToggleTheater()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
+        </div>
+        <div class="wx-top-btn" title="Picture in Picture" onclick="wxPiP()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><rect x="11" y="9" width="9" height="7" rx="1" fill="rgba(255,255,255,0.15)" stroke="white" stroke-width="1.5"/></svg>
         </div>
       </div>
-      <% } %>
-
-      <% if (trending.length > 0) { %>
-      <div class="recommended-section" style="border-top: 1px solid #1a1a1a;">
-        <div class="episodes-header"><h2>Trending Now</h2></div>
-        <div class="rec-scroll">
-          <% trending.forEach(t => { %>
-          <a href="/<%= t.seasons ? 'series' : 'movies' %>/<%= t.id %>" class="rec-card">
-            <div class="rec-thumb">
-              <img src="<%= t.poster %>" alt="<%= t.title %>" loading="lazy">
-              <div class="rec-play"><svg width="28" height="28" viewBox="0 0 24 24" fill="white" opacity="0.9"><path d="M8 5v14l11-7z"/></svg></div>
-            </div>
-            <div class="rec-info"><h4><%= t.title %></h4><p>&#9733; <%= t.rating %> &bull; <%= t.genre %></p></div>
-          </a>
-          <% }) %>
-        </div>
-      </div>
-      <% } %>
     </div>
 
-    <div class="player-right">
-      <div class="player-right-title">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-        Up Next
+    <!-- BOTTOM BAR -->
+    <div class="wx-bottom-bar">
+      <div class="wx-progress-wrap">
+        <div class="wx-progress-track" id="wxProgressTrack">
+          <div class="wx-progress-buffered" id="wxBuffered"></div>
+          <div class="wx-progress-played" id="wxPlayed"></div>
+          <div class="wx-progress-thumb" id="wxThumb"></div>
+        </div>
+        <div class="wx-thumb-preview" id="wxThumbPreview">
+          <img id="wxThumbImg" src="<%= item.backdrop || item.poster %>" style="display:none">
+          <div class="wx-thumb-time" id="wxThumbTime">0:00</div>
+        </div>
       </div>
-      <% if (episodes.length > 0) { %>
-        <% const nextEp = episodes.find(e => e.number === ep + 1); %>
-        <% if (nextEp) { %>
-        <a href="/watch/<%= type %>/<%= item.id %>?ep=<%= nextEp.number %>" class="episode-card" style="margin-bottom: 12px;">
-          <div class="episode-thumb" style="width:120px;height:68px;">
-            <img src="<%= item.poster %>" alt="<%= nextEp.title %>" loading="lazy">
-            <span class="ep-num">E<%= nextEp.number %></span>
-          </div>
-          <div class="episode-info"><h4><%= nextEp.title %></h4><p><%= nextEp.duration %></p></div>
+      <div class="wx-controls" id="wxControls"></div>
+    </div>
+
+    <!-- SKIP INTRO / RECAP -->
+    <div class="wx-skip-overlay" id="wxSkipOverlay">
+      <button class="wx-skip-btn" id="wxSkipBtn" onclick="wxSkipAction()">Skip Intro</button>
+    </div>
+
+    <!-- NEXT EPISODE NOTIFICATION -->
+    <div class="wx-next-ep" id="wxNextEp">
+      <div class="wx-next-card" id="wxNextCard">
+        <div class="wx-next-thumb" id="wxNextThumb">
+          <img id="wxNextImg" src="" alt="">
+          <div class="wx-next-play"><svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+        </div>
+        <div class="wx-next-info">
+          <div class="wx-next-label">Up Next</div>
+          <div class="wx-next-title" id="wxNextTitle"></div>
+          <div class="wx-next-ep-num" id="wxNextEpNum"></div>
+          <div class="wx-next-timer" id="wxNextTimer"></div>
+        </div>
+      </div>
+      <div class="wx-next-close" onclick="document.getElementById('wxNextEp').classList.remove('visible')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+
+    <!-- SETTINGS PANEL -->
+    <div class="wx-settings-panel" id="wxSettingsPanel"></div>
+  </div>
+
+  <!-- CONTENT BELOW PLAYER -->
+  <div class="watch-content">
+    <!-- Back link (mobile) -->
+    <div class="watch-back-row">
+      <a href="javascript:history.back()" class="watch-back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back
+      </a>
+    </div>
+
+    <!-- Title + Meta -->
+    <div class="watch-title-row">
+      <h1 class="watch-title"><%= displayTitle(item.title) %></h1>
+      <div class="watch-meta">
+        <span class="rating">&#9733; <%= item.rating %></span>
+        <span><%= item.year %></span>
+        <span><%= item.genre %></span>
+        <% if (currentEpisode) { %><span><%= currentEpisode.duration %></span><% } else if (item.duration) { %><span><%= item.duration %></span><% } %>
+        <% if (item.premium) { %><span class="premium-badge">PREMIUM</span><% } %>
+        <span class="quality-badge">HD 1080p</span>
+        <% if (item.cast) { %><span><%= item.cast %></span><% } %>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="watch-actions">
+      <button class="watch-action-btn" onclick="this.classList.toggle('liked')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+        Like
+      </button>
+      <button class="watch-action-btn" onclick="document.getElementById('shareModal').classList.add('active')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Share
+      </button>
+      <form action="/watchlist/add" method="POST" style="display:inline">
+        <input type="hidden" name="id" value="<%= item.id %>">
+        <button type="submit" class="watch-action-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          Watchlist
+        </button>
+      </form>
+      <a href="/download/<%= type %>/<%= item.id %>" class="watch-action-btn" style="text-decoration:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download
+      </a>
+    </div>
+
+    <!-- Description -->
+    <div class="watch-desc" id="watchDesc"><%= currentEpisode ? currentEpisode.description : item.description %></div>
+    <span class="watch-desc-toggle" id="watchDescToggle" onclick="toggleDesc()">Show more</span>
+
+    <!-- Where to Watch -->
+    <%
+      const hasSub = streaming && streaming.subscription && streaming.subscription.length > 0;
+      const hasFree = streaming && streaming.free && streaming.free.length > 0;
+      const hasRent = streaming && streaming.rent && streaming.rent.length > 0;
+      const hasBuy = streaming && streaming.buy && streaming.buy.length > 0;
+    %>
+    <% if (hasSub || hasFree || hasRent || hasBuy) { %>
+    <div class="watch-divider"></div>
+    <div class="watch-section-header" onclick="toggleSection('streamingSection')">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
+        Where to Watch
+      </h2>
+      <span class="watch-section-toggle" id="streamingSectionToggle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </span>
+    </div>
+    <div class="watch-section-body" id="streamingSection">
+      <div class="watch-streaming">
+        <% if (hasSub) { streaming.subscription.forEach(s => { %>
+        <a href="<%= s.url %>" target="_blank" rel="noopener" class="watch-stream-link">
+          <% if (s.logo) { %><img src="<%= s.logo %>" alt="<%= s.name %>"><% } else { %><span style="font-size:1.3rem;"><%= getSourceIcon(s.name) %></span><% } %>
+          <div><div class="stream-name"><%= s.name %></div><div class="stream-action stream">Stream Now</div></div>
         </a>
+        <% }) } %>
+        <% if (hasFree) { streaming.free.forEach(s => { %>
+        <a href="<%= s.url %>" target="_blank" rel="noopener" class="watch-stream-link">
+          <% if (s.logo) { %><img src="<%= s.logo %>" alt="<%= s.name %>"><% } else { %><span style="font-size:1.3rem;"><%= getSourceIcon(s.name) %></span><% } %>
+          <div><div class="stream-name"><%= s.name %></div><div class="stream-action free">Free</div></div>
+        </a>
+        <% }) } %>
+        <% if (hasRent) { streaming.rent.forEach(s => { %>
+        <a href="<%= s.url %>" target="_blank" rel="noopener" class="watch-stream-link">
+          <% if (s.logo) { %><img src="<%= s.logo %>" alt="<%= s.name %>"><% } else { %><span style="font-size:1.3rem;"><%= getSourceIcon(s.name) %></span><% } %>
+          <div><div class="stream-name"><%= s.name %></div><div class="stream-action rent">Rent</div></div>
+        </a>
+        <% }) } %>
+        <% if (hasBuy) { streaming.buy.forEach(s => { %>
+        <a href="<%= s.url %>" target="_blank" rel="noopener" class="watch-stream-link">
+          <% if (s.logo) { %><img src="<%= s.logo %>" alt="<%= s.name %>"><% } else { %><span style="font-size:1.3rem;"><%= getSourceIcon(s.name) %></span><% } %>
+          <div><div class="stream-name"><%= s.name %></div><div class="stream-action buy">Buy</div></div>
+        </a>
+        <% }) } %>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Episodes (for series/anime) -->
+    <% if (episodes.length > 0) { %>
+    <div class="watch-divider"></div>
+    <div class="watch-section-header" onclick="toggleSection('episodesSection')">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        Episodes
+        <span style="font-size:0.75rem;font-weight:400;color:rgba(255,255,255,0.4);margin-left:4px;"><%= episodes.length %></span>
+      </h2>
+      <span class="watch-section-toggle" id="episodesSectionToggle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </span>
+    </div>
+    <div class="watch-section-body" id="episodesSection">
+      <% if (totalSeasons > 1) { %>
+      <div class="watch-season-tabs">
+        <% for (let s = 1; s <= totalSeasons; s++) { %>
+        <a href="?season=<%= s %>&ep=1" class="watch-season-tab <%= s === currentSeason ? 'active' : '' %>">Season <%= s %></a>
         <% } %>
-        <% episodes.filter(e => e.number > ep).slice(1, 6).forEach(e => { %>
-        <a href="/watch/<%= type %>/<%= item.id %>?ep=<%= e.number %>" class="episode-card">
-          <div class="episode-thumb" style="width:120px;height:68px;">
-            <img src="<%= item.poster %>" alt="<%= e.title %>" loading="lazy">
-            <span class="ep-num">E<%= e.number %></span>
-          </div>
-          <div class="episode-info"><h4><%= e.title %></h4><p><%= e.duration %></p></div>
-        </a>
-        <% }) %>
-      <% } else { %>
-        <% related.slice(0, 6).forEach(r => { %>
-        <a href="/watch/<%= type %>/<%= r.id %>" class="episode-card">
-          <div class="episode-thumb" style="width:120px;height:68px;">
+      </div>
+      <% } %>
+      <% episodes.forEach(e => { %>
+      <a href="/watch/<%= type %>/<%= item.id %>?ep=<%= e.number %>" class="watch-episode-card <%= e.number === ep ? 'active' : '' %>">
+        <div class="watch-ep-thumb">
+          <img src="<%= item.poster %>" alt="<%= e.title %>" loading="lazy">
+          <span class="watch-ep-num">E<%= e.number %></span>
+          <% if (e.number === ep) { %><span class="watch-ep-now">NOW</span><% } %>
+        </div>
+        <div class="watch-ep-info">
+          <h4><%= e.title %></h4>
+          <p><%= e.description %></p>
+          <span class="watch-ep-duration"><%= e.duration %></span>
+        </div>
+      </a>
+      <% }) %>
+    </div>
+    <% } %>
+
+    <!-- More Like This -->
+    <% if (related.length > 0) { %>
+    <div class="watch-divider"></div>
+    <div class="watch-section-header" onclick="toggleSection('relatedSection')">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        More Like This
+      </h2>
+      <span class="watch-section-toggle" id="relatedSectionToggle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </span>
+    </div>
+    <div class="watch-section-body" id="relatedSection">
+      <div class="watch-rec-scroll">
+        <% related.forEach(r => { %>
+        <a href="/<%= type === 'movie' ? 'movies' : 'series' %>/<%= r.id %>" class="watch-rec-card">
+          <div class="watch-rec-thumb">
             <img src="<%= r.poster %>" alt="<%= r.title %>" loading="lazy">
+            <div class="watch-rec-play"><svg width="28" height="28" viewBox="0 0 24 24" fill="white" opacity="0.9"><path d="M8 5v14l11-7z"/></svg></div>
           </div>
-          <div class="episode-info"><h4><%= r.title %></h4><p>&#9733; <%= r.rating %></p></div>
+          <div class="watch-rec-info"><h4><%= r.title %></h4><p>&#9733; <%= r.rating %> &bull; <%= r.genre %></p></div>
         </a>
         <% }) %>
-      <% } %>
+      </div>
     </div>
+    <% } %>
+
+    <!-- Trending -->
+    <% if (trending.length > 0) { %>
+    <div class="watch-divider"></div>
+    <div class="watch-section-header" onclick="toggleSection('trendingSection')">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        Trending Now
+      </h2>
+      <span class="watch-section-toggle" id="trendingSectionToggle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </span>
+    </div>
+    <div class="watch-section-body" id="trendingSection">
+      <div class="watch-rec-scroll">
+        <% trending.forEach(t => { %>
+        <a href="/<%= t.seasons ? 'series' : 'movies' %>/<%= t.id %>" class="watch-rec-card">
+          <div class="watch-rec-thumb">
+            <img src="<%= t.poster %>" alt="<%= t.title %>" loading="lazy">
+            <div class="watch-rec-play"><svg width="28" height="28" viewBox="0 0 24 24" fill="white" opacity="0.9"><path d="M8 5v14l11-7z"/></svg></div>
+          </div>
+          <div class="watch-rec-info"><h4><%= t.title %></h4><p>&#9733; <%= t.rating %> &bull; <%= t.genre %></p></div>
+        </a>
+        <% }) %>
+      </div>
+    </div>
+    <% } %>
   </div>
 </main>
 
+<!-- SIDEBAR (desktop right panel) -->
+<div class="watch-sidebar" id="watchSidebar">
+  <div class="watch-sidebar-header">
+    <div class="watch-sidebar-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      Up Next
+    </div>
+    <div class="watch-sidebar-close" onclick="closeSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+  </div>
+  <div class="watch-sidebar-content">
+    <% if (episodes.length > 0) { %>
+    <div class="watch-sidebar-section">
+      <div class="watch-sidebar-section-title">Episodes</div>
+      <% episodes.forEach(e => { %>
+      <a href="/watch/<%= type %>/<%= item.id %>?ep=<%= e.number %>" class="wx-side-ep <%= e.number === ep ? 'active' : '' %>">
+        <div class="wx-side-ep-thumb">
+          <img src="<%= item.poster %>" alt="<%= e.title %>" loading="lazy">
+          <span class="wx-side-ep-num">E<%= e.number %></span>
+        </div>
+        <div class="wx-side-ep-info">
+          <h4><%= e.title %></h4>
+          <p><%= e.duration %></p>
+        </div>
+      </a>
+      <% }) %>
+    </div>
+    <% } %>
+
+    <% if (related.length > 0) { %>
+    <div class="watch-sidebar-section">
+      <div class="watch-sidebar-section-title">More Like This</div>
+      <% related.slice(0, 8).forEach(r => { %>
+      <a href="/<%= type === 'movie' ? 'movies' : 'series' %>/<%= r.id %>" class="wx-side-rec">
+        <div class="wx-side-rec-thumb">
+          <img src="<%= r.poster %>" alt="<%= r.title %>" loading="lazy">
+        </div>
+        <div class="wx-side-rec-info">
+          <h4><%= r.title %></h4>
+          <p>&#9733; <%= r.rating %> &bull; <%= r.genre %></p>
+        </div>
+      </a>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
 <div class="share-modal" id="shareModal">
   <div class="share-box">
     <button class="share-close" onclick="document.getElementById('shareModal').classList.remove('active')">&times;</button>
     <h3>Share</h3>
-    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">Share this link with friends</p>
     <div class="share-link">
-      <input type="text" id="shareUrl" value="<%= shareUrl %>" readonly>
-      <button onclick="var inp=document.getElementById('shareUrl');inp.select();document.execCommand('copy');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)">Copy</button>
-    </div>
-    <div class="share-people">
-      <div class="share-avatar" title="WhatsApp" style="background:#25D366" onclick="window.open('https://wa.me/?text=Watch+<%= encodeURIComponent(displayTitle(item.title)) %>+on+STREAMX')">W</div>
-      <div class="share-avatar" title="Telegram" style="background:#0088cc" onclick="window.open('https://t.me/share/url?url='+encodeURIComponent(window.location.href)+'&text=Watch+<%= encodeURIComponent(displayTitle(item.title)) %>+')">T</div>
-      <div class="share-avatar" title="Twitter" style="background:#1DA1F2" onclick="window.open('https://twitter.com/intent/tweet?text=Watch+<%= encodeURIComponent(displayTitle(item.title)) %>&url='+encodeURIComponent(window.location.href))">X</div>
-      <div class="share-avatar" title="Copy Link" style="background:#555" onclick="navigator.clipboard.writeText(window.location.href);this.textContent='&#10003;'">&#128279;</div>
+      <input type="text" value="<%= shareUrl %>" id="shareUrlInput" readonly>
+      <button onclick="navigator.clipboard.writeText(document.getElementById('shareUrlInput').value).then(function(){ showNoticeGlobal('Link copied!'); })">Copy</button>
     </div>
   </div>
 </div>
@@ -579,46 +1230,53 @@
   var art;
   var container = document.getElementById('artplayer-app');
   var hideTimer = null;
+  var CONTINUE_WATCH_INTERVAL = 25;
 
   /* ===== SVG ICON LIBRARY ===== */
-  var ICONS = {
+  var IC = {
     play: '<svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>',
     pause: '<svg viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>',
-    volumeHigh: '<svg viewBox="0 0 24 24" fill="white"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 010 7.07" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>',
-    volumeMute: '<svg viewBox="0 0 24 24" fill="white"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="9" x2="23" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>',
-    rewind10: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/><text x="12" y="16" text-anchor="middle" fill="white" stroke="none" font-size="7.5" font-weight="700">10</text></svg>',
-    forward10: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 11-2.13-9.36L23 10"/><text x="12" y="16" text-anchor="middle" fill="white" stroke="none" font-size="7.5" font-weight="700">10</text></svg>',
-    subtitle: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="6" y1="16" x2="14" y2="16"/></svg>',
+    volOn: '<svg viewBox="0 0 24 24" fill="white"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 010 7.07" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>',
+    volOff: '<svg viewBox="0 0 24 24" fill="white"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="9" x2="23" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>',
+    rw10: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/><text x="12" y="16" text-anchor="middle" fill="white" stroke="none" font-size="7.5" font-weight="700">10</text></svg>',
+    fw10: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 11-2.13-9.36L23 10"/><text x="12" y="16" text-anchor="middle" fill="white" stroke="none" font-size="7.5" font-weight="700">10</text></svg>',
+    sub: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="6" y1="16" x2="14" y2="16"/></svg>',
     audio: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
     quality: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
     speed: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
     settings: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
     pip: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><rect x="11" y="9" width="9" height="7" rx="1" fill="rgba(255,255,255,0.15)" stroke="white" stroke-width="1.5"/></svg>',
-    fullscreen: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>',
-    exitFullscreen: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M4 14h6v6m4-16h6v6M14 10l4-4m-4 4l4 4M10 14L6 18m4-4l-4-4"/></svg>',
-    chevronRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>',
-    back: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>'
+    fs: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>',
+    fsExit: '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M4 14h6v6m4-16h6v6M14 10l4-4m-4 4l4 4M10 14L6 18m4-4l-4-4"/></svg>',
+    chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'
   };
 
-  /* ===== UTILITY FUNCTIONS ===== */
-  function fmtTime(s) {
+  /* ===== UTILITY ===== */
+  function fmt(s) {
     if (!s || !isFinite(s)) return '0:00';
-    var h = Math.floor(s / 3600);
-    var m = Math.floor((s % 3600) / 60);
-    var sec = Math.floor(s % 60);
+    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60);
     if (h > 0) return h + ':' + (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
     return m + ':' + (sec < 10 ? '0' : '') + sec;
   }
 
-  function showNotice(msg) {
-    var old = container.querySelector('.sx-notice');
+  function notice(msg) {
+    var old = container.querySelector('.wx-notice');
     if (old) old.remove();
     var n = document.createElement('div');
-    n.className = 'sx-notice';
+    n.className = 'wx-notice';
     n.textContent = msg;
     container.appendChild(n);
     setTimeout(function() { if (n.parentNode) n.remove(); }, 2000);
   }
+
+  window.showNoticeGlobal = function(msg) {
+    var n = document.createElement('div');
+    n.className = 'wx-notice';
+    n.textContent = msg;
+    n.style.cssText = 'position:fixed;top:20px;right:20px;z-index:10000;';
+    document.body.appendChild(n);
+    setTimeout(function() { if (n.parentNode) n.remove(); }, 2000);
+  };
 
   /* ===== CONTROLS AUTO-HIDE ===== */
   function showControls() {
@@ -626,7 +1284,7 @@
     clearTimeout(hideTimer);
     hideTimer = setTimeout(function() {
       container.classList.remove('sx-controls-visible');
-      var sp = container.querySelector('.sx-settings-panel');
+      var sp = document.getElementById('wxSettingsPanel');
       if (sp) sp.classList.remove('open');
     }, 3000);
   }
@@ -634,249 +1292,144 @@
   container.addEventListener('mousedown', showControls);
   container.addEventListener('touchstart', showControls);
 
-  /* ===== BACK BUTTON ===== */
-  var backBtn = document.createElement('a');
-  backBtn.className = 'sx-back';
-  backBtn.href = document.referrer || '/';
-  backBtn.innerHTML = ICONS.back;
-  container.appendChild(backBtn);
-
-  /* ===== EPISODE TITLE LAYER ===== */
-  var epTitle = document.createElement('div');
-  epTitle.className = 'sx-ep-title';
-  epTitle.innerHTML = '<%= displayTitle(item.title) %>'<% if (currentEpisode) { %> + ' \u2014 E<%= currentEpisode.number %>: <%= currentEpisode.title %>'<% } %>;
-  container.appendChild(epTitle);
-
-  /* ===== MINI PROGRESS BAR ===== */
-  var miniProg = document.createElement('div');
-  miniProg.className = 'sx-mini-progress';
-  miniProg.innerHTML = '<div class="sx-mini-progress-inner" id="sxMiniProgInner"></div>';
-  container.appendChild(miniProg);
-
-  /* ===== CUSTOM BOTTOM BAR ===== */
-  var bottomBar = document.createElement('div');
-  bottomBar.className = 'sx-bottom-bar';
-  container.appendChild(bottomBar);
-
-  /* Progress bar */
-  var progressWrap = document.createElement('div');
-  progressWrap.className = 'sx-progress-wrap';
-  progressWrap.innerHTML =
-    '<div class="sx-progress-track" id="sxProgressTrack">' +
-      '<div class="sx-progress-buffered" id="sxBuffered"></div>' +
-      '<div class="sx-progress-played" id="sxPlayed"></div>' +
-      '<div class="sx-progress-thumb" id="sxThumb"></div>' +
-    '</div>' +
-    '<div class="sx-thumb-preview" id="sxThumbPreview">' +
-      '<img id="sxThumbImg" src="<%= item.backdrop || item.poster %>" style="display:none">' +
-      '<div class="sx-thumb-time" id="sxThumbTime">0:00</div>' +
-    '</div>';
-  bottomBar.appendChild(progressWrap);
-
-  /* Controls row */
-  var controlsRow = document.createElement('div');
-  controlsRow.className = 'sx-controls';
-  bottomBar.appendChild(controlsRow);
-
   /* ===== BUILD CONTROLS ===== */
+  var controlsEl = document.getElementById('wxControls');
+
   function buildControls() {
-    controlsRow.innerHTML = '';
+    controlsEl.innerHTML = '';
 
-    /* --- LEFT SIDE --- */
-    /* Play / Pause */
-    var playBtn = document.createElement('div');
-    playBtn.className = 'sx-ctrl';
-    playBtn.id = 'sxPlayBtn';
-    playBtn.innerHTML = ICONS.play;
+    /* Play/Pause */
+    var playBtn = mkCtrl(IC.play, 'sxPlayBtn');
     playBtn.onclick = function() { art && art.video && art.video.paused ? art.video.play() : art.video.pause(); };
-    controlsRow.appendChild(playBtn);
+    controlsEl.appendChild(playBtn);
 
-    /* Replay 10s */
-    var rewindBtn = document.createElement('div');
-    rewindBtn.className = 'sx-ctrl';
-    rewindBtn.title = 'Replay 10s';
-    rewindBtn.innerHTML = ICONS.rewind10;
-    rewindBtn.onclick = function() { if (art && art.video) { art.video.currentTime = Math.max(0, art.video.currentTime - 10); showNotice('-10s'); } };
-    controlsRow.appendChild(rewindBtn);
+    /* Rewind 10s */
+    var rw = mkCtrl(IC.rw10, null, 'Replay 10s');
+    rw.onclick = function() { if (art && art.video) { art.video.currentTime = Math.max(0, art.video.currentTime - 10); notice('-10s'); } };
+    controlsEl.appendChild(rw);
 
     /* Forward 10s */
-    var forwardBtn = document.createElement('div');
-    forwardBtn.className = 'sx-ctrl';
-    forwardBtn.title = 'Forward 10s';
-    forwardBtn.innerHTML = ICONS.forward10;
-    forwardBtn.onclick = function() { if (art && art.video) { art.video.currentTime = Math.min(art.video.duration || 0, art.video.currentTime + 10); showNotice('+10s'); } };
-    controlsRow.appendChild(forwardBtn);
+    var fw = mkCtrl(IC.fw10, null, 'Forward 10s');
+    fw.onclick = function() { if (art && art.video) { art.video.currentTime = Math.min(art.video.duration || 0, art.video.currentTime + 10); notice('+10s'); } };
+    controlsEl.appendChild(fw);
 
     /* Volume */
-    var volumeWrap = document.createElement('div');
-    volumeWrap.className = 'sx-ctrl sx-volume-wrap';
-    var volumeIcon = document.createElement('div');
-    volumeIcon.id = 'sxVolumeIcon';
-    volumeIcon.innerHTML = ICONS.volumeHigh;
-    volumeIcon.style.cursor = 'pointer';
-    volumeIcon.onclick = function() {
-      if (!art || !art.video) return;
-      art.video.muted = !art.video.muted;
-      updateVolumeUI();
-    };
-    volumeWrap.appendChild(volumeIcon);
-
-    var volumeSlider = document.createElement('div');
-    volumeSlider.className = 'sx-volume-slider';
-    volumeSlider.innerHTML =
-      '<div class="sx-vol-track" id="sxVolTrack">' +
-        '<div class="sx-vol-fill" id="sxVolFill" style="width:70%"></div>' +
-        '<div class="sx-vol-thumb" id="sxVolThumb" style="left:70%"></div>' +
-      '</div>';
-    volumeWrap.appendChild(volumeSlider);
-
-    /* Volume drag */
-    var volDragging = false;
-    function setVolume(e) {
-      var track = document.getElementById('sxVolTrack');
-      if (!track || !art || !art.video) return;
-      var rect = track.getBoundingClientRect();
-      var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-      art.video.volume = pct;
-      art.video.muted = pct === 0;
-      updateVolumeUI();
+    var volWrap = document.createElement('div');
+    volWrap.className = 'wx-ctrl wx-volume-wrap';
+    var volIcon = document.createElement('div');
+    volIcon.id = 'wxVolIcon';
+    volIcon.innerHTML = IC.volOn;
+    volIcon.style.cursor = 'pointer';
+    volIcon.onclick = function() { if (!art || !art.video) return; art.video.muted = !art.video.muted; updateVol(); };
+    volWrap.appendChild(volIcon);
+    var volSlider = document.createElement('div');
+    volSlider.className = 'wx-volume-slider';
+    volSlider.innerHTML = '<div class="wx-vol-track" id="wxVolTrack"><div class="wx-vol-fill" id="wxVolFill" style="width:70%"></div><div class="wx-vol-thumb" id="wxVolThumb" style="left:70%"></div></div>';
+    volWrap.appendChild(volSlider);
+    var volDrag = false;
+    function setVol(e) {
+      var t = document.getElementById('wxVolTrack');
+      if (!t || !art || !art.video) return;
+      var r = t.getBoundingClientRect();
+      var p = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+      art.video.volume = p; art.video.muted = p === 0; updateVol();
     }
-    volumeSlider.addEventListener('mousedown', function(e) { volDragging = true; setVolume(e); });
-    document.addEventListener('mousemove', function(e) { if (volDragging) setVolume(e); });
-    document.addEventListener('mouseup', function() { volDragging = false; });
+    volSlider.addEventListener('mousedown', function(e) { volDrag = true; setVol(e); });
+    document.addEventListener('mousemove', function(e) { if (volDrag) setVol(e); });
+    document.addEventListener('mouseup', function() { volDrag = false; });
+    controlsEl.appendChild(volWrap);
 
-    controlsRow.appendChild(volumeWrap);
+    /* Time */
+    var timeEl = document.createElement('div');
+    timeEl.className = 'wx-time';
+    timeEl.id = 'wxTimeDisplay';
+    timeEl.textContent = '0:00 / 0:00';
+    controlsEl.appendChild(timeEl);
 
-    /* Time display */
-    var timeDisplay = document.createElement('div');
-    timeDisplay.className = 'sx-time';
-    timeDisplay.id = 'sxTimeDisplay';
-    timeDisplay.innerHTML = '0:00 / 0:00';
-    controlsRow.appendChild(timeDisplay);
-
-    /* --- SPACER --- */
+    /* Spacer */
     var spacer = document.createElement('div');
-    spacer.className = 'sx-spacer';
-    controlsRow.appendChild(spacer);
-
-    /* --- RIGHT SIDE --- */
+    spacer.className = 'wx-spacer';
+    controlsEl.appendChild(spacer);
 
     /* Subtitle */
-    var subtitleBtn = document.createElement('div');
-    subtitleBtn.className = 'sx-ctrl';
-    subtitleBtn.title = 'Subtitles';
-    subtitleBtn.innerHTML = ICONS.subtitle;
-    subtitleBtn.onclick = function() { showNotice('No subtitles available'); };
-    controlsRow.appendChild(subtitleBtn);
+    controlsEl.appendChild(mkCtrl(IC.sub, null, 'Subtitles', function() { notice('No subtitles available'); }));
 
     /* Audio */
-    var audioBtn = document.createElement('div');
-    audioBtn.className = 'sx-ctrl';
-    audioBtn.title = 'Audio Language';
-    audioBtn.innerHTML = ICONS.audio;
-    audioBtn.onclick = function() { showNotice('Audio: Default'); };
-    controlsRow.appendChild(audioBtn);
+    controlsEl.appendChild(mkCtrl(IC.audio, null, 'Audio', function() { notice('Audio: Default'); }));
 
     /* Quality */
-    var qualityBtn = document.createElement('div');
-    qualityBtn.className = 'sx-ctrl';
-    qualityBtn.title = 'Quality';
-    qualityBtn.innerHTML = ICONS.quality;
-    qualityBtn.onclick = function(e) { e.stopPropagation(); openSettingsSubmenu('quality'); };
-    controlsRow.appendChild(qualityBtn);
+    controlsEl.appendChild(mkCtrl(IC.quality, null, 'Quality', function(e) { e.stopPropagation(); openSettingsSub('quality'); }));
 
     /* Speed */
-    var speedBtn = document.createElement('div');
-    speedBtn.className = 'sx-ctrl';
-    speedBtn.title = 'Playback Speed';
-    speedBtn.innerHTML = ICONS.speed;
-    speedBtn.onclick = function(e) { e.stopPropagation(); openSettingsSubmenu('speed'); };
-    controlsRow.appendChild(speedBtn);
+    controlsEl.appendChild(mkCtrl(IC.speed, null, 'Speed', function(e) { e.stopPropagation(); openSettingsSub('speed'); }));
 
-    /* Settings (gear icon - opens main settings) */
-    var settingsBtn = document.createElement('div');
-    settingsBtn.className = 'sx-ctrl';
-    settingsBtn.id = 'sxSettingsBtn';
-    settingsBtn.title = 'Settings';
-    settingsBtn.innerHTML = ICONS.settings;
-    settingsBtn.onclick = function(e) { e.stopPropagation(); toggleSettings(); };
-    controlsRow.appendChild(settingsBtn);
+    /* Settings */
+    var setBtn = mkCtrl(IC.settings, 'wxSettingsBtn', 'Settings', function(e) { e.stopPropagation(); toggleSettings(); });
+    controlsEl.appendChild(setBtn);
 
     /* PiP */
-    var pipBtn = document.createElement('div');
-    pipBtn.className = 'sx-ctrl';
-    pipBtn.title = 'Picture in Picture';
-    pipBtn.innerHTML = ICONS.pip;
-    pipBtn.onclick = function() {
-      if (!art || !art.video) return;
-      if (document.pictureInPictureElement) { document.exitPictureInPicture(); }
-      else if (document.pictureInPictureEnabled) { art.video.requestPictureInPicture().catch(function() { showNotice('PiP not available'); }); }
-      else { showNotice('PiP not supported'); }
-    };
-    controlsRow.appendChild(pipBtn);
+    controlsEl.appendChild(mkCtrl(IC.pip, null, 'Picture in Picture', wxPiP));
 
     /* Fullscreen */
-    var fsBtn = document.createElement('div');
-    fsBtn.className = 'sx-ctrl';
-    fsBtn.id = 'sxFullscreenBtn';
-    fsBtn.title = 'Fullscreen';
-    fsBtn.innerHTML = ICONS.fullscreen;
-    fsBtn.onclick = function() {
+    var fsBtn = mkCtrl(IC.fs, 'wxFsBtn', 'Fullscreen', function() {
       if (!art || !art.video) return;
-      if (document.fullscreenElement) { document.exitFullscreen(); }
-      else { container.requestFullscreen().catch(function() { showNotice('Fullscreen not available'); }); }
-    };
-    controlsRow.appendChild(fsBtn);
+      if (document.fullscreenElement) document.exitFullscreen();
+      else container.requestFullscreen().catch(function() { notice('Fullscreen not available'); });
+    });
+    controlsEl.appendChild(fsBtn);
   }
 
-  /* ===== VOLUME UI UPDATE ===== */
-  function updateVolumeUI() {
+  function mkCtrl(svg, id, title, onclick) {
+    var d = document.createElement('div');
+    d.className = 'wx-ctrl';
+    if (id) d.id = id;
+    if (title) d.title = title;
+    d.innerHTML = svg;
+    if (onclick) d.onclick = onclick;
+    return d;
+  }
+
+  /* ===== VOLUME UI ===== */
+  function updateVol() {
     if (!art || !art.video) return;
     var vol = art.video.muted ? 0 : art.video.volume;
-    var icon = document.getElementById('sxVolumeIcon');
-    if (icon) icon.innerHTML = vol === 0 ? ICONS.volumeMute : ICONS.volumeHigh;
-    var fill = document.getElementById('sxVolFill');
-    var thumb = document.getElementById('sxVolThumb');
+    var icon = document.getElementById('wxVolIcon');
+    if (icon) icon.innerHTML = vol === 0 ? IC.volOff : IC.volOn;
+    var fill = document.getElementById('wxVolFill');
+    var thumb = document.getElementById('wxVolThumb');
     if (fill) fill.style.width = (vol * 100) + '%';
     if (thumb) thumb.style.left = (vol * 100) + '%';
   }
 
-  /* ===== PROGRESS BAR SETUP ===== */
+  /* ===== PROGRESS BAR ===== */
   function setupProgress() {
-    var track = document.getElementById('sxProgressTrack');
+    var track = document.getElementById('wxProgressTrack');
     if (!track) return;
 
     track.addEventListener('click', function(e) {
       if (!art || !art.video) return;
-      var rect = track.getBoundingClientRect();
-      var pct = (e.clientX - rect.left) / rect.width;
-      art.video.currentTime = pct * art.video.duration;
+      var r = track.getBoundingClientRect();
+      art.video.currentTime = ((e.clientX - r.left) / r.width) * art.video.duration;
     });
 
-    /* Hover: thumb preview */
-    var thumbPreview = document.getElementById('sxThumbPreview');
-    var thumbTime = document.getElementById('sxThumbTime');
-    var thumbImg = document.getElementById('sxThumbImg');
-    var thumbEl = document.getElementById('sxThumb');
-    var playedEl = document.getElementById('sxPlayed');
-    var bufferedEl = document.getElementById('sxBuffered');
+    var thumbPreview = document.getElementById('wxThumbPreview');
+    var thumbTime = document.getElementById('wxThumbTime');
+    var thumbImg = document.getElementById('wxThumbImg');
+    var thumbEl = document.getElementById('wxThumb');
+    var playedEl = document.getElementById('wxPlayed');
 
     track.addEventListener('mousemove', function(e) {
-      var rect = track.getBoundingClientRect();
-      var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      var r = track.getBoundingClientRect();
+      var pct = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
       var time = pct * (art && art.video ? art.video.duration : 0);
-
-      /* Position thumb */
       if (thumbEl) thumbEl.style.left = (pct * 100) + '%';
       if (playedEl) playedEl.style.width = (pct * 100) + '%';
-
-      /* Preview tooltip position */
       if (thumbPreview) {
-        var px = Math.max(80, Math.min(rect.width - 80, e.clientX - rect.left));
+        var px = Math.max(80, Math.min(r.width - 80, e.clientX - r.left));
         thumbPreview.style.left = px + 'px';
         thumbPreview.style.display = 'block';
       }
-      if (thumbTime) thumbTime.textContent = fmtTime(time);
+      if (thumbTime) thumbTime.textContent = fmt(time);
       if (thumbImg) thumbImg.style.display = 'block';
     });
 
@@ -885,255 +1438,253 @@
     });
   }
 
-  /* ===== SETTINGS PANEL ===== */
-  var currentSettingsView = 'main';
-  var settingsState = {
-    quality: 'Auto',
-    speed: 1,
-    subtitle: 'Off',
-    audio: 'Default',
-    autoPlayNext: true,
-    skipIntro: false,
-    skipOutro: false
-  };
+  /* ===== DOUBLE-CLICK SEEK ===== */
+  var lastClickTime = 0;
+  container.addEventListener('click', function(e) {
+    if (e.target.closest('.wx-controls') || e.target.closest('.wx-top-bar') || e.target.closest('.wx-settings-panel')) return;
+    var now = Date.now();
+    if (now - lastClickTime < 300) {
+      var r = container.getBoundingClientRect();
+      var x = e.clientX - r.left;
+      if (x < r.width / 3) {
+        if (art && art.video) { art.video.currentTime = Math.max(0, art.video.currentTime - 10); notice('-10s'); }
+      } else {
+        if (art && art.video) { art.video.currentTime = Math.min(art.video.duration || 0, art.video.currentTime + 10); notice('+10s'); }
+      }
+      lastClickTime = 0;
+    } else {
+      lastClickTime = now;
+    }
+  });
 
-  var settingsPanel = document.createElement('div');
-  settingsPanel.className = 'sx-settings-panel';
-  container.appendChild(settingsPanel);
+  /* ===== SETTINGS PANEL ===== */
+  var settingsView = 'main';
+  var ss = { quality: 'Auto', speed: 1, subtitle: 'Off', audio: 'Default', autoPlayNext: true, skipIntro: false, skipOutro: false };
+  var settingsPanel = document.getElementById('wxSettingsPanel');
 
   function toggleSettings() {
-    if (settingsPanel.classList.contains('open')) {
-      settingsPanel.classList.remove('open');
-    } else {
-      currentSettingsView = 'main';
-      renderSettings();
-      settingsPanel.classList.add('open');
-    }
+    if (settingsPanel.classList.contains('open')) { settingsPanel.classList.remove('open'); }
+    else { settingsView = 'main'; renderSettings(); settingsPanel.classList.add('open'); }
   }
-
-  function openSettingsSubmenu(view) {
-    currentSettingsView = view;
-    renderSettings();
-    settingsPanel.classList.add('open');
-  }
+  function openSettingsSub(v) { settingsView = v; renderSettings(); settingsPanel.classList.add('open'); }
 
   function renderSettings() {
     settingsPanel.innerHTML = '';
-    if (currentSettingsView === 'main') renderMainSettings();
-    else if (currentSettingsView === 'quality') renderQualitySettings();
-    else if (currentSettingsView === 'speed') renderSpeedSettings();
+    if (settingsView === 'main') renderMain();
+    else if (settingsView === 'quality') renderQuality();
+    else if (settingsView === 'speed') renderSpeed();
+    else if (settingsView === 'subtitle-opts') renderSubOpts();
+    else if (settingsView === 'audio-opts') renderAudioOpts();
   }
 
-  function renderMainSettings() {
-    /* Quality */
-    addSettingItem('Video Quality', settingsState.quality, function() { openSettingsSubmenu('quality'); });
+  function renderMain() {
+    addSI('Video Quality', ss.quality, function() { openSettingsSub('quality'); });
+    settingsPanel.appendChild(mkDiv());
+    addSI('Playback Speed', ss.speed + 'x', function() { openSettingsSub('speed'); });
+    settingsPanel.appendChild(mkDiv());
+    addSI('Subtitle', ss.subtitle, function() { openSettingsSub('subtitle-opts'); });
+    settingsPanel.appendChild(mkDiv());
+    addSI('Audio Language', ss.audio, function() { openSettingsSub('audio-opts'); });
+    settingsPanel.appendChild(mkDiv());
 
-    settingsPanel.appendChild(createDivider());
-
-    /* Playback Speed */
-    addSettingItem('Playback Speed', settingsState.speed + 'x', function() { openSettingsSubmenu('speed'); });
-
-    settingsPanel.appendChild(createDivider());
-
-    /* Subtitle */
-    addSettingItem('Subtitle', settingsState.subtitle, function() { openSettingsSubmenu('subtitle-opts'); });
-
-    settingsPanel.appendChild(createDivider());
-
-    /* Audio Language */
-    addSettingItem('Audio Language', settingsState.audio, function() { openSettingsSubmenu('audio-opts'); });
-
-    settingsPanel.appendChild(createDivider());
-
-    /* Auto Play Next Episode */
-    var autoPlayItem = document.createElement('div');
-    autoPlayItem.className = 'sx-sp-item';
-    autoPlayItem.innerHTML = '<span class="sx-sp-label">Auto Play Next</span>' +
-      '<div class="sx-toggle ' + (settingsState.autoPlayNext ? 'on' : '') + '" id="sxAutoPlayToggle"></div>';
-    autoPlayItem.onclick = function() {
-      settingsState.autoPlayNext = !settingsState.autoPlayNext;
-      var toggle = document.getElementById('sxAutoPlayToggle');
-      if (toggle) toggle.classList.toggle('on', settingsState.autoPlayNext);
-      showNotice('Auto Play: ' + (settingsState.autoPlayNext ? 'On' : 'Off'));
-    };
-    settingsPanel.appendChild(autoPlayItem);
-
-    settingsPanel.appendChild(createDivider());
+    /* Auto Play Next */
+    var ap = document.createElement('div');
+    ap.className = 'wx-sp-item';
+    ap.innerHTML = '<span class="wx-sp-label">Auto Play Next</span><div class="wx-toggle ' + (ss.autoPlayNext ? 'on' : '') + '"></div>';
+    ap.onclick = function() { ss.autoPlayNext = !ss.autoPlayNext; renderSettings(); notice('Auto Play: ' + (ss.autoPlayNext ? 'On' : 'Off')); };
+    settingsPanel.appendChild(ap);
+    settingsPanel.appendChild(mkDiv());
 
     /* Skip Intro */
-    var skipIntroItem = document.createElement('div');
-    skipIntroItem.className = 'sx-sp-item';
-    skipIntroItem.innerHTML = '<span class="sx-sp-label">Skip Intro</span>' +
-      '<div class="sx-toggle ' + (settingsState.skipIntro ? 'on' : '') + '"></div>';
-    skipIntroItem.onclick = function() {
-      settingsState.skipIntro = !settingsState.skipIntro;
-      renderSettings();
-      showNotice('Skip Intro: ' + (settingsState.skipIntro ? 'On' : 'Off'));
-    };
-    settingsPanel.appendChild(skipIntroItem);
-
-    settingsPanel.appendChild(createDivider());
+    var si = document.createElement('div');
+    si.className = 'wx-sp-item';
+    si.innerHTML = '<span class="wx-sp-label">Skip Intro</span><div class="wx-toggle ' + (ss.skipIntro ? 'on' : '') + '"></div>';
+    si.onclick = function() { ss.skipIntro = !ss.skipIntro; renderSettings(); notice('Skip Intro: ' + (ss.skipIntro ? 'On' : 'Off')); };
+    settingsPanel.appendChild(si);
+    settingsPanel.appendChild(mkDiv());
 
     /* Skip Outro */
-    var skipOutroItem = document.createElement('div');
-    skipOutroItem.className = 'sx-sp-item';
-    skipOutroItem.innerHTML = '<span class="sx-sp-label">Skip Outro</span>' +
-      '<div class="sx-toggle ' + (settingsState.skipOutro ? 'on' : '') + '"></div>';
-    skipOutroItem.onclick = function() {
-      settingsState.skipOutro = !settingsState.skipOutro;
-      renderSettings();
-      showNotice('Skip Outro: ' + (settingsState.skipOutro ? 'On' : 'Off'));
-    };
-    settingsPanel.appendChild(skipOutroItem);
+    var so = document.createElement('div');
+    so.className = 'wx-sp-item';
+    so.innerHTML = '<span class="wx-sp-label">Skip Outro</span><div class="wx-toggle ' + (ss.skipOutro ? 'on' : '') + '"></div>';
+    so.onclick = function() { ss.skipOutro = !ss.skipOutro; renderSettings(); notice('Skip Outro: ' + (ss.skipOutro ? 'On' : 'Off')); };
+    settingsPanel.appendChild(so);
   }
 
-  function renderQualitySettings() {
-    /* Back header */
-    var header = document.createElement('div');
-    header.className = 'sx-sp-item';
-    header.innerHTML = '<span class="sx-sp-label" style="display:flex;align-items:center;gap:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>Quality</span>';
-    header.onclick = function() { currentSettingsView = 'main'; renderSettings(); };
-    settingsPanel.appendChild(header);
-    settingsPanel.appendChild(createDivider());
-
-    var qualities = ['Auto', '1080p', '720p', '480p', '360p'];
-    qualities.forEach(function(q) {
+  function renderQuality() {
+    addBackHeader('Quality');
+    settingsPanel.appendChild(mkDiv());
+    ['Auto', '4K', '1080p', '720p', '480p', '360p'].forEach(function(q) {
       var item = document.createElement('div');
-      item.className = 'sx-sp-item' + (q === settingsState.quality ? ' active' : '');
-      var checkmark = q === settingsState.quality ? '<svg viewBox="0 0 24 24" fill="#3B82F6" width="16" height="16"><polyline points="20 6 9 17 4 12" fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '';
-      item.innerHTML = '<span class="sx-sp-label">' + q + '</span><span class="sx-sp-value">' + checkmark + '</span>';
-      item.onclick = function() {
-        settingsState.quality = q;
-        currentSettingsView = 'main';
-        renderSettings();
-        showNotice('Quality: ' + q);
-      };
+      item.className = 'wx-sp-item' + (q === ss.quality ? ' active' : '');
+      var check = q === ss.quality ? '<svg viewBox="0 0 24 24" fill="#3B82F6" width="16" height="16"><polyline points="20 6 9 17 4 12" fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '';
+      item.innerHTML = '<span class="wx-sp-label">' + q + '</span><span class="wx-sp-value">' + check + '</span>';
+      item.onclick = function() { ss.quality = q; settingsView = 'main'; renderSettings(); notice('Quality: ' + q); };
       settingsPanel.appendChild(item);
     });
   }
 
-  function renderSpeedSettings() {
-    var header = document.createElement('div');
-    header.className = 'sx-sp-item';
-    header.innerHTML = '<span class="sx-sp-label" style="display:flex;align-items:center;gap:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>Playback Speed</span>';
-    header.onclick = function() { currentSettingsView = 'main'; renderSettings(); };
-    settingsPanel.appendChild(header);
-    settingsPanel.appendChild(createDivider());
-
-    var speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
-    speeds.forEach(function(s) {
+  function renderSpeed() {
+    addBackHeader('Playback Speed');
+    settingsPanel.appendChild(mkDiv());
+    [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].forEach(function(s) {
       var item = document.createElement('div');
-      item.className = 'sx-sp-item' + (s === settingsState.speed ? ' active' : '');
-      var label = s + 'x' + (s === 1 ? ' (Normal)' : '');
-      var checkmark = s === settingsState.speed ? '<svg viewBox="0 0 24 24" fill="#3B82F6" width="16" height="16"><polyline points="20 6 9 17 4 12" fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '';
-      item.innerHTML = '<span class="sx-sp-label">' + label + '</span><span class="sx-sp-value">' + checkmark + '</span>';
-      item.onclick = function() {
-        settingsState.speed = s;
-        if (art && art.video) art.video.playbackRate = s;
-        currentSettingsView = 'main';
-        renderSettings();
-        showNotice('Speed: ' + s + 'x');
-      };
+      item.className = 'wx-sp-item' + (s === ss.speed ? ' active' : '');
+      var check = s === ss.speed ? '<svg viewBox="0 0 24 24" fill="#3B82F6" width="16" height="16"><polyline points="20 6 9 17 4 12" fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '';
+      item.innerHTML = '<span class="wx-sp-label">' + s + 'x' + (s === 1 ? ' (Normal)' : '') + '</span><span class="wx-sp-value">' + check + '</span>';
+      item.onclick = function() { ss.speed = s; if (art && art.video) art.video.playbackRate = s; settingsView = 'main'; renderSettings(); notice('Speed: ' + s + 'x'); };
       settingsPanel.appendChild(item);
     });
   }
 
-  function renderSubtitleOptions() {
-    var header = document.createElement('div');
-    header.className = 'sx-sp-item';
-    header.innerHTML = '<span class="sx-sp-label" style="display:flex;align-items:center;gap:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>Subtitle</span>';
-    header.onclick = function() { currentSettingsView = 'main'; renderSettings(); };
-    settingsPanel.appendChild(header);
-    settingsPanel.appendChild(createDivider());
-
+  function renderSubOpts() {
+    addBackHeader('Subtitle');
+    settingsPanel.appendChild(mkDiv());
     ['Off', 'English', 'Hindi', 'Spanish', 'Japanese'].forEach(function(lang) {
       var item = document.createElement('div');
-      item.className = 'sx-sp-item' + (lang === settingsState.subtitle ? ' active' : '');
-      var checkmark = lang === settingsState.subtitle ? '<svg viewBox="0 0 24 24" fill="#3B82F6" width="16" height="16"><polyline points="20 6 9 17 4 12" fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '';
-      item.innerHTML = '<span class="sx-sp-label">' + lang + '</span><span class="sx-sp-value">' + checkmark + '</span>';
-      item.onclick = function() {
-        settingsState.subtitle = lang;
-        currentSettingsView = 'main';
-        renderSettings();
-        showNotice('Subtitle: ' + lang);
-      };
+      item.className = 'wx-sp-item' + (lang === ss.subtitle ? ' active' : '');
+      var check = lang === ss.subtitle ? '<svg viewBox="0 0 24 24" fill="#3B82F6" width="16" height="16"><polyline points="20 6 9 17 4 12" fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '';
+      item.innerHTML = '<span class="wx-sp-label">' + lang + '</span><span class="wx-sp-value">' + check + '</span>';
+      item.onclick = function() { ss.subtitle = lang; settingsView = 'main'; renderSettings(); notice('Subtitle: ' + lang); };
       settingsPanel.appendChild(item);
     });
   }
 
-  function renderAudioOptions() {
-    var header = document.createElement('div');
-    header.className = 'sx-sp-item';
-    header.innerHTML = '<span class="sx-sp-label" style="display:flex;align-items:center;gap:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>Audio Language</span>';
-    header.onclick = function() { currentSettingsView = 'main'; renderSettings(); };
-    settingsPanel.appendChild(header);
-    settingsPanel.appendChild(createDivider());
-
+  function renderAudioOpts() {
+    addBackHeader('Audio Language');
+    settingsPanel.appendChild(mkDiv());
     ['Default', 'English', 'Hindi', 'Japanese'].forEach(function(a) {
       var item = document.createElement('div');
-      item.className = 'sx-sp-item' + (a === settingsState.audio ? ' active' : '');
-      var checkmark = a === settingsState.audio ? '<svg viewBox="0 0 24 24" fill="#3B82F6" width="16" height="16"><polyline points="20 6 9 17 4 12" fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '';
-      item.innerHTML = '<span class="sx-sp-label">' + a + '</span><span class="sx-sp-value">' + checkmark + '</span>';
-      item.onclick = function() {
-        settingsState.audio = a;
-        currentSettingsView = 'main';
-        renderSettings();
-        showNotice('Audio: ' + a);
-      };
+      item.className = 'wx-sp-item' + (a === ss.audio ? ' active' : '');
+      var check = a === ss.audio ? '<svg viewBox="0 0 24 24" fill="#3B82F6" width="16" height="16"><polyline points="20 6 9 17 4 12" fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '';
+      item.innerHTML = '<span class="wx-sp-label">' + a + '</span><span class="wx-sp-value">' + check + '</span>';
+      item.onclick = function() { ss.audio = a; settingsView = 'main'; renderSettings(); notice('Audio: ' + a); };
       settingsPanel.appendChild(item);
     });
   }
 
-  function addSettingItem(label, value, onClick) {
+  function addSI(label, value, onClick) {
     var item = document.createElement('div');
-    item.className = 'sx-sp-item';
-    item.innerHTML = '<span class="sx-sp-label">' + label + '</span><span class="sx-sp-value">' + value + ' ' + ICONS.chevronRight + '</span>';
+    item.className = 'wx-sp-item';
+    item.innerHTML = '<span class="wx-sp-label">' + label + '</span><span class="wx-sp-value">' + value + ' ' + IC.chev + '</span>';
     item.onclick = onClick;
     settingsPanel.appendChild(item);
   }
 
-  function createDivider() {
-    var d = document.createElement('div');
-    d.className = 'sx-sp-divider';
-    return d;
+  function addBackHeader(title) {
+    var h = document.createElement('div');
+    h.className = 'wx-sp-item';
+    h.innerHTML = '<span class="wx-sp-label" style="display:flex;align-items:center;gap:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>' + title + '</span>';
+    h.onclick = function() { settingsView = 'main'; renderSettings(); };
+    settingsPanel.appendChild(h);
   }
 
-  /* Patch renderSettings to handle all submenus */
-  var _origRender = renderSettings;
-  renderSettings = function() {
-    settingsPanel.innerHTML = '';
-    if (currentSettingsView === 'main') renderMainSettings();
-    else if (currentSettingsView === 'quality') renderQualitySettings();
-    else if (currentSettingsView === 'speed') renderSpeedSettings();
-    else if (currentSettingsView === 'subtitle-opts') renderSubtitleOptions();
-    else if (currentSettingsView === 'audio-opts') renderAudioOptions();
-  };
+  function mkDiv() { var d = document.createElement('div'); d.className = 'wx-sp-divider'; return d; }
 
   /* Close settings on outside click */
   document.addEventListener('click', function(e) {
-    if (settingsPanel.classList.contains('open') && !settingsPanel.contains(e.target) && !e.target.closest('#sxSettingsBtn')) {
+    if (settingsPanel.classList.contains('open') && !settingsPanel.contains(e.target) && !e.target.closest('#wxSettingsBtn')) {
       settingsPanel.classList.remove('open');
     }
   });
 
   /* ===== THEATER MODE ===== */
-  window.sxToggleTheater = function() {
-    var isTheater = container.classList.toggle('theater-mode');
-    var overlay = document.getElementById('theaterOverlay');
-    if (overlay) overlay.classList.toggle('active', isTheater);
-    showNotice(isTheater ? 'Theater Mode' : 'Normal Mode');
+  window.wxToggleTheater = function() {
+    var is = container.classList.toggle('theater-mode');
+    document.getElementById('theaterOverlay').classList.toggle('active', is);
+    notice(is ? 'Theater Mode' : 'Normal Mode');
   };
-  window.sxExitTheater = function() {
+  window.wxExitTheater = function() {
     container.classList.remove('theater-mode');
-    var overlay = document.getElementById('theaterOverlay');
-    if (overlay) overlay.classList.remove('active');
+    document.getElementById('theaterOverlay').classList.remove('active');
+  };
+
+  /* ===== PiP ===== */
+  window.wxPiP = function() {
+    if (!art || !art.video) return;
+    if (document.pictureInPictureElement) document.exitPictureInPicture();
+    else if (document.pictureInPictureEnabled) art.video.requestPictureInPicture().catch(function() { notice('PiP not available'); });
+    else notice('PiP not supported');
   };
 
   /* ===== FULLSCREEN LISTENERS ===== */
   document.addEventListener('fullscreenchange', function() {
-    var btn = document.getElementById('sxFullscreenBtn');
-    if (btn) btn.innerHTML = document.fullscreenElement ? ICONS.exitFullscreen : ICONS.fullscreen;
+    var btn = document.getElementById('wxFsBtn');
+    if (btn) btn.innerHTML = document.fullscreenElement ? IC.fsExit : IC.fs;
   });
+
+  /* ===== SKIP INTRO LOGIC ===== */
+  var skipTimer = null;
+  function checkSkipIntro(time) {
+    /* Show skip intro at 30s for 15s (configurable) */
+    var overlay = document.getElementById('wxSkipOverlay');
+    var btn = document.getElementById('wxSkipBtn');
+    if (!overlay || !btn) return;
+    if (ss.skipIntro && time >= 30 && time <= 45) {
+      overlay.classList.add('visible');
+      btn.textContent = 'Skip Intro';
+      btn.onclick = function() { if (art && art.video) { art.video.currentTime = 45; overlay.classList.remove('visible'); } };
+    } else if (ss.skipOutro && time >= art.duration - 60 && time < art.duration - 45) {
+      overlay.classList.add('visible');
+      btn.textContent = 'Skip Recap';
+      btn.onclick = function() { if (art && art.video) { art.video.currentTime = art.duration - 45; overlay.classList.remove('visible'); } };
+    } else {
+      overlay.classList.remove('visible');
+    }
+  }
+
+  /* ===== NEXT EPISODE LOGIC ===== */
+  var nextEpTimer = null;
+  function showNextEpisode() {
+    <% if (episodes.length > 0) { %>
+      <% const nextEp = episodes.find(e => e.number === ep + 1); %>
+      <% if (nextEp) { %>
+        var epOverlay = document.getElementById('wxNextEp');
+        var nextImg = document.getElementById('wxNextImg');
+        var nextTitle = document.getElementById('wxNextTitle');
+        var nextEpNum = document.getElementById('wxNextEpNum');
+        var nextTimer = document.getElementById('wxNextTimer');
+        var nextCard = document.getElementById('wxNextCard');
+
+        if (nextImg) nextImg.src = '<%= item.poster %>';
+        if (nextTitle) nextTitle.textContent = '<%= nextEp.title %>';
+        if (nextEpNum) nextEpNum.textContent = 'Episode <%= nextEp.number %>';
+        if (nextCard) nextCard.onclick = function() { window.location.href = '/watch/<%= type %>/<%= item.id %>?ep=<%= nextEp.number %>'; };
+        epOverlay.classList.add('visible');
+
+        var countdown = 10;
+        if (nextTimer) nextTimer.textContent = 'Playing in ' + countdown + 's...';
+        nextEpTimer = setInterval(function() {
+          countdown--;
+          if (nextTimer) nextTimer.textContent = 'Playing in ' + countdown + 's...';
+          if (countdown <= 0) {
+            clearInterval(nextEpTimer);
+            window.location.href = '/watch/<%= type %>/<%= item.id %>?ep=<%= nextEp.number %>';
+          }
+        }, 1000);
+      <% } %>
+    <% } %>
+  }
+
+  /* ===== RESUME FROM LAST POSITION ===== */
+  function getResumeKey() {
+    return 'wx_resume_' + '<%= item.id %>' + <% if (currentEpisode) { %> '_ep<%= currentEpisode.number %>' <% } else { %> '' <% } %>;
+  }
+
+  function saveResume(time) {
+    try { localStorage.setItem(getResumeKey(), Math.floor(time)); } catch(e) {}
+  }
+
+  function loadResume() {
+    try {
+      var t = parseInt(localStorage.getItem(getResumeKey()));
+      return (t && t > 5) ? t : 0;
+    } catch(e) { return 0; }
+  }
+
+  function clearResume() {
+    try { localStorage.removeItem(getResumeKey()); } catch(e) {}
+  }
 
   /* ===== ARTPLAYER CONFIG ===== */
   var playerConfig = {
@@ -1143,7 +1694,6 @@
     poster: '<%= item.backdrop || item.poster %>',
     theme: '#3B82F6',
     volume: 0.7,
-    isLive: false,
     muted: false,
     autoplay: false,
     pip: false,
@@ -1173,7 +1723,7 @@
     layers: [],
     contextmenu: [
       { html: 'STREAMX Player', click: function(ctx) { ctx.show = false; } },
-      { html: 'Keyboard: Space=Play/Pause | \u2190/\u2192=\u00b110s | \u2191/\u2193=Volume | F=Fullscreen | M=Mute | T=Theater | P=PiP', click: function(ctx) { ctx.show = false; } }
+      { html: 'Space=Play/Pause | \u2190/\u2192=\u00b110s | \u2191/\u2193=Volume | F=Fullscreen | M=Mute | T=Theater | P=PiP | Double-click=Seek', click: function(ctx) { ctx.show = false; } }
     ],
     icons: {
       loading: '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"><div style="width:44px;height:44px;border:3px solid rgba(255,255,255,0.15);border-top-color:#3B82F6;border-radius:50%;animation:art-loading 0.8s linear infinite;"></div></div>',
@@ -1193,22 +1743,15 @@
           hls.on(Hls.Events.MANIFEST_PARSED, function() { video.play().catch(function(){}); });
           hls.on(Hls.Events.ERROR, function(event, data) {
             if (data.fatal) {
-              if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-                showNotice('Network error \u2014 reconnecting...');
-                hls.startLoad();
-              } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-                showNotice('Media error \u2014 recovering...');
-                hls.recoverMediaError();
-              } else {
-                showNotice('Fatal stream error');
-                hls.destroy();
-              }
+              if (data.type === Hls.ErrorTypes.NETWORK_ERROR) { notice('Network error \u2014 reconnecting...'); hls.startLoad(); }
+              else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) { notice('Media error \u2014 recovering...'); hls.recoverMediaError(); }
+              else { notice('Fatal stream error'); hls.destroy(); }
             }
           });
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
           video.src = url;
         } else {
-          showNotice('HLS not supported in this browser');
+          notice('HLS not supported in this browser');
         }
       },
       mpd: function(video, url) {
@@ -1217,7 +1760,7 @@
           dp.updateSettings({ streaming: { abr: { autoSwitchBitrate: { video: true } } } });
           dp.initialize(video, url, false);
         } else {
-          showNotice('DASH player not loaded');
+          notice('DASH player not loaded');
         }
       }
     };
@@ -1225,30 +1768,37 @@
 
   /* ===== CREATE PLAYER ===== */
   art = new Artplayer(playerConfig);
-
-  /* Build our custom controls */
   buildControls();
   setupProgress();
   showControls();
 
-  /* Hide ArtPlayer's own bottom bar (we replaced it) */
+  /* Hide ArtPlayer default bottom bar */
   var artBottom = container.querySelector('.art-bottom');
   if (artBottom) artBottom.style.display = 'none';
 
-  /* ===== VIDEO EVENT HANDLERS ===== */
+  /* Resume from last position */
+  var resumeTime = loadResume();
+  if (resumeTime > 5) {
+    art.on('video:loadedmetadata', function() {
+      art.video.currentTime = resumeTime;
+      notice('Resumed from ' + fmt(resumeTime));
+    });
+  }
 
-  /* Play/Pause button update */
+  /* ===== VIDEO EVENT HANDLERS ===== */
   art.on('video:play', function() {
-    var btn = document.getElementById('sxPlayBtn');
-    if (btn) btn.innerHTML = ICONS.pause;
+    var btn = document.getElementById('wxPlayBtn');
+    if (btn) btn.innerHTML = IC.pause;
   });
   art.on('video:pause', function() {
-    var btn = document.getElementById('sxPlayBtn');
-    if (btn) btn.innerHTML = ICONS.play;
+    var btn = document.getElementById('wxPlayBtn');
+    if (btn) btn.innerHTML = IC.play;
   });
   art.on('video:ended', function() {
-    var btn = document.getElementById('sxPlayBtn');
-    if (btn) btn.innerHTML = ICONS.play;
+    var btn = document.getElementById('wxPlayBtn');
+    if (btn) btn.innerHTML = IC.play;
+    clearResume();
+    showNextEpisode();
   });
 
   /* Time & progress update */
@@ -1256,25 +1806,27 @@
     if (!art.duration) return;
     var pct = (art.currentTime / art.duration) * 100;
 
-    /* Time display */
-    var td = document.getElementById('sxTimeDisplay');
-    if (td) td.textContent = fmtTime(art.currentTime) + ' / ' + fmtTime(art.duration);
+    var td = document.getElementById('wxTimeDisplay');
+    if (td) td.textContent = fmt(art.currentTime) + ' / ' + fmt(art.duration);
 
-    /* Played bar */
-    var played = document.getElementById('sxPlayed');
+    var played = document.getElementById('wxPlayed');
     if (played) played.style.width = pct + '%';
 
-    /* Thumb */
-    var thumb = document.getElementById('sxThumb');
+    var thumb = document.getElementById('wxThumb');
     if (thumb) thumb.style.left = pct + '%';
 
-    /* Mini progress */
-    var mini = document.getElementById('sxMiniProgInner');
+    var mini = document.getElementById('wxMiniProgInner');
     if (mini) mini.style.width = pct + '%';
+
+    /* Skip intro check */
+    checkSkipIntro(art.currentTime);
+
+    /* Save resume position */
+    saveResume(art.currentTime);
 
     /* Continue watching API (every 25%) */
     var progress = Math.floor(pct);
-    if (progress > 0 && progress % 25 === 0) {
+    if (progress > 0 && progress % CONTINUE_WATCH_INTERVAL === 0) {
       fetch('/api/continue-watching', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1295,27 +1847,17 @@
     if (buff && buff.length > 0) {
       var end = buff.end(buff.length - 1);
       var pct = (end / art.duration) * 100;
-      var bufEl = document.getElementById('sxBuffered');
+      var bufEl = document.getElementById('wxBuffered');
       if (bufEl) bufEl.style.width = pct + '%';
     }
   });
 
   /* Loading state */
-  art.on('video:waiting', function() { showNotice('Buffering...'); });
-  art.on('video:error', function() { showNotice('Unable to play this video.'); });
+  art.on('video:waiting', function() { notice('Buffering...'); });
+  art.on('video:error', function() { notice('Unable to play this video.'); });
 
   /* Volume init */
-  art.on('video:volumechange', updateVolumeUI);
-
-  /* Auto-play next episode */
-  art.on('video:ended', function() {
-    if (!settingsState.autoPlayNext) return;
-    var nextCard = document.querySelector('.episode-card.active + .episode-card');
-    if (nextCard) {
-      showNotice('Next episode in 5 seconds...');
-      setTimeout(function() { window.location.href = nextCard.href; }, 5000);
-    }
-  });
+  art.on('video:volumechange', updateVol);
 
   /* ===== KEYBOARD SHORTCUTS ===== */
   document.addEventListener('keydown', function(e) {
@@ -1331,23 +1873,23 @@
       case 'arrowleft':
         e.preventDefault();
         art.video.currentTime = Math.max(0, art.video.currentTime - 10);
-        showNotice('-10s');
+        notice('-10s');
         break;
       case 'arrowright':
         e.preventDefault();
         art.video.currentTime = Math.min(art.video.duration || 0, art.video.currentTime + 10);
-        showNotice('+10s');
+        notice('+10s');
         break;
       case 'arrowup':
         e.preventDefault();
         art.video.volume = Math.min(1, art.video.volume + 0.1);
         art.video.muted = false;
-        updateVolumeUI();
+        updateVol();
         break;
       case 'arrowdown':
         e.preventDefault();
         art.video.volume = Math.max(0, art.video.volume - 0.1);
-        updateVolumeUI();
+        updateVol();
         break;
       case 'f':
         e.preventDefault();
@@ -1357,24 +1899,62 @@
       case 'm':
         e.preventDefault();
         art.video.muted = !art.video.muted;
-        updateVolumeUI();
-        showNotice(art.video.muted ? 'Muted' : 'Unmuted');
+        updateVol();
+        notice(art.video.muted ? 'Muted' : 'Unmuted');
         break;
       case 'p':
         e.preventDefault();
-        if (document.pictureInPictureElement) document.exitPictureInPicture();
-        else if (document.pictureInPictureEnabled) art.video.requestPictureInPicture().catch(function() {});
+        window.wxPiP();
         break;
       case 't':
         e.preventDefault();
-        window.sxToggleTheater();
+        window.wxToggleTheater();
         break;
       case 'escape':
-        window.sxExitTheater();
+        window.wxExitTheater();
+        closeSidebar();
         if (settingsPanel.classList.contains('open')) settingsPanel.classList.remove('open');
         break;
     }
   });
+
+  /* ===== SIDEBAR ===== */
+  window.openSidebar = function() { document.getElementById('watchSidebar').classList.add('open'); };
+  window.closeSidebar = function() { document.getElementById('watchSidebar').classList.remove('open'); };
+
+  /* ===== COLLAPSIBLE SECTIONS ===== */
+  window.toggleSection = function(id) {
+    var el = document.getElementById(id);
+    var toggle = document.getElementById(id + 'Toggle');
+    if (!el) return;
+    if (el.classList.contains('collapsed')) {
+      el.classList.remove('collapsed');
+      el.style.maxHeight = el.scrollHeight + 'px';
+      el.style.opacity = '1';
+      setTimeout(function() { el.style.maxHeight = 'none'; }, 350);
+    } else {
+      el.style.maxHeight = el.scrollHeight + 'px';
+      requestAnimationFrame(function() {
+        el.classList.add('collapsed');
+        el.style.maxHeight = '0';
+        el.style.opacity = '0';
+      });
+    }
+  };
+
+  /* ===== DESCRIPTION TOGGLE ===== */
+  window.toggleDesc = function() {
+    var desc = document.getElementById('watchDesc');
+    var btn = document.getElementById('watchDescToggle');
+    if (!desc) return;
+    if (desc.classList.contains('expanded')) {
+      desc.classList.remove('expanded');
+      btn.textContent = 'Show more';
+    } else {
+      desc.classList.add('expanded');
+      btn.textContent = 'Show less';
+    }
+  };
 
 })();
 </script>

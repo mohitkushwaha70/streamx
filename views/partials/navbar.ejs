@@ -26,7 +26,7 @@
           'indigo': '#4f46e5', 'cyan': '#0891b2'
         };
         const navColor = navAvatarColors[user.avatar] || '#6c5ce7';
-        const isImageAvatar = user.avatar && user.avatar.startsWith('data:');
+        const isImageAvatar = user.avatar && (user.avatar.startsWith('/uploads/') || user.avatar.startsWith('data:'));
       %>
       <div class="nav-user">
         <div class="avatar" style="<%= isImageAvatar ? 'padding:0;overflow:hidden;' : 'background:linear-gradient(135deg,' + navColor + ',' + navColor + 'dd);' %>display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:white;">

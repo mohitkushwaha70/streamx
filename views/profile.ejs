@@ -240,10 +240,12 @@
     'indigo': `<svg viewBox="0 0 100 100"><defs><linearGradient id="g9" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#4f46e5"/><stop offset="100%" style="stop-color:#6366f1"/></linearGradient></defs><rect fill="url(#g9)" width="100" height="100" rx="50"/><circle cx="50" cy="38" r="16" fill="white"/><ellipse cx="50" cy="72" rx="24" ry="18" fill="white"/></svg>`,
     'cyan': `<svg viewBox="0 0 100 100"><defs><linearGradient id="g10" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#0891b2"/><stop offset="100%" style="stop-color:#06b6d4"/></linearGradient></defs><rect fill="url(#g10)" width="100" height="100" rx="50"/><circle cx="50" cy="38" r="16" fill="white"/><ellipse cx="50" cy="72" rx="24" ry="18" fill="white"/></svg>`
   };
+%>
 
+<%
   const avatarKeys = Object.keys(avatarSvgs);
   const currentAvatar = user.avatar || 'blue';
-  const isCurrentImage = currentAvatar.startsWith('data:');
+  const isCurrentImage = currentAvatar.startsWith('/uploads/') || currentAvatar.startsWith('data:');
   const currentSvg = avatarSvgs[currentAvatar] || avatarSvgs['blue'];
 %>
 
@@ -331,7 +333,7 @@
         <h3 style="margin-bottom: 16px;">Account Settings</h3>
         <div class="settings-form">
           <form method="POST" action="/profile" id="profileForm">
-            <input type="hidden" name="avatar" id="selectedAvatar" value="<%= currentAvatar %>">
+            <input type="hidden" name="avatar" id="selectedAvatar" value="<%= isCurrentImage && currentAvatar.startsWith('/uploads/') ? currentAvatar : (isCurrentImage ? '' : currentAvatar) %>">
             <div class="form-group">
               <label>Full Name</label>
               <input type="text" name="name" class="form-input" value="<%= user.name %>">
@@ -421,7 +423,7 @@ function showTab(tab) {
 
 const avatarSvgs = <%- JSON.stringify(avatarSvgs) %>;
 let pendingAvatar = '<%= isCurrentImage ? "" : currentAvatar %>';
-let pendingImage = null;
+let pendingImageUrl = null;
 
 function openAvatarPicker() {
   document.getElementById('avatarModal').classList.add('active');
@@ -429,14 +431,14 @@ function openAvatarPicker() {
 
 function closeAvatarPicker() {
   document.getElementById('avatarModal').classList.remove('active');
-  pendingImage = null;
+  pendingImageUrl = null;
   document.getElementById('avatarImagePreview').style.display = 'none';
   document.getElementById('uploadStatus').style.display = 'none';
 }
 
 function selectAvatar(key) {
   pendingAvatar = key;
-  pendingImage = null;
+  pendingImageUrl = null;
   document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
   document.querySelector('[data-avatar="' + key + '"]').classList.add('selected');
   document.getElementById('avatarImagePreview').style.display = 'none';
@@ -449,64 +451,60 @@ function handleAvatarUpload(e) {
   var status = document.getElementById('uploadStatus');
   status.style.display = 'block';
   status.style.color = '#94a3b8';
-  status.textContent = 'Processing...';
+  status.textContent = 'Uploading...';
 
-  if (file.size > 5 * 1024 * 1024) {
+  if (file.size > 2 * 1024 * 1024) {
     status.style.color = '#f87171';
-    status.textContent = 'Image too large. Max 5MB.';
+    status.textContent = 'Image too large. Max 2MB.';
     return;
   }
 
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    var img = new Image();
-    img.onload = function() {
-      var canvas = document.createElement('canvas');
-      var MAX = 200;
-      var w = img.width, h = img.height;
-      if (w > h) { if (w > MAX) { h = h * MAX / w; w = MAX; } }
-      else { if (h > MAX) { w = w * MAX / h; h = MAX; } }
-      canvas.width = w;
-      canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      pendingImage = canvas.toDataURL('image/jpeg', 0.7);
-      pendingAvatar = '';
+  var formData = new FormData();
+  formData.append('avatar', file);
 
-      document.getElementById('avatarPreviewImg').src = pendingImage;
+  fetch('/profile/avatar', {
+    method: 'POST',
+    body: formData
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) {
+      pendingImageUrl = data.avatar;
+      pendingAvatar = '';
+      document.getElementById('avatarPreviewImg').src = data.avatar;
       document.getElementById('avatarImagePreview').style.display = 'block';
-      document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+      document.querySelectorAll('.avatar-option').forEach(function(el) { el.classList.remove('selected'); });
       status.style.color = '#4ade80';
-      status.textContent = 'Image ready! Click Save.';
-    };
-    img.onerror = function() {
+      status.textContent = 'Image uploaded! Click Save.';
+    } else {
       status.style.color = '#f87171';
-      status.textContent = 'Invalid image file.';
-    };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
+      status.textContent = data.error || 'Upload failed.';
+    }
+  })
+  .catch(function(err) {
+    status.style.color = '#f87171';
+    status.textContent = 'Upload failed. Try again.';
+  });
 }
 
 function saveAvatar() {
-  var avatarVal = pendingImage || pendingAvatar;
+  var avatarVal = pendingImageUrl || pendingAvatar;
   if (!avatarVal) {
     alert('Select an avatar or upload an image first.');
     return;
   }
   document.getElementById('selectedAvatar').value = avatarVal;
 
-  /* Update profile display */
   var display = document.getElementById('profileAvatarDisplay');
-  if (pendingImage) {
-    display.innerHTML = '<img src="' + pendingImage + '" alt="Avatar" style="width:100%;height:100%;object-fit:cover;">';
+  if (pendingImageUrl) {
+    display.innerHTML = '<img src="' + pendingImageUrl + '" alt="Avatar" style="width:100%;height:100%;object-fit:cover;">';
   } else if (avatarSvgs[pendingAvatar]) {
     display.innerHTML = avatarSvgs[pendingAvatar];
   }
 
-  /* Update settings preview */
   var preview = document.getElementById('settingsAvatarPreview');
-  if (pendingImage) {
-    preview.innerHTML = '<img src="' + pendingImage + '" alt="Avatar" style="width:100%;height:100%;object-fit:cover;">';
+  if (pendingImageUrl) {
+    preview.innerHTML = '<img src="' + pendingImageUrl + '" alt="Avatar" style="width:100%;height:100%;object-fit:cover;">';
   } else if (avatarSvgs[pendingAvatar]) {
     preview.innerHTML = avatarSvgs[pendingAvatar];
   }

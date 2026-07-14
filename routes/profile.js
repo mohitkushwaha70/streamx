@@ -17,7 +17,7 @@ router.post('/', (req, res) => {
   const { name, avatar } = req.body;
   const updates = {};
   if (name && name.trim()) updates.name = name.trim();
-  if (avatar && avatar.trim()) updates.avatar = avatar.trim().charAt(0).toUpperCase();
+  if (avatar && avatar.trim()) updates.avatar = avatar.trim();
   if (Object.keys(updates).length > 0) {
     db.users.update(req.session.user.id, updates);
     if (updates.name) req.session.user.name = updates.name;

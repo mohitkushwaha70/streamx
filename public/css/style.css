@@ -319,7 +319,7 @@ body:has(.admin-layout) .footer { display: none !important; }
 .admin-logo { padding: 0 24px; margin-bottom: 32px; }
 .admin-logo a { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
 .admin-logo a span { background: var(--gradient-blue); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.admin-badge { padding: 3px 10px; border-radius: var(--radius-full); font-size: 0.55rem; font-weight: 800; background: var(--gradient-blue); color: white; letter-spacing: 1px; margin-left: 8px; }
+
 .admin-nav { flex: 1; display: flex; flex-direction: column; padding: 0 12px; gap: 2px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #333 transparent; }
 .admin-nav::-webkit-scrollbar { width: 4px; }
 .admin-nav::-webkit-scrollbar-track { background: transparent; }
@@ -524,7 +524,7 @@ body:has(.admin-layout) .footer { display: none !important; }
   .top10-number { font-size: 5rem; }
   .continue-card { min-width: 300px; }
   .admin-sidebar { width: 70px; }
-  .admin-sidebar .admin-nav-item span, .admin-sidebar .admin-logo a span:last-child, .admin-sidebar .admin-badge, .admin-sidebar .admin-nav-item { font-size: 0; justify-content: center; }
+  .admin-sidebar .admin-nav-item span, .admin-sidebar .admin-logo a span:last-child, .admin-sidebar .admin-nav-item { font-size: 0; justify-content: center; }
   .admin-main { margin-left: 70px; padding: 14px; }
   .admin-header { flex-direction: column; align-items: flex-start; gap: 10px; }
   .admin-header-right { flex-wrap: wrap; }

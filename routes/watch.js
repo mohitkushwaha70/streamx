@@ -120,10 +120,15 @@ router.get('/:type/:id', (req, res) => {
 
   const shareUrl = `${req.protocol}://${req.get('host')}/watch/${item.type}/${item.id}`;
 
+  const userStatus = {};
+  if (req.session.user) {
+    userStatus.inWatchlist = db.watchlist.has(req.session.user.id, item.id, 'watchlist');
+  }
+
   res.render('player', {
     item, type: item.type, related, episodes, currentEpisode, ep, trending,
     totalSeasons: item.seasons || 1, currentSeason: season, shareUrl,
-    streaming: {}
+    streaming: {}, userStatus
   });
 });
 

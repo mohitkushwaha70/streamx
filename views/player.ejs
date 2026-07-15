@@ -440,14 +440,9 @@
       <button class="sx-desc-btn" onclick="var d=document.getElementById('sxD');d.classList.toggle('open');this.textContent=d.classList.contains('open')?'Show Less':'Show More'">Show More</button>
 
       <div class="sx-acts" style="margin-top:8px">
-        <button class="sx-act primary" onclick="if(art&&art.video)art.video.paused?art.video.play():art.video.pause()">
-          <svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>Watch Now
-        </button>
-        <form action="/watchlist/add" method="POST" style="display:inline"><input type="hidden" name="id" value="<%= item.id %>">
-          <button type="submit" class="sx-act glass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>My List</button>
+        <form action="/watchlist/<%= (typeof userStatus !== 'undefined' && userStatus && userStatus.inWatchlist) ? 'remove' : 'add' %>" method="POST" style="display:inline"><input type="hidden" name="id" value="<%= item.id %>">
+          <button type="submit" class="sx-act glass" style="<%= (typeof userStatus !== 'undefined' && userStatus && userStatus.inWatchlist) ? 'border-color:rgba(34,197,94,0.5);color:#4ade80;' : '' %>"><svg viewBox="0 0 24 24" fill="<%= (typeof userStatus !== 'undefined' && userStatus && userStatus.inWatchlist) ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><%= (typeof userStatus !== 'undefined' && userStatus && userStatus.inWatchlist) ? 'In My List' : 'My List' %></button>
         </form>
-        <button class="sx-act glass" onclick="this.querySelector('svg').style.fill=this.style.color=this.style.color==='rgb(74, 222, 128)'?'':'rgb(74, 222, 128)'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>Like</button>
-        <button class="sx-act glass" onclick="this.querySelector('svg').style.fill=this.style.color=this.style.color==='rgb(239, 68, 68)'?'':'rgb(239, 68, 68)'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>Dislike</button>
       </div>
     </div>
 

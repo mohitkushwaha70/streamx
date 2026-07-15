@@ -180,7 +180,7 @@
 
 /* Action buttons */
 .sx-acts{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px}
-.sx-act{display:inline-flex;align-items:center;gap:7px;padding:11px 24px;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;cursor:pointer;border:none;transition:all .25s var(--ease);font-family:var(--font);color:#fff;text-decoration:none}
+.sx-act{display:inline-flex;align-items:center;gap:7px;padding:11px 24px;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;cursor:pointer;border:none;transition:all .15s var(--ease);font-family:var(--font);color:#fff;text-decoration:none}
 .sx-act.primary{background:var(--accent);box-shadow:0 4px 24px rgba(229,9,20,.3)}
 .sx-act.primary:hover{transform:translateY(-2px);box-shadow:0 6px 32px rgba(229,9,20,.5)}
 .sx-act.glass{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);backdrop-filter:blur(8px)}
@@ -950,10 +950,13 @@ function updateMyListBtn(){
 }
 document.getElementById('myListBtn').addEventListener('click',function(){
   if(!_isLoggedIn){window.location.href='/auth/login';return;}
-  var url=_inList?'/watchlist/remove':'/watchlist/add';
+  var prev=_inList;
+  _inList=!_inList;
+  updateMyListBtn();
+  var url=_inList?'/watchlist/add':'/watchlist/remove';
   fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({id:_itemId})}).then(function(r){return r.json();}).then(function(d){
-    if(d.ok){_inList=!_inList;updateMyListBtn();}
-  }).catch(function(){});
+    if(!d.ok){_inList=prev;updateMyListBtn();}
+  }).catch(function(){_inList=prev;updateMyListBtn();});
 });
 
 /* Like / Unlike */
@@ -975,12 +978,22 @@ function updateLikeUI(){
 
 document.getElementById('likeBtn').addEventListener('click',function(){
   if(!_isLoggedIn){window.location.href='/auth/login';return;}
-  fetch('/api/like-toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contentId:_itemId,type:'like'})}).then(function(r){return r.json();}).then(function(d){_liked=d.userLike==='like';_unliked=d.userLike==='dislike';_likeCount=d.likes;_dislikeCount=d.dislikes;updateLikeUI();}).catch(function(){});
+  var wasLiked=_liked,wasUnliked=_unliked;
+  var oldLC=_likeCount,oldDC=_dislikeCount;
+  if(_liked){_liked=false;_likeCount=Math.max(0,_likeCount-1);}
+  else{_liked=true;_likeCount++;if(_unliked){_unliked=false;_dislikeCount=Math.max(0,_dislikeCount-1);}}
+  updateLikeUI();
+  fetch('/api/like-toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contentId:_itemId,type:'like'})}).then(function(r){return r.json();}).then(function(d){_liked=d.userLike==='like';_unliked=d.userLike==='dislike';_likeCount=d.likes;_dislikeCount=d.dislikes;updateLikeUI();}).catch(function(){_liked=wasLiked;_unliked=wasUnliked;_likeCount=oldLC;_dislikeCount=oldDC;updateLikeUI();});
 });
 
 document.getElementById('unlikeBtn').addEventListener('click',function(){
   if(!_isLoggedIn){window.location.href='/auth/login';return;}
-  fetch('/api/like-toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contentId:_itemId,type:'dislike'})}).then(function(r){return r.json();}).then(function(d){_liked=d.userLike==='like';_unliked=d.userLike==='dislike';_likeCount=d.likes;_dislikeCount=d.dislikes;updateLikeUI();}).catch(function(){});
+  var wasLiked=_liked,wasUnliked=_unliked;
+  var oldLC=_likeCount,oldDC=_dislikeCount;
+  if(_unliked){_unliked=false;_dislikeCount=Math.max(0,_dislikeCount-1);}
+  else{_unliked=true;_dislikeCount++;if(_liked){_liked=false;_likeCount=Math.max(0,_likeCount-1);}}
+  updateLikeUI();
+  fetch('/api/like-toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contentId:_itemId,type:'dislike'})}).then(function(r){return r.json();}).then(function(d){_liked=d.userLike==='like';_unliked=d.userLike==='dislike';_likeCount=d.likes;_dislikeCount=d.dislikes;updateLikeUI();}).catch(function(){_liked=wasLiked;_unliked=wasUnliked;_likeCount=oldLC;_dislikeCount=oldDC;updateLikeUI();});
 });
 
 updateLikeUI();

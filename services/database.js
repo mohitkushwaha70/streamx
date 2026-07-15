@@ -185,6 +185,19 @@ function createTables() {
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
+  db.run(`CREATE TABLE IF NOT EXISTS comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    content_id INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    likes INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (content_id) REFERENCES content(id) ON DELETE CASCADE
+  )`);
+
+  db.run(`CREATE INDEX IF NOT EXISTS idx_comments_content ON comments(content_id)`);
+
   db.run(`CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
     value TEXT DEFAULT ''
@@ -635,6 +648,39 @@ const payments = {
   }
 };
 
+// ===== COMMENTS =====
+const comments = {
+  getByContent(contentId) {
+    const r = db.exec(
+      `SELECT c.*, u.name as user_name FROM comments c LEFT JOIN users u ON c.user_id = u.id
+       WHERE c.content_id = ? ORDER BY c.created_at DESC`, [contentId]
+    );
+    return r.length > 0 ? r[0].values.map(v => rowToObj(r[0], v)) : [];
+  },
+  add(userId, contentId, text) {
+    db.run("INSERT INTO comments (user_id, content_id, text) VALUES (?, ?, ?)", [userId, contentId, text]);
+    save();
+    const id = db.exec("SELECT last_insert_rowid() as id")[0]?.values[0]?.[0];
+    return this.findById(id);
+  },
+  findById(id) {
+    const r = db.exec("SELECT c.*, u.name as user_name FROM comments c LEFT JOIN users u ON c.user_id = u.id WHERE c.id = ?", [id]);
+    return r.length > 0 && r[0].values.length > 0 ? rowToObj(r[0], r[0].values[0]) : null;
+  },
+  like(id) {
+    db.run("UPDATE comments SET likes = likes + 1 WHERE id = ?", [id]);
+    save();
+  },
+  delete(id, userId) {
+    db.run("DELETE FROM comments WHERE id = ? AND user_id = ?", [id, userId]);
+    save();
+  },
+  count(contentId) {
+    const r = db.exec("SELECT COUNT(*) as c FROM comments WHERE content_id = ?", [contentId]);
+    return r[0]?.values[0]?.[0] || 0;
+  }
+};
+
 // ===== ACTIVITY LOGS =====
 const logs = {
   add(type, message, admin = 'System') {
@@ -839,5 +885,5 @@ async function restoreFromMongo() {
 module.exports = {
   init, getDb, save, saveNow,
   users, content, episodes, watchlist, continueWatching,
-  videoConfigs, payments, logs, settings, otp
+  videoConfigs, payments, comments, logs, settings, otp
 };

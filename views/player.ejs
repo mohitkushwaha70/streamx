@@ -500,8 +500,8 @@
         <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comments <span id="commentCount" style="font-size:.75rem;color:var(--text3);font-weight:400;margin-left:4px"></span></h2>
         <div class="sx-comment-input-wrap">
           <div class="sx-comment-avatar"><%= user ? (user.name ? user.name.charAt(0).toUpperCase() : 'U') : 'G' %></div>
-          <textarea class="sx-comment-input" id="commentInput" placeholder="Add a comment..." rows="1"></textarea>
-          <button class="sx-comment-submit" onclick="postComment()">Post</button>
+          <textarea class="sx-comment-input" id="commentInput" placeholder="<%= user ? 'Add a comment...' : 'Login to comment' %>" rows="1" <%= user ? '' : 'disabled' %>></textarea>
+          <button class="sx-comment-submit" onclick="<%= user ? 'postComment()' : "window.location.href='/auth/login'" %>"><%= user ? 'Post' : 'Login' %></button>
         </div>
         <div class="sx-comment-list" id="commentList"></div>
       </div>
@@ -811,28 +811,51 @@ function clearResume(){try{localStorage.removeItem(resumeKey());}catch(e){}}
 <%}%>
 
 /* ========================================
-   COMMENTS (localStorage)
+   COMMENTS (Server-side)
    ======================================== */
-var CK='sx_comments_<%=item.id%>';
+var CONTENT_ID=<%=item.id%>;
+function escapeHtml(t){var d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+function timeAgo(dateStr){
+  var diff=(Date.now()-new Date(dateStr).getTime())/1000;
+  if(diff<60)return 'Just now';
+  if(diff<3600)return Math.floor(diff/60)+'m ago';
+  if(diff<86400)return Math.floor(diff/3600)+'h ago';
+  if(diff<604800)return Math.floor(diff/86400)+'d ago';
+  return new Date(dateStr).toLocaleDateString();
+}
 function loadComments(){
-  try{var cs=JSON.parse(localStorage.getItem(CK)||'[]');}catch(e){var cs=[];}
-  var el=document.getElementById('commentList');el.innerHTML='';
-  document.getElementById('commentCount').textContent=cs.length>0?'('+cs.length+')':'';
-  if(cs.length===0){el.innerHTML='<div class="sx-no-comments">Be the first to comment</div>';return;}
-  cs.slice().reverse().forEach(function(c,idx){
-    var ri=cs.length-1-idx;
-    el.innerHTML+='<div class="sx-comment"><div class="sx-comment-avatar" style="background:linear-gradient(135deg,'+(c.color||'var(--blue)')+')">'+c.name.charAt(0).toUpperCase()+'</div><div class="sx-comment-body"><div class="sx-comment-meta"><span class="sx-comment-name">'+c.name+'</span><span class="sx-comment-time">'+c.time+'</span></div><div class="sx-comment-text">'+c.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div><div class="sx-comment-actions"><button class="sx-comment-action" onclick="likeComment('+ri+')">&#128077; '+((c.likes)||0)+'</button><% if(user){ %><button class="sx-comment-action" onclick="deleteComment('+ri+')" style="margin-left:auto;color:var(--text3)">Delete</button><%}%></div></div></div>';
-  });
+  fetch('/api/comments/'+CONTENT_ID).then(function(r){return r.json();}).then(function(d){
+    var cs=d.comments||[];
+    var el=document.getElementById('commentList');el.innerHTML='';
+    document.getElementById('commentCount').textContent=cs.length>0?'('+cs.length+')':'';
+    if(cs.length===0){el.innerHTML='<div class="sx-no-comments">Be the first to comment</div>';return;}
+    var userId=<%=user?user.id:0%>;
+    cs.forEach(function(c){
+      var initial=c.user_name?c.user_name.charAt(0).toUpperCase():'G';
+      var colors=['#E50914','#3B82F6','#8B5CF6','#EC4899','#F59E0B','#10B981'];
+      var color=colors[(c.user_id||0)%colors.length];
+      var delBtn=(userId&&userId===c.user_id)?'<button class="sx-comment-action" onclick="deleteComment('+c.id+')" style="margin-left:auto;color:var(--text3)">Delete</button>':'';
+      el.innerHTML+='<div class="sx-comment"><div class="sx-comment-avatar" style="background:linear-gradient(135deg,'+color+')">'+initial+'</div><div class="sx-comment-body"><div class="sx-comment-meta"><span class="sx-comment-name">'+escapeHtml(c.user_name||'User')+'</span><span class="sx-comment-time">'+timeAgo(c.created_at)+'</span></div><div class="sx-comment-text">'+escapeHtml(c.text)+'</div><div class="sx-comment-actions"><button class="sx-comment-action" onclick="likeComment('+c.id+')">&#128077; '+((c.likes)||0)+'</button>'+delBtn+'</div></div></div>';
+    });
+  }).catch(function(){});
 }
 function postComment(){
   var inp=document.getElementById('commentInput');var text=inp.value.trim();if(!text)return;
-  try{var cs=JSON.parse(localStorage.getItem(CK)||'[]');}catch(e){var cs=[];}
-  var colors=['#E50914','#3B82F6','#8B5CF6','#EC4899','#F59E0B','#10B981'];
-  cs.push({name:'<%=user ? user.name.replace(/'/g,"\\'") : "Guest"%>',text:text,time:'Just now',likes:0,color:colors[Math.floor(Math.random()*colors.length)]});
-  localStorage.setItem(CK,JSON.stringify(cs));inp.value='';loadComments();
+  fetch('/api/comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contentId:CONTENT_ID,text:text})}).then(function(r){
+    if(!r.ok){if(r.status===401)showToast('Please login to comment');return r.json();}
+    return r.json();
+  }).then(function(d){
+    if(d&&d.comment){inp.value='';loadComments();}
+  }).catch(function(){showToast('Failed to post comment');});
 }
-function likeComment(ri){try{var cs=JSON.parse(localStorage.getItem(CK)||'[]');}catch(e){return;}if(cs[ri]){cs[ri].likes=(cs[ri].likes||0)+1;localStorage.setItem(CK,JSON.stringify(cs));loadComments();}}
-function deleteComment(ri){try{var cs=JSON.parse(localStorage.getItem(CK)||'[]');}catch(e){return;}cs.splice(ri,1);localStorage.setItem(CK,JSON.stringify(cs));loadComments();}
+function likeComment(id){
+  fetch('/api/comments/'+id+'/like',{method:'POST'}).then(function(){loadComments();}).catch(function(){});
+}
+function deleteComment(id){
+  if(!confirm('Delete this comment?'))return;
+  fetch('/api/comments/'+id,{method:'DELETE'}).then(function(){loadComments();}).catch(function(){});
+}
+document.getElementById('commentInput').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();postComment();}});
 loadComments();
 
 /* ========================================

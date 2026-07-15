@@ -54,4 +54,40 @@ router.post('/continue-watching', (req, res) => {
   res.json({ ok: true });
 });
 
+// ===== COMMENTS =====
+router.get('/comments/:contentId', (req, res) => {
+  const contentId = parseInt(req.params.contentId);
+  if (!contentId) return res.json({ comments: [] });
+  const comments = db.comments.getByContent(contentId);
+  res.json({ comments });
+});
+
+router.post('/comments', (req, res) => {
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ error: 'Login required' });
+  }
+  const { contentId, text } = req.body;
+  if (!contentId || !text || !text.trim()) {
+    return res.status(400).json({ error: 'Comment text required' });
+  }
+  const comment = db.comments.add(req.session.user.id, parseInt(contentId), text.trim());
+  res.json({ comment });
+});
+
+router.post('/comments/:id/like', (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid' });
+  db.comments.like(id);
+  res.json({ ok: true });
+});
+
+router.delete('/comments/:id', (req, res) => {
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ error: 'Login required' });
+  }
+  const id = parseInt(req.params.id);
+  db.comments.delete(id, req.session.user.id);
+  res.json({ ok: true });
+});
+
 module.exports = router;

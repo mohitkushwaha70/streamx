@@ -442,17 +442,21 @@
 
       <div class="sx-acts" style="margin-top:8px">
         <% var _inList = (typeof userStatus !== 'undefined' && userStatus && userStatus.inWatchlist); %>
-        <button id="myListBtn" class="sx-act glass" onclick="toggleMyList()">
-          <svg id="myListIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-          <span id="myListText">My List</span>
+        <% var _ul = (typeof userStatus !== 'undefined' && userStatus && userStatus.userLike === 'like'); %>
+        <% var _ud = (typeof userStatus !== 'undefined' && userStatus && userStatus.userLike === 'dislike'); %>
+        <% var _lc = (typeof userStatus !== 'undefined' && userStatus && userStatus.likes) || 0; %>
+        <% var _dc = (typeof userStatus !== 'undefined' && userStatus && userStatus.dislikes) || 0; %>
+        <button id="myListBtn" class="sx-act glass" data-inlist="<%= _inList ? '1' : '0' %>">
+          <svg id="myListIcon" viewBox="0 0 24 24" fill="<%= _inList ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          <span id="myListText"><%= _inList ? 'In My List' : 'My List' %></span>
         </button>
-        <button class="sx-act glass" id="likeBtn" onclick="toggleLike()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-          <span>Like</span> <span class="sx-like-count" id="likeCount"><%= (typeof userStatus !== 'undefined' && userStatus.likes) || 0 %></span>
+        <button class="sx-act glass" id="likeBtn" data-active="<%= _ul ? '1' : '0' %>">
+          <svg viewBox="0 0 24 24" fill="<%= _ul ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+          <span>Like</span> <span class="sx-like-count" id="likeCount"><%= _lc %></span>
         </button>
-        <button class="sx-act glass" id="unlikeBtn" onclick="toggleUnlike()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
-          <span>Unlike</span> <span class="sx-like-count" id="dislikeCount"><%= (typeof userStatus !== 'undefined' && userStatus.dislikes) || 0 %></span>
+        <button class="sx-act glass" id="unlikeBtn" data-active="<%= _ud ? '1' : '0' %>">
+          <svg viewBox="0 0 24 24" fill="<%= _ud ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
+          <span>Unlike</span> <span class="sx-like-count" id="dislikeCount"><%= _dc %></span>
         </button>
       </div>
     </div>
@@ -923,17 +927,13 @@ fetch('/api/content?type=<%=item.type%>&limit=8&exclude=<%=item.id%>').then(func
 </script>
 
 <script>
-/* ==========================================
-   GLOBAL BUTTON HANDLERS (outside IIFE)
-   ========================================== */
-var _inList=<%= _inList ? 'true' : 'false' %>;
-var _liked=<%= (typeof userStatus !== 'undefined' && userStatus.userLike === 'like') ? 'true' : 'false' %>;
-var _unliked=<%= (typeof userStatus !== 'undefined' && userStatus.userLike === 'dislike') ? 'true' : 'false' %>;
-var _likeCount=<%= (typeof userStatus !== 'undefined' && userStatus.likes) || 0 %>;
-var _dislikeCount=<%= (typeof userStatus !== 'undefined' && userStatus.dislikes) || 0 %>;
+(function(){
 var _itemId=<%= item.id %>;
+var _isLoggedIn=<%= user ? 'true' : 'false' %>;
 
-function setMyListUI(){
+/* My List */
+var _inList=document.getElementById('myListBtn').getAttribute('data-inlist')==='1';
+function updateMyListBtn(){
   var btn=document.getElementById('myListBtn');
   var icon=document.getElementById('myListIcon');
   var txt=document.getElementById('myListText');
@@ -948,22 +948,23 @@ function setMyListUI(){
     txt.textContent='My List';
   }
 }
-
-function toggleMyList(){
-  if(!<%= user ? 'true' : 'false' %>){window.location.href='/auth/login';return;}
+document.getElementById('myListBtn').addEventListener('click',function(){
+  if(!_isLoggedIn){window.location.href='/auth/login';return;}
   var url=_inList?'/watchlist/remove':'/watchlist/add';
   fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({id:_itemId})}).then(function(r){return r.json();}).then(function(d){
-    if(d.ok){
-      _inList=!_inList;
-      setMyListUI();
-    }
+    if(d.ok){_inList=!_inList;updateMyListBtn();}
   }).catch(function(){});
-}
+});
 
-function _applyLikeUI(){
+/* Like / Unlike */
+var _liked=document.getElementById('likeBtn').getAttribute('data-active')==='1';
+var _unliked=document.getElementById('unlikeBtn').getAttribute('data-active')==='1';
+var _likeCount=parseInt(document.getElementById('likeCount').textContent)||0;
+var _dislikeCount=parseInt(document.getElementById('dislikeCount').textContent)||0;
+
+function updateLikeUI(){
   var lBtn=document.getElementById('likeBtn');
   var uBtn=document.getElementById('unlikeBtn');
-  if(!lBtn||!uBtn)return;
   if(_liked){lBtn.style.cssText='background:rgba(239,68,68,0.15)!important;border-color:rgba(239,68,68,0.5)!important;color:#ef4444!important;';lBtn.querySelector('svg').setAttribute('fill','currentColor');}
   else{lBtn.removeAttribute('style');lBtn.querySelector('svg').setAttribute('fill','none');}
   if(_unliked){uBtn.style.cssText='background:rgba(255,255,255,0.15)!important;border-color:rgba(255,255,255,0.5)!important;color:#ffffff!important;';uBtn.querySelector('svg').setAttribute('fill','currentColor');}
@@ -972,34 +973,18 @@ function _applyLikeUI(){
   document.getElementById('dislikeCount').textContent=_dislikeCount;
 }
 
-function toggleLike(){
-  if(!<%= user ? 'true' : 'false' %>){window.location.href='/auth/login';return;}
-  fetch('/api/like-toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contentId:_itemId,type:'like'})})
-  .then(function(r){return r.json();})
-  .then(function(d){
-    _liked=d.userLike==='like';
-    _unliked=d.userLike==='dislike';
-    _likeCount=d.likes;
-    _dislikeCount=d.dislikes;
-    _applyLikeUI();
-  }).catch(function(){});
-}
+document.getElementById('likeBtn').addEventListener('click',function(){
+  if(!_isLoggedIn){window.location.href='/auth/login';return;}
+  fetch('/api/like-toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contentId:_itemId,type:'like'})}).then(function(r){return r.json();}).then(function(d){_liked=d.userLike==='like';_unliked=d.userLike==='dislike';_likeCount=d.likes;_dislikeCount=d.dislikes;updateLikeUI();}).catch(function(){});
+});
 
-function toggleUnlike(){
-  if(!<%= user ? 'true' : 'false' %>){window.location.href='/auth/login';return;}
-  fetch('/api/like-toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contentId:_itemId,type:'dislike'})})
-  .then(function(r){return r.json();})
-  .then(function(d){
-    _liked=d.userLike==='like';
-    _unliked=d.userLike==='dislike';
-    _likeCount=d.likes;
-    _dislikeCount=d.dislikes;
-    _applyLikeUI();
-  }).catch(function(){});
-}
+document.getElementById('unlikeBtn').addEventListener('click',function(){
+  if(!_isLoggedIn){window.location.href='/auth/login';return;}
+  fetch('/api/like-toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contentId:_itemId,type:'dislike'})}).then(function(r){return r.json();}).then(function(d){_liked=d.userLike==='like';_unliked=d.userLike==='dislike';_likeCount=d.likes;_dislikeCount=d.dislikes;updateLikeUI();}).catch(function(){});
+});
 
-setMyListUI();
-_applyLikeUI();
+updateLikeUI();
+})();
 </script>
 
 <%- include('partials/footer') %>

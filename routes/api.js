@@ -90,4 +90,28 @@ router.delete('/comments/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+router.get('/likes/:contentId', (req, res) => {
+  const contentId = parseInt(req.params.contentId);
+  if (!contentId) return res.status(400).json({ error: 'Invalid' });
+  const counts = db.userLikes.getCounts(contentId);
+  let userLike = null;
+  if (req.session && req.session.user) {
+    userLike = db.userLikes.get(req.session.user.id, contentId);
+  }
+  res.json({ ...counts, userLike });
+});
+
+router.post('/like-toggle', (req, res) => {
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ error: 'Login required' });
+  }
+  const { contentId, type } = req.body;
+  if (!contentId || !['like', 'dislike'].includes(type)) {
+    return res.status(400).json({ error: 'Invalid' });
+  }
+  const counts = db.userLikes.toggle(req.session.user.id, contentId, type);
+  const userLike = db.userLikes.get(req.session.user.id, contentId);
+  res.json({ ...counts, userLike });
+});
+
 module.exports = router;

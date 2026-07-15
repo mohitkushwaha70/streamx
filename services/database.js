@@ -204,6 +204,16 @@ function createTables() {
 
   db.run(`CREATE INDEX IF NOT EXISTS idx_comments_content ON comments(content_id)`);
 
+  db.run(`CREATE TABLE IF NOT EXISTS user_likes (
+    user_id INTEGER NOT NULL,
+    content_id INTEGER NOT NULL,
+    type TEXT NOT NULL DEFAULT 'like',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, content_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (content_id) REFERENCES content(id) ON DELETE CASCADE
+  )`);
+
   db.run(`CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
     value TEXT DEFAULT ''
@@ -896,8 +906,38 @@ async function restoreFromMongo() {
   }
 }
 
+const userLikes = {
+  get(userId, contentId) {
+    const db = getDb();
+    const row = db.exec(`SELECT type FROM user_likes WHERE user_id=${Number(userId)} AND content_id=${Number(contentId)}`);
+    if (row.length && row[0].values.length) return row[0].values[0][0];
+    return null;
+  },
+  getCounts(contentId) {
+    const db = getDb();
+    const likes = db.exec(`SELECT COUNT(*) FROM user_likes WHERE content_id=${Number(contentId)} AND type='like'`);
+    const dislikes = db.exec(`SELECT COUNT(*) FROM user_likes WHERE content_id=${Number(contentId)} AND type='dislike'`);
+    return {
+      likes: (likes.length && likes[0].values.length) ? likes[0].values[0][0] : 0,
+      dislikes: (dislikes.length && dislikes[0].values.length) ? dislikes[0].values[0][0] : 0
+    };
+  },
+  toggle(userId, contentId, type) {
+    const db = getDb();
+    const existing = this.get(userId, contentId);
+    if (existing === type) {
+      db.run(`DELETE FROM user_likes WHERE user_id=? AND content_id=?`, [Number(userId), Number(contentId)]);
+    } else {
+      db.run(`DELETE FROM user_likes WHERE user_id=? AND content_id=?`, [Number(userId), Number(contentId)]);
+      db.run(`INSERT INTO user_likes (user_id, content_id, type) VALUES (?, ?, ?)`, [Number(userId), Number(contentId), type]);
+    }
+    saveNow();
+    return this.getCounts(contentId);
+  }
+};
+
 module.exports = {
   init, getDb, save, saveNow,
   users, content, episodes, watchlist, continueWatching,
-  videoConfigs, payments, comments, logs, settings, otp
+  videoConfigs, payments, comments, logs, settings, otp, userLikes
 };

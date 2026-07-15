@@ -123,6 +123,10 @@ router.get('/:type/:id', (req, res) => {
   const userStatus = {};
   if (req.session.user) {
     userStatus.inWatchlist = db.watchlist.has(req.session.user.id, item.id, 'watchlist');
+    const likeCounts = db.userLikes.getCounts(item.id);
+    userStatus.likes = likeCounts.likes;
+    userStatus.dislikes = likeCounts.dislikes;
+    userStatus.userLike = db.userLikes.get(req.session.user.id, item.id);
   }
 
   res.render('player', {

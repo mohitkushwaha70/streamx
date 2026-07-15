@@ -48,6 +48,11 @@ router.get('/:type/:id', (req, res) => {
   if (!item && type) item = db.content.findByTmdbId(itemId, type);
   if (!item) return res.redirect('/');
 
+  if (item.premium && req.session.user.plan !== 'premium') {
+    req.session.error = 'This is premium content. Upgrade to Premium to watch!';
+    return res.redirect('/pricing');
+  }
+
   // Check video URL from content record
   let videoUrl = cleanUrl(item.video_url || '');
 

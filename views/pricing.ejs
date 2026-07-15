@@ -21,10 +21,13 @@
           <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> No credit card needed</li>
         </ul>
         <% if (user) { %>
-          <% if (user.plan === 'free') { %>
+          <% if (user.plan === 'free' && user.plan_chosen) { %>
             <button class="btn btn-primary" style="width:100%;" disabled>Current Plan</button>
           <% } else { %>
-            <a href="/" class="btn btn-outline" style="width:100%;">Back to Browse</a>
+            <form method="POST" action="/auth/choose-plan" style="width:100%;">
+              <input type="hidden" name="plan" value="free">
+              <button type="submit" class="btn btn-primary" style="width:100%;">Start Watching Free</button>
+            </form>
           <% } %>
         <% } else { %>
           <a href="/auth/register" class="btn btn-primary" style="width:100%;">Start Watching Free</a>

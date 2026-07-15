@@ -141,7 +141,7 @@ router.post('/register', (req, res) => {
 // ===== CHOOSE PLAN =====
 router.get('/choose-plan', (req, res) => {
   if (!req.session.user) return res.redirect('/auth/login');
-  res.render('choose-plan');
+  res.redirect('/pricing');
 });
 
 router.post('/choose-plan', (req, res) => {

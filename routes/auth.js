@@ -20,6 +20,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     proxy: true
   }, (accessToken, refreshToken, profile, done) => {
     let user = db.users.findByEmail(profile.emails?.[0]?.value || '');
+    const isNew = !user;
     if (!user) {
       user = db.users.create({
         name: profile.displayName,
@@ -31,6 +32,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         plan: 'free'
       });
     }
+    user._isNew = isNew;
     return done(null, user);
   }));
 }
@@ -93,7 +95,7 @@ router.get('/register', (req, res) => {
   res.render('register');
 });
 
-router.post('/register', (req, res) => {
+router.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
     req.session.error = 'Please fill in all fields';
@@ -108,18 +110,46 @@ router.post('/register', (req, res) => {
     return res.redirect('/auth/register');
   }
 
-  const hash = bcrypt.hashSync(password, 10);
+  const code = db.otp.create(email, 'register');
+  await sendOTP(email, code, 'register');
+
+  req.session.registerData = { name, email, password };
+  res.redirect('/auth/register/verify');
+});
+
+router.get('/register/verify', (req, res) => {
+  if (req.session.user) return res.redirect('/');
+  if (!req.session.registerData) return res.redirect('/auth/register');
+  res.render('register-otp', { email: req.session.registerData.email });
+});
+
+router.post('/register/verify', async (req, res) => {
+  const { code } = req.body;
+  const data = req.session.registerData;
+  if (!data) return res.redirect('/auth/register');
+  if (!code || code.length !== 6) {
+    req.session.error = 'Enter the 6-digit OTP';
+    return res.redirect('/auth/register/verify');
+  }
+
+  const valid = db.otp.verify(data.email, code, 'register');
+  if (!valid) {
+    req.session.error = 'Invalid or expired OTP. Try again.';
+    return res.redirect('/auth/register/verify');
+  }
+
+  const hash = bcrypt.hashSync(data.password, 10);
   const newUser = db.users.create({
-    name, email, password: hash,
-    role: 'user', avatar: name.charAt(0).toUpperCase(), plan: 'free'
+    name: data.name, email: data.email, password: hash,
+    role: 'user', avatar: data.name.charAt(0).toUpperCase(), plan: 'free'
   });
 
-  db.logs.add('user', `New user registered: ${name} (${email})`, 'System');
+  db.logs.add('user', `New user registered: ${data.name} (${data.email})`, 'System');
 
-  logActivity('register', `New user registered: ${name} (${email})`, newUser.id, {
+  logActivity('register', `New user registered: ${data.name} (${data.email})`, newUser.id, {
     ip: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown',
     userAgent: req.headers['user-agent'] || 'unknown',
-    email,
+    email: data.email,
     role: 'user',
   });
 
@@ -129,7 +159,22 @@ router.post('/register', (req, res) => {
     id: newUser.id, name: newUser.name, email: newUser.email,
     role: newUser.role, avatar: newUser.avatar, plan: newUser.plan
   };
-  res.redirect('/');
+  delete req.session.registerData;
+  res.redirect('/auth/choose-plan');
+});
+
+router.get('/choose-plan', (req, res) => {
+  if (!req.session.user) return res.redirect('/auth/login');
+  res.render('choose-plan');
+});
+
+router.post('/choose-plan', (req, res) => {
+  if (!req.session.user) return res.redirect('/auth/login');
+  const { plan } = req.body;
+  if (plan === 'free') {
+    return res.redirect('/');
+  }
+  res.redirect('/pricing');
 });
 
 router.get('/google', (req, res, next) => {
@@ -162,7 +207,7 @@ router.get('/google/callback', (req, res, next) => {
       id: req.user.id, name: req.user.name, email: req.user.email,
       role: req.user.role, avatar: req.user.avatar, plan: req.user.plan
     };
-    res.redirect('/');
+    res.redirect(req.user._isNew ? '/auth/choose-plan' : '/');
   });
 });
 

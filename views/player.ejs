@@ -939,10 +939,11 @@ function setMyListUI(){
 function toggleMyList(){
   if(!<%= user ? 'true' : 'false' %>){window.location.href='/auth/login';return;}
   var url=_inList?'/watchlist/remove':'/watchlist/add';
-  fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'id=<%= item.id %>'}).then(function(r){
-    if(!r.ok)return;
-    _inList=!_inList;
-    setMyListUI();
+  fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({id:<%= item.id %>})}).then(function(r){return r.json();}).then(function(d){
+    if(d.ok){
+      _inList=!_inList;
+      setMyListUI();
+    }
   }).catch(function(){});
 }
 setMyListUI();

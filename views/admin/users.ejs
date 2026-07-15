@@ -143,9 +143,12 @@
               <td>
                 <div class="action-btns">
                   <% if (u.role !== 'admin') { %>
-                  <a href="/admin/users/toggle/<%= u.id %>" class="btn btn-sm <%= u.plan === 'premium' ? 'btn-outline' : 'btn-primary' %>" onclick="return confirm('Toggle premium for <%= u.name %>?')">
-                    <%= u.plan === 'premium' ? 'Remove Premium' : 'Make Premium' %>
-                  </a>
+                  <form method="POST" action="/admin/users/set-plan/<%= u.id %>" style="display:flex;gap:4px;align-items:center;">
+                    <select name="plan" onchange="this.form.submit()" class="form-input" style="padding:4px 8px;font-size:0.75rem;background:var(--surface);min-width:80px;">
+                      <option value="free" <%= u.plan === 'free' ? 'selected' : '' %>>Free</option>
+                      <option value="premium" <%= u.plan === 'premium' ? 'selected' : '' %>>Premium</option>
+                    </select>
+                  </form>
                   <a href="/admin/users/ban/<%= u.id %>" class="btn-icon-sm <%= u.banned ? '' : 'danger' %>" title="<%= u.banned ? 'Unban' : 'Ban' %>" onclick="return confirm('<%= u.banned ? 'Unban' : 'Ban' %> <%= u.name %>?')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                   </a>

@@ -18,7 +18,7 @@ router.get('/:type/:id', (req, res) => {
   const item = db.content.findById(parseInt(id));
   if (!item) return res.redirect('/');
 
-  if (item.premium && req.session.user.plan !== 'premium') {
+  if (item.premium && req.session.user.plan !== 'premium' && req.session.user.role !== 'admin') {
     req.session.error = 'This is premium content. Upgrade to Premium!';
     return res.redirect('/pricing');
   }

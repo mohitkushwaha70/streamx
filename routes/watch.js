@@ -34,7 +34,9 @@ router.get('/:type/:id', (req, res) => {
     return res.redirect('/auth/login');
   }
 
-  if (!req.session.user.plan_chosen) {
+  const isAdmin = req.session.user.role === 'admin';
+
+  if (!isAdmin && !req.session.user.plan_chosen) {
     req.session.error = 'Please choose a plan to start watching';
     return res.redirect('/auth/choose-plan');
   }
@@ -48,7 +50,7 @@ router.get('/:type/:id', (req, res) => {
   if (!item && type) item = db.content.findByTmdbId(itemId, type);
   if (!item) return res.redirect('/');
 
-  if (item.premium && req.session.user.plan !== 'premium') {
+  if (!isAdmin && item.premium && req.session.user.plan !== 'premium') {
     req.session.error = 'This is premium content. Upgrade to Premium to watch!';
     return res.redirect('/pricing');
   }

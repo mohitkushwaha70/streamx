@@ -305,10 +305,23 @@ router.get('/users/toggle/:id', (req, res) => {
   const user = db.users.findById(parseInt(req.params.id));
   if (user && user.role !== 'admin') {
     const newPlan = user.plan === 'premium' ? 'free' : 'premium';
-    db.users.update(user.id, { plan: newPlan });
+    db.users.update(user.id, { plan: newPlan, plan_chosen: 1 });
     db.logs.add('user', `${user.name} plan changed to ${newPlan}`, req.session.user.name);
   }
   req.session.success = 'User plan updated!';
+  res.redirect('/admin/users');
+});
+
+router.post('/users/set-plan/:id', (req, res) => {
+  const user = db.users.findById(parseInt(req.params.id));
+  if (user && user.role !== 'admin') {
+    const { plan } = req.body;
+    if (plan === 'free' || plan === 'premium') {
+      db.users.update(user.id, { plan, plan_chosen: 1 });
+      db.logs.add('user', `${user.name} plan set to ${plan} by admin`, req.session.user.name);
+      req.session.success = `${user.name}'s plan changed to ${plan}!`;
+    }
+  }
   res.redirect('/admin/users');
 });
 

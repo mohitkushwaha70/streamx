@@ -598,11 +598,7 @@ bx.addEventListener('touchstart',showControls);
 function togglePlay(){if(art&&art.video){art.video.paused?art.video.play():art.video.pause();}}
 document.getElementById('btnPlay').onclick=togglePlay;
 
-/* Single click = play/pause (on video area, not controls) */
-bx.addEventListener('click',function(e){
-  if(e.target.closest('.sx-controls')||e.target.closest('.sx-menu')||e.target.closest('.sx-skip-btn')||e.target.closest('.sx-next-popup'))return;
-  togglePlay();showControls();
-});
+/* Center click = play/pause handled by Artplayer natively */
 
 /* ========================================
    REWIND / FORWARD
@@ -680,15 +676,7 @@ document.addEventListener('fullscreenchange',function(){
   b.setAttribute('aria-label',document.fullscreenElement?'Exit Fullscreen (F)':'Fullscreen (F)');
 });
 
-/* Double-click = fullscreen */
-var lastClickTime=0;
-bx.addEventListener('click',function(e){
-  if(e.target.closest('.sx-controls')||e.target.closest('.sx-menu')||e.target.closest('.sx-skip-btn')||e.target.closest('.sx-next-popup'))return;
-  var now=Date.now();
-  if(now-lastClickTime<300){
-    toggleFullscreen();lastClickTime=0;
-  }else{lastClickTime=now;}
-});
+/* Single/Double click handled natively by Artplayer (play/pause + fullscreen) */
 
 /* ========================================
    SPEED MENU

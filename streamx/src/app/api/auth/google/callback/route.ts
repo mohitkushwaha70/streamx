@@ -4,15 +4,20 @@ import { db } from '@/lib/db';
 import { signToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
+function getBaseUrl(req: NextRequest): string {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  const proto = req.headers.get('x-forwarded-proto') || 'https';
+  const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || req.nextUrl.host;
+  return `${proto}://${host}`;
+}
+
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code');
-  const err = req.nextUrl.searchParams.get('error');
+  const errParam = req.nextUrl.searchParams.get('error');
 
-  const proto = req.headers.get('x-forwarded-proto') || 'https';
-  const host = req.headers.get('x-forwarded-host') || req.nextUrl.host;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `${proto}://${host}`;
+  const baseUrl = getBaseUrl(req);
 
-  if (err || !code) {
+  if (errParam || !code) {
     return Response.redirect(`${baseUrl}/login?error=google_auth_failed`);
   }
 

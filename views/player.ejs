@@ -924,16 +924,13 @@ function setMyListUI(){
   var btn=document.getElementById('myListBtn');
   var icon=document.getElementById('myListIcon');
   var txt=document.getElementById('myListText');
+  if(!btn)return;
   if(_inList){
-    btn.style.background='rgba(34,197,94,0.15)';
-    btn.style.borderColor='rgba(34,197,94,0.5)';
-    btn.style.color='#4ade80';
+    btn.setAttribute('style','background:rgba(34,197,94,0.15)!important;border-color:rgba(34,197,94,0.5)!important;color:#4ade80!important;');
     icon.setAttribute('fill','currentColor');
     txt.textContent='In My List';
   }else{
-    btn.style.background='';
-    btn.style.borderColor='';
-    btn.style.color='';
+    btn.removeAttribute('style');
     icon.setAttribute('fill','none');
     txt.textContent='My List';
   }
@@ -958,9 +955,9 @@ function toggleLike(){
   if(_liked)_unliked=false;
   var lBtn=document.getElementById('likeBtn');
   var uBtn=document.getElementById('unlikeBtn');
-  if(_liked){lBtn.style.background='rgba(34,197,94,0.15)';lBtn.style.borderColor='rgba(34,197,94,0.5)';lBtn.style.color='#4ade80';lBtn.querySelector('svg').setAttribute('fill','currentColor');}
-  else{lBtn.style.background='';lBtn.style.borderColor='';lBtn.style.color='';lBtn.querySelector('svg').setAttribute('fill','none');}
-  uBtn.style.background='';uBtn.style.borderColor='';uBtn.style.color='';uBtn.querySelector('svg').setAttribute('fill','none');
+  if(_liked){lBtn.setAttribute('style','background:rgba(34,197,94,0.15)!important;border-color:rgba(34,197,94,0.5)!important;color:#4ade80!important;');lBtn.querySelector('svg').setAttribute('fill','currentColor');}
+  else{lBtn.removeAttribute('style');lBtn.querySelector('svg').setAttribute('fill','none');}
+  uBtn.removeAttribute('style');uBtn.querySelector('svg').setAttribute('fill','none');
 }
 function toggleUnlike(){
   if(!<%= user ? 'true' : 'false' %>){window.location.href='/auth/login';return;}
@@ -968,9 +965,9 @@ function toggleUnlike(){
   if(_unliked)_liked=false;
   var lBtn=document.getElementById('likeBtn');
   var uBtn=document.getElementById('unlikeBtn');
-  if(_unliked){uBtn.style.background='rgba(239,68,68,0.15)';uBtn.style.borderColor='rgba(239,68,68,0.5)';uBtn.style.color='#ef4444';uBtn.querySelector('svg').setAttribute('fill','currentColor');}
-  else{uBtn.style.background='';uBtn.style.borderColor='';uBtn.style.color='';uBtn.querySelector('svg').setAttribute('fill','none');}
-  lBtn.style.background='';lBtn.style.borderColor='';lBtn.style.color='';lBtn.querySelector('svg').setAttribute('fill','none');
+  if(_unliked){uBtn.setAttribute('style','background:rgba(239,68,68,0.15)!important;border-color:rgba(239,68,68,0.5)!important;color:#ef4444!important;');uBtn.querySelector('svg').setAttribute('fill','currentColor');}
+  else{uBtn.removeAttribute('style');uBtn.querySelector('svg').setAttribute('fill','none');}
+  lBtn.removeAttribute('style');lBtn.querySelector('svg').setAttribute('fill','none');
 }
 
 })();

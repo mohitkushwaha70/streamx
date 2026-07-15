@@ -37,6 +37,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   }));
 }
 
+// ===== LOGIN (Email + Password) =====
 router.get('/login', (req, res) => {
   if (req.session.user) return res.redirect('/');
   res.render('login');
@@ -79,6 +80,7 @@ router.post('/login', (req, res) => {
     userAgent: req.headers['user-agent'] || 'unknown',
     email: user.email,
     role: user.role,
+    provider: 'password',
   });
 
   syncUser(user);
@@ -90,6 +92,7 @@ router.post('/login', (req, res) => {
   res.redirect(user.role === 'admin' ? '/admin' : '/');
 });
 
+// ===== REGISTER (Email + Password + OTP) =====
 router.get('/register', (req, res) => {
   if (req.session.user) return res.redirect('/');
   res.render('register');
@@ -163,6 +166,7 @@ router.post('/register/verify', async (req, res) => {
   res.redirect('/auth/choose-plan');
 });
 
+// ===== CHOOSE PLAN =====
 router.get('/choose-plan', (req, res) => {
   if (!req.session.user) return res.redirect('/auth/login');
   res.render('choose-plan');
@@ -177,6 +181,7 @@ router.post('/choose-plan', (req, res) => {
   res.redirect('/pricing');
 });
 
+// ===== GOOGLE OAUTH =====
 router.get('/google', (req, res, next) => {
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     return res.redirect('/auth/login?error=google_not_configured');
@@ -211,6 +216,7 @@ router.get('/google/callback', (req, res, next) => {
   });
 });
 
+// ===== LOGOUT =====
 router.get('/logout', (req, res) => {
   req.session.destroy(() => {
     res.clearCookie('connect.sid');
@@ -223,77 +229,6 @@ router.post('/logout', (req, res) => {
     res.clearCookie('connect.sid');
     res.redirect('/');
   });
-});
-
-// ===== OTP LOGIN =====
-router.get('/otp', (req, res) => {
-  if (req.session.user) return res.redirect('/');
-  res.render('otp-send', { email: '' });
-});
-
-router.post('/otp/send', async (req, res) => {
-  const { email } = req.body;
-  if (!email) {
-    req.session.error = 'Please enter your email';
-    return res.redirect('/auth/otp');
-  }
-  const user = db.users.findByEmail(email);
-  if (!user) {
-    req.session.error = 'No account found with this email';
-    return res.redirect('/auth/otp');
-  }
-
-  const code = db.otp.create(email, 'login');
-  await sendOTP(email, code, 'login');
-
-  req.session.otpEmail = email;
-  res.redirect('/auth/otp/verify');
-});
-
-router.get('/otp/verify', (req, res) => {
-  if (req.session.user) return res.redirect('/');
-  if (!req.session.otpEmail) return res.redirect('/auth/otp');
-  res.render('otp-verify', { email: req.session.otpEmail });
-});
-
-router.post('/otp/verify', async (req, res) => {
-  const { code } = req.body;
-  const email = req.session.otpEmail;
-  if (!email) return res.redirect('/auth/otp');
-  if (!code || code.length !== 6) {
-    req.session.error = 'Enter the 6-digit OTP';
-    return res.redirect('/auth/otp/verify');
-  }
-
-  const valid = db.otp.verify(email, code, 'login');
-  if (!valid) {
-    req.session.error = 'Invalid or expired OTP. Try again.';
-    return res.redirect('/auth/otp/verify');
-  }
-
-  const user = db.users.findByEmail(email);
-  if (!user) {
-    req.session.error = 'Account not found';
-    return res.redirect('/auth/otp');
-  }
-
-  db.users.updateLastActive(user.id);
-  db.logs.add('user', `User logged in via OTP: ${user.name}`, user.name);
-  logActivity('login', `${user.name} (${user.email}) logged in via OTP`, user.id, {
-    ip: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown',
-    userAgent: req.headers['user-agent'] || 'unknown',
-    email: user.email,
-    role: user.role,
-    provider: 'otp',
-  });
-  syncUser(user);
-
-  delete req.session.otpEmail;
-  req.session.user = {
-    id: user.id, name: user.name, email: user.email,
-    role: user.role, avatar: user.avatar, plan: user.plan
-  };
-  res.redirect(user.role === 'admin' ? '/admin' : '/');
 });
 
 module.exports = router;

@@ -14,6 +14,18 @@ router.use(isAdmin);
 const PREMIUM_MONTHLY = 199;
 const PREMIUM_YEARLY = 1999;
 
+function detectVideoType(videoUrl, videoType, fallback) {
+  if (videoType && videoType !== 'auto') return videoType;
+  if (!videoUrl) return fallback || 'mp4';
+  var u = videoUrl.toLowerCase();
+  if (u.includes('youtube.com') || u.includes('youtu.be')) return 'youtube';
+  if (u.includes('.m3u8') || u.includes('m3u8?') || u.includes('m3u8&')) return 'm3u8';
+  if (u.includes('.mpd') || u.includes('mpd?') || u.includes('mpd&')) return 'mpd';
+  if (u.includes('.webm')) return 'webm';
+  if (u.includes('.mkv')) return 'mkv';
+  return 'mp4';
+}
+
 // API: Clean video title from URL
 router.get('/api/clean-title', (req, res) => {
   const url = req.query.url || '';
@@ -119,11 +131,7 @@ router.get('/movies/add', (req, res) => {
 
 router.post('/movies/add', (req, res) => {
   const { title, genre, year, rating, duration, premium, description, poster, backdrop, videoUrl, videoType, cast, director, language } = req.body;
-  let detectedType = videoType || 'mp4';
-  if (!videoType || videoType === 'auto') {
-    if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
-    else detectedType = 'mp4';
-  }
+  const detectedType = detectVideoType(videoUrl, videoType, 'mp4');
   db.content.create({
     tmdb_id: null, title, type: 'movie', genre,
     genres: genre ? [genre] : [],
@@ -150,12 +158,9 @@ router.get('/movies/edit/:id', (req, res) => {
 router.post('/movies/edit/:id', (req, res) => {
   const id = parseInt(req.params.id);
   const { title, genre, year, rating, duration, premium, description, poster, backdrop, videoUrl, videoType, cast, director, language } = req.body;
-  let detectedType = videoType || 'mp4';
-  if (!videoType || videoType === 'auto') {
-    if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
-    else detectedType = 'mp4';
-  }
   const existing = db.content.findById(id);
+  const finalUrl = (typeof videoUrl !== 'undefined' && videoUrl !== '') ? videoUrl : (existing ? existing.video_url : '');
+  const detectedType = detectVideoType(finalUrl, videoType, existing ? existing.video_type : 'mp4');
   if (existing) {
     db.content.update(existing.id, {
       title: title || existing.title,
@@ -168,7 +173,7 @@ router.post('/movies/edit/:id', (req, res) => {
       description: description || existing.description,
       poster: poster || existing.poster,
       backdrop: backdrop || existing.backdrop,
-      video_url: videoUrl || existing.video_url,
+      video_url: finalUrl,
       video_type: detectedType,
       cast: cast || existing.cast,
       director: director || existing.director,
@@ -206,11 +211,7 @@ router.get('/series/add', (req, res) => {
 
 router.post('/series/add', (req, res) => {
   const { title, genre, year, rating, seasons, episodes, premium, description, poster, backdrop, videoUrl, videoType } = req.body;
-  let detectedType = videoType || 'mp4';
-  if (!videoType || videoType === 'auto') {
-    if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
-    else detectedType = 'mp4';
-  }
+  const detectedType = detectVideoType(videoUrl, videoType, 'mp4');
   db.content.create({
     tmdb_id: null, title, type: 'series', genre,
     genres: genre ? [genre] : [],
@@ -237,12 +238,9 @@ router.get('/series/edit/:id', (req, res) => {
 router.post('/series/edit/:id', (req, res) => {
   const id = parseInt(req.params.id);
   const { title, genre, year, rating, seasons, episodes, premium, description, poster, backdrop, videoUrl, videoType } = req.body;
-  let detectedType = videoType || 'mp4';
-  if (!videoType || videoType === 'auto') {
-    if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
-    else detectedType = 'mp4';
-  }
   const existing = db.content.findById(id);
+  const finalUrl = (typeof videoUrl !== 'undefined' && videoUrl !== '') ? videoUrl : (existing ? existing.video_url : '');
+  const detectedType = detectVideoType(finalUrl, videoType, existing ? existing.video_type : 'mp4');
   if (existing) {
     db.content.update(existing.id, {
       title: title || existing.title,
@@ -256,7 +254,7 @@ router.post('/series/edit/:id', (req, res) => {
       description: description || existing.description,
       poster: poster || existing.poster,
       backdrop: backdrop || existing.backdrop,
-      video_url: videoUrl || existing.video_url,
+      video_url: finalUrl,
       video_type: detectedType
     });
   }
@@ -365,11 +363,7 @@ router.get('/anime/add', (req, res) => {
 
 router.post('/anime/add', (req, res) => {
   const { title, genre, year, rating, duration, premium, description, poster, backdrop, videoUrl, videoType, cast, director, language, seasons, episodes } = req.body;
-  let detectedType = videoType || 'mp4';
-  if (!videoType || videoType === 'auto') {
-    if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
-    else detectedType = 'mp4';
-  }
+  const detectedType = detectVideoType(videoUrl, videoType, 'mp4');
   db.content.create({
     tmdb_id: null, title, type: 'anime', genre: genre || 'Anime',
     genres: genre ? [genre] : ['Anime'],
@@ -398,12 +392,9 @@ router.get('/anime/edit/:id', (req, res) => {
 router.post('/anime/edit/:id', (req, res) => {
   const id = parseInt(req.params.id);
   const { title, genre, year, rating, duration, premium, description, poster, backdrop, videoUrl, videoType, cast, director, language, seasons, episodes } = req.body;
-  let detectedType = videoType || 'mp4';
-  if (!videoType || videoType === 'auto') {
-    if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
-    else detectedType = 'mp4';
-  }
   const existing = db.content.findById(id);
+  const finalUrl = (typeof videoUrl !== 'undefined' && videoUrl !== '') ? videoUrl : (existing ? existing.video_url : '');
+  const detectedType = detectVideoType(finalUrl, videoType, existing ? existing.video_type : 'mp4');
   if (existing) {
     db.content.update(existing.id, {
       title: title || existing.title,
@@ -416,7 +407,7 @@ router.post('/anime/edit/:id', (req, res) => {
       description: description || existing.description,
       poster: poster || existing.poster,
       backdrop: backdrop || existing.backdrop,
-      video_url: videoUrl || existing.video_url,
+      video_url: finalUrl,
       video_type: detectedType,
       cast: cast || existing.cast,
       director: director || existing.director,
@@ -624,19 +615,12 @@ router.post('/upload/edit/:id', (req, res) => {
     return res.redirect('/admin/upload');
   }
   const { title, genre, year, rating, videoUrl, videoType, poster, backdrop, description, duration, type: contentType, premium, cast, director, language } = req.body;
-  if (!title || !videoUrl) {
-    req.session.error = 'Title and Video URL are required!';
+  if (!title) {
+    req.session.error = 'Title is required!';
     return res.redirect('/admin/upload/edit/' + id);
   }
-  let detectedType = videoType || item.video_type || 'mp4';
-  if (!videoType || videoType === 'auto') {
-    if (videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))) detectedType = 'youtube';
-    else if (videoUrl && videoUrl.includes('.m3u8')) detectedType = 'm3u8';
-    else if (videoUrl && videoUrl.includes('.mpd')) detectedType = 'mpd';
-    else if (videoUrl && videoUrl.includes('.webm')) detectedType = 'webm';
-    else if (videoUrl && videoUrl.includes('.mkv')) detectedType = 'mkv';
-    else detectedType = 'mp4';
-  }
+  const finalUrl = (typeof videoUrl !== 'undefined' && videoUrl !== '') ? videoUrl : item.video_url;
+  const detectedType = detectVideoType(finalUrl, videoType, item.video_type);
   db.content.update(id, {
     title, type: contentType || item.type, genre: genre || '',
     genres: genre ? genre.split(',').map(g => g.trim()) : item.genres || [],
@@ -645,7 +629,7 @@ router.post('/upload/edit/:id', (req, res) => {
     description: description || '',
     poster: poster || item.poster,
     backdrop: backdrop || item.backdrop,
-    video_url: videoUrl, video_type: detectedType,
+    video_url: finalUrl, video_type: detectedType,
     cast: cast || item.cast || '',
     director: director || item.director || '',
     language: language || item.language || 'en',

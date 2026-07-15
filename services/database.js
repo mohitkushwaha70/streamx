@@ -58,6 +58,9 @@ async function init() {
   const admin = users.findByEmail('admin@streamx.com');
   if (admin) getMongo()?.syncUser(admin);
 
+  // Fix any content with wrong video_type on startup
+  fixVideoTypes();
+
   // Restore content from MongoDB if SQLite is empty (data loss recovery)
   // Non-blocking: don't await — let server start immediately
   restoreFromMongo().catch(err => console.error('[Restore] background error:', err.message));
@@ -901,8 +904,40 @@ async function restoreFromMongo() {
       saveNow();
       console.log(`[Restore] Restored ${mongoPayments.length} payments`);
     }
+
+    // Fix any content with wrong video_type (e.g. all set to mp4 for HF URLs)
+    fixVideoTypes();
+
   } catch (err) {
     console.error('[Restore] Failed:', err.message);
+  }
+}
+
+function detectVideoType(url, fallback) {
+  if (!url) return fallback || 'mp4';
+  var u = url.toLowerCase();
+  if (u.includes('youtube.com') || u.includes('youtu.be')) return 'youtube';
+  if (u.includes('.m3u8') || u.includes('m3u8?') || u.includes('m3u8&')) return 'm3u8';
+  if (u.includes('.mpd') || u.includes('mpd?') || u.includes('mpd&')) return 'mpd';
+  if (u.includes('.webm')) return 'webm';
+  if (u.includes('.mkv')) return 'mkv';
+  return 'mp4';
+}
+
+function fixVideoTypes() {
+  const all = content.getAll();
+  let fixed = 0;
+  for (const item of all) {
+    const correct = detectVideoType(item.video_url, item.video_type);
+    if (correct !== item.video_type) {
+      db.run(`UPDATE content SET video_type = ? WHERE id = ?`, [correct, item.id]);
+      fixed++;
+    }
+  }
+  if (fixed > 0) {
+    saveNow();
+    cacheClear('content');
+    console.log(`[Fix] Corrected video_type for ${fixed} content items`);
   }
 }
 

@@ -6,10 +6,12 @@
   <title><%= typeof pageTitle !== 'undefined' ? pageTitle + ' | ' : '' %>streamX</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://image.tmdb.org" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
   <meta name="theme-color" content="#6c5ce7">
+  <link rel="modulepreload" href="/js/app.js">
   <% if (typeof pageTitle !== 'undefined' && pageTitle.includes('Admin')) { %>
   <style>body{background:#000!important;overflow-x:hidden;}.footer{display:none!important;}</style>
   <% } %>

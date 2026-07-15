@@ -42,9 +42,11 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="/js/app.js"></script>
+<script src="/js/app.js" defer></script>
 <script>
 (function() {
+  var retries = 0;
+  var maxRetries = 3;
   function connectSSE() {
     var evtSource = new EventSource('/events');
     evtSource.onmessage = function(e) {
@@ -59,10 +61,14 @@
     };
     evtSource.onerror = function() {
       evtSource.close();
-      setTimeout(connectSSE, 3000);
+      retries++;
+      if (retries < maxRetries) {
+        setTimeout(connectSSE, retries * 3000);
+      }
     };
   }
-  connectSSE();
+  if (document.readyState === 'complete') { connectSSE(); }
+  else { window.addEventListener('load', connectSSE); }
 })();
 </script>
 </body>

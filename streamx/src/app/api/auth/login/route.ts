@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     if (!email || !password) return error('Email and password required');
 
     const user = await db.user.findUnique({ where: { email } });
-    if (!user) return error('Invalid email or password');
+    if (!user || !user.password) return error('Invalid email or password');
     if (user.banned) return error('Account has been suspended');
 
     const valid = await verifyPassword(password, user.password);

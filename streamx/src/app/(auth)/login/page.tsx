@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import GoogleIcon from '@/components/ui/google-icon';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -116,6 +117,23 @@ export default function LoginPage() {
           )}
         </button>
       </form>
+
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-border"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="bg-card px-2 text-muted">or</span>
+        </div>
+      </div>
+
+      <a
+        href="/api/auth/google"
+        className="flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-surface-hover px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-accent/10"
+      >
+        <GoogleIcon />
+        Continue with Google
+      </a>
 
       <p className="mt-6 text-center text-sm text-muted">
         Don&apos;t have an account?{' '}

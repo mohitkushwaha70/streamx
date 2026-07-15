@@ -83,8 +83,9 @@ router.get('/:type/:id', (req, res) => {
 
   // Track continue watching
   if (req.session.user) {
+    const cwType = item.type === 'anime' ? 'anime' : item.type === 'series' ? 'series' : 'movie';
     db.continueWatching.upsert(
-      req.session.user.id, item.tmdb_id || item.id, item.type === 'series' ? 'series' : 'movie',
+      req.session.user.id, item.tmdb_id || item.id, cwType,
       item.title, item.poster, item.genre, item.duration || (item.seasons ? item.seasons + ' Seasons' : ''),
       0
     );

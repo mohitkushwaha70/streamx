@@ -15,7 +15,13 @@ router.get('/:id', (req, res) => {
   const item = db.content.findById(parseInt(req.params.id));
   if (!item || (item.type !== 'movie' && item.type !== 'anime')) return res.redirect('/movies');
   const related = db.content.list('movie', { genre: item.genre, limit: 8 }).items.filter(m => m.id !== item.id);
-  res.render('detail', { item, type: item.type, related, streaming: {} });
+  const userStatus = {};
+  if (req.session.user) {
+    userStatus.inWatchlist = db.watchlist.has(req.session.user.id, item.id, 'watchlist');
+    userStatus.inFavorite = db.watchlist.has(req.session.user.id, item.id, 'favorite');
+    userStatus.inSaved = db.watchlist.has(req.session.user.id, item.id, 'saved');
+  }
+  res.render('detail', { item, type: item.type, related, streaming: {}, userStatus });
 });
 
 module.exports = router;

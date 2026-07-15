@@ -46,6 +46,12 @@ async function init() {
   createTables();
   seedAdmin();
   resetAdminPassword();
+  // Clean duplicate continue_watching rows (keep only latest per tmdb_id+type per user)
+  try {
+    db.run(`DELETE FROM continue_watching WHERE rowid NOT IN (
+      SELECT MAX(rowid) FROM continue_watching GROUP BY user_id, tmdb_id, type
+    )`);
+  } catch(e) {}
   saveNow();
 
   // Sync admin to MongoDB after all objects are ready
@@ -233,13 +239,13 @@ function seedAdmin() {
     `INSERT INTO users (name, email, password, role, avatar, plan) VALUES (?, ?, ?, ?, ?, ?)`,
     ['Admin', 'admin@streamx.com', hash, 'admin', 'A', 'premium']
   );
-  save();
+  saveNow();
 }
 
 function resetAdminPassword() {
   const hash = bcrypt.hashSync('mohit@12100890', 10);
   db.run(`UPDATE users SET password = ? WHERE email = 'admin@streamx.com'`, [hash]);
-  save();
+  saveNow();
 }
 
 let saveTimeout = null;
@@ -283,7 +289,7 @@ const users = {
       `INSERT INTO users (name, email, password, google_id, role, avatar, plan) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [name, email, password, google_id, role, avatar || name.charAt(0).toUpperCase(), plan]
     );
-    save();
+    saveNow();
     const user = this.findByEmail(email);
     if (user) getMongo()?.syncUser(user);
     return user;
@@ -318,13 +324,13 @@ const users = {
     if (fields.length === 0) return;
     vals.push(id);
     db.run(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, vals);
-    save();
+    saveNow();
     const user = this.findById(id);
     if (user) getMongo()?.syncUser(user);
   },
   delete(id) {
     db.run("DELETE FROM users WHERE id = ?", [id]);
-    save();
+    saveNow();
     getMongo()?.deleteUser(id);
   }
 };
@@ -360,7 +366,7 @@ const content = {
          data.episodes_count || 0, data.premium ? 1 : 0, data.badge || '', existing.id]
       );
       cacheClear('content');
-      save();
+      saveNow();
       const item = this.findById(existing.id);
       if (item) getMongo()?.syncContent(item);
       return existing.id;
@@ -379,7 +385,7 @@ const content = {
       const rid = db.exec("SELECT last_insert_rowid() as id");
       const id = rid[0].values[0][0];
       cacheClear('content');
-      save();
+      saveNow();
       const item = this.findById(id);
       if (item) getMongo()?.syncContent(item);
       return id;
@@ -425,7 +431,7 @@ const content = {
   delete(id) {
     db.run("DELETE FROM content WHERE id = ?", [id]);
     cacheClear('content');
-    save();
+    saveNow();
     getMongo()?.deleteContent(id);
   },
   all() {
@@ -463,7 +469,7 @@ const content = {
     const rid = db.exec("SELECT last_insert_rowid() as id");
     const id = rid[0].values[0][0];
     cacheClear('content');
-    save();
+    saveNow();
     const item = this.findById(id);
     if (item) getMongo()?.syncContent(item);
     return id;
@@ -480,7 +486,7 @@ const content = {
     vals.push(id);
     db.run(`UPDATE content SET ${fields.join(', ')} WHERE id = ?`, vals);
     cacheClear('content');
-    save();
+    saveNow();
     const item = this.findById(id);
     if (item) getMongo()?.syncContent(item);
   }
@@ -511,7 +517,7 @@ const episodes = {
       );
     }
     const epId = existing?.id || db.exec("SELECT last_insert_rowid() as id")[0]?.values[0]?.[0];
-    save();
+    saveNow();
     const epData = { ...data, id: epId };
     getMongo()?.syncEpisode(epData, contentId);
   }
@@ -528,12 +534,12 @@ const watchlist = {
   },
   add(userId, contentId, type = 'watchlist') {
     db.run("INSERT OR IGNORE INTO watchlist (user_id, content_id, type) VALUES (?, ?, ?)", [userId, contentId, type]);
-    save();
+    saveNow();
     getMongo()?.syncWatchlist(userId, contentId, type, 'add');
   },
   remove(userId, contentId, type = 'watchlist') {
     db.run("DELETE FROM watchlist WHERE user_id = ? AND content_id = ? AND type = ?", [userId, contentId, type]);
-    save();
+    saveNow();
     getMongo()?.syncWatchlist(userId, contentId, type, 'remove');
   },
   has(userId, contentId, type = 'watchlist') {
@@ -550,9 +556,17 @@ const watchlist = {
 const continueWatching = {
   get(userId) {
     const r = db.exec(
-      `SELECT * FROM continue_watching WHERE user_id = ? ORDER BY last_watched DESC LIMIT 10`, [userId]
+      `SELECT * FROM continue_watching WHERE user_id = ? ORDER BY last_watched DESC`, [userId]
     );
-    return r.length > 0 ? r[0].values.map(v => rowToObj(r[0], v)) : [];
+    const rows = r.length > 0 ? r[0].values.map(v => rowToObj(r[0], v)) : [];
+    // Deduplicate by (tmdb_id, type) — keep only the most recent
+    const seen = new Set();
+    return rows.filter(row => {
+      const key = row.tmdb_id + ':' + row.type;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 10);
   },
   upsert(userId, tmdbId, type, title, poster, genre, duration, progress) {
     db.run(
@@ -562,12 +576,12 @@ const continueWatching = {
       [userId, tmdbId, type, title || '', poster || '', genre || '', duration || '', progress || 0,
        progress || 0, title || '', poster || '', genre || '', duration || '']
     );
-    save();
+    saveNow();
     getMongo()?.syncContinueWatching(userId, { tmdb_id: tmdbId, type, title, poster, genre, duration, progress }, 'upsert');
   },
   remove(userId, tmdbId) {
     db.run("DELETE FROM continue_watching WHERE user_id = ? AND tmdb_id = ?", [userId, tmdbId]);
-    save();
+    saveNow();
     getMongo()?.syncContinueWatching(userId, { tmdb_id: tmdbId }, 'remove');
   }
 };
@@ -600,7 +614,7 @@ const videoConfigs = {
       [tmdbId, data.title || '', data.poster || '', data.backdrop || '', data.genre || '', data.year || 0, data.rating || 0, data.duration || '', data.description || '', JSON.stringify(data.sources || {}),
        data.title || '', data.poster || '', data.backdrop || '', data.genre || '', data.year || 0, data.rating || 0, data.duration || '', data.description || '', JSON.stringify(data.sources || {})]
     );
-    save();
+    saveNow();
     (async () => {
       try {
         const db2 = await getMongo()?.getDb();
@@ -616,7 +630,7 @@ const videoConfigs = {
   },
   remove(tmdbId) {
     db.run("DELETE FROM video_configs WHERE tmdb_id = ?", [tmdbId]);
-    save();
+    saveNow();
     (async () => {
       try {
         const db2 = await getMongo()?.getDb();
@@ -634,7 +648,7 @@ const payments = {
       "INSERT INTO payments (user_id, amount, plan, method, status, transaction_id) VALUES (?, ?, ?, ?, ?, ?)",
       [userId, amount, plan, method, status, txId]
     );
-    save();
+    saveNow();
     getMongo()?.syncPayment({ user_id: userId, amount, plan, method, status, transaction_id: txId });
   },
   all() {
@@ -659,7 +673,7 @@ const comments = {
   },
   add(userId, contentId, text) {
     db.run("INSERT INTO comments (user_id, content_id, text) VALUES (?, ?, ?)", [userId, contentId, text]);
-    save();
+    saveNow();
     const id = db.exec("SELECT last_insert_rowid() as id")[0]?.values[0]?.[0];
     return this.findById(id);
   },
@@ -669,11 +683,11 @@ const comments = {
   },
   like(id) {
     db.run("UPDATE comments SET likes = likes + 1 WHERE id = ?", [id]);
-    save();
+    saveNow();
   },
   delete(id, userId) {
     db.run("DELETE FROM comments WHERE id = ? AND user_id = ?", [id, userId]);
-    save();
+    saveNow();
   },
   count(contentId) {
     const r = db.exec("SELECT COUNT(*) as c FROM comments WHERE content_id = ?", [contentId]);
@@ -688,7 +702,7 @@ const logs = {
     if (db.exec("SELECT COUNT(*) as c FROM activity_logs")[0].values[0][0] > 200) {
       db.exec("DELETE FROM activity_logs WHERE id NOT IN (SELECT id FROM activity_logs ORDER BY id DESC LIMIT 200)");
     }
-    save();
+    saveNow();
     getMongo()?.logActivity(type, message, null, { admin });
   },
   all(limit = 100) {
@@ -711,7 +725,7 @@ const settings = {
   },
   set(key, value) {
     db.run("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", [key, String(value)]);
-    save();
+    saveNow();
     (async () => {
       try {
         const db2 = await getMongo()?.getDb();

@@ -649,7 +649,7 @@ router.post('/upload/edit/:id', (req, res) => {
     cast: cast || item.cast || '',
     director: director || item.director || '',
     language: language || item.language || 'en',
-    premium: premium === 'on' ? 1 : 0
+    premium: premium === 'on' ? 1 : (item.premium || 0)
   });
   db.logs.add('content', `Content "${title}" updated`, req.session.user.name);
   req.session.success = `"${title}" updated successfully!`;

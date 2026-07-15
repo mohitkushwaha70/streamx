@@ -39,7 +39,7 @@ async function syncUser(userData) {
   try {
     const db = await getDb();
     if (!db) return;
-    const { id, name, email, role, avatar, plan, last_active, joined_at, banned } = userData;
+    const { id, name, email, role, avatar, plan, plan_chosen, last_active, joined_at, banned } = userData;
     await db.collection('users').updateOne(
       { sqliteId: id },
       {
@@ -48,6 +48,7 @@ async function syncUser(userData) {
           role: role || 'user',
           avatar: avatar || '',
           plan: plan || 'free',
+          planChosen: !!plan_chosen,
           banned: !!banned,
           lastActiveAt: last_active ? new Date(last_active) : new Date(),
           joinedAt: joined_at ? new Date(joined_at) : new Date(),

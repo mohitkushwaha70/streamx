@@ -15,10 +15,17 @@ router.get('/:type/:id', (req, res) => {
   if (!['movie', 'series', 'anime'].includes(type)) return res.redirect('/');
   if (!req.session.user) return res.redirect('/auth/login');
 
+  const isAdmin = req.session.user.role === 'admin';
+
+  if (!isAdmin && !req.session.user.plan_chosen) {
+    req.session.error = 'Please choose a plan to continue';
+    return res.redirect('/auth/choose-plan');
+  }
+
   const item = db.content.findById(parseInt(id));
   if (!item) return res.redirect('/');
 
-  if (item.premium && req.session.user.plan !== 'premium' && req.session.user.role !== 'admin') {
+  if (!isAdmin && item.premium && req.session.user.plan !== 'premium') {
     req.session.error = 'This is premium content. Upgrade to Premium!';
     return res.redirect('/pricing');
   }

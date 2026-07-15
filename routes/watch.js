@@ -6,7 +6,13 @@ const HF_OUR_DATASET = 'mohit8287kushwaha/Mohit8287kushwahaStreamxvedios';
 
 function cleanUrl(url) {
   if (!url) return '';
-  return url.replace(/\?download=true$/i, '').replace(/[?&]download=true$/i, '');
+  try {
+    const u = new URL(url);
+    u.searchParams.delete('download');
+    return u.toString();
+  } catch(e) {
+    return url.replace(/[?&]download=true/g, '').replace(/\?&/g, '?').replace(/[?&]$/, '');
+  }
 }
 
 function isOursDataset(url) {

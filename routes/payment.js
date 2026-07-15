@@ -18,8 +18,8 @@ function getKeyId() {
 }
 
 const PLANS = {
-  premium_monthly: { amount: 19900, label: 'Premium Monthly', plan: 'premium', months: 1 },
-  premium_yearly:  { amount: 199900, label: 'Premium Yearly', plan: 'premium', months: 12 },
+  premium_monthly: { amount: 19900, label: 'Premium Monthly', plan: 'premium', months: 1, payType: 'monthly' },
+  premium_yearly:  { amount: 199900, label: 'Premium Yearly', plan: 'premium', months: 12, payType: 'yearly' },
 };
 
 router.get('/key', (req, res) => {
@@ -94,7 +94,7 @@ router.post('/verify', async (req, res) => {
     const expiryDate = new Date();
     expiryDate.setMonth(expiryDate.getMonth() + plan.months);
 
-    db.payments.add(user.id, plan.amount / 100, plan.plan, 'Razorpay');
+    db.payments.add(user.id, plan.amount / 100, plan.payType, 'Razorpay');
     db.logs.add('payment', `${user.name} upgraded to ${plan.plan} (${plan.label}) via Razorpay — ₹${plan.amount / 100}`);
 
     req.session.user.plan = plan.plan;

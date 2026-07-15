@@ -14,6 +14,22 @@ function getMongo() {
 const DB_PATH = path.join(__dirname, '..', 'data', 'streamx.db');
 let db = null;
 
+// In-memory cache for frequent queries (invalidated on writes)
+const _cache = {};
+function cacheGet(key) {
+  const c = _cache[key];
+  if (c && Date.now() - c.ts < 30000) return c.val; // 30 second TTL
+  return null;
+}
+function cacheSet(key, val) {
+  _cache[key] = { val, ts: Date.now() };
+}
+function cacheClear(prefix) {
+  for (const k of Object.keys(_cache)) {
+    if (!prefix || k.startsWith(prefix)) delete _cache[k];
+  }
+}
+
 async function init() {
   const SQL = await initSqlJs();
 
@@ -30,7 +46,7 @@ async function init() {
   createTables();
   seedAdmin();
   resetAdminPassword();
-  save();
+  saveNow();
 
   // Sync admin to MongoDB after all objects are ready
   const admin = users.findByEmail('admin@streamx.com');
@@ -213,8 +229,25 @@ function resetAdminPassword() {
   save();
 }
 
+let saveTimeout = null;
 function save() {
   if (!db) return;
+  if (saveTimeout) return; // debounce: batch multiple saves within 500ms
+  saveTimeout = setTimeout(() => {
+    saveTimeout = null;
+    try {
+      const data = db.export();
+      const buffer = Buffer.from(data);
+      fs.writeFileSync(DB_PATH, buffer);
+    } catch(e) {
+      console.error('[DB] Save failed:', e.message);
+    }
+  }, 500);
+}
+
+function saveNow() {
+  if (!db) return;
+  if (saveTimeout) { clearTimeout(saveTimeout); saveTimeout = null; }
   const data = db.export();
   const buffer = Buffer.from(data);
   fs.writeFileSync(DB_PATH, buffer);
@@ -313,6 +346,7 @@ const content = {
          data.language || 'en', data.popularity || 0, data.release_date || '', data.seasons || 0,
          data.episodes_count || 0, data.premium ? 1 : 0, data.badge || '', existing.id]
       );
+      cacheClear('content');
       save();
       const item = this.findById(existing.id);
       if (item) getMongo()?.syncContent(item);
@@ -331,6 +365,7 @@ const content = {
       );
       const rid = db.exec("SELECT last_insert_rowid() as id");
       const id = rid[0].values[0][0];
+      cacheClear('content');
       save();
       const item = this.findById(id);
       if (item) getMongo()?.syncContent(item);
@@ -376,17 +411,27 @@ const content = {
   },
   delete(id) {
     db.run("DELETE FROM content WHERE id = ?", [id]);
+    cacheClear('content');
     save();
     getMongo()?.deleteContent(id);
   },
   all() {
+    const cached = cacheGet('content:all');
+    if (cached) return cached;
     const r = db.exec("SELECT * FROM content ORDER BY id DESC");
-    return r.length > 0 ? r[0].values.map(v => { const o = rowToObj(r[0], v); o.genres = tryParse(o.genres); return o; }) : [];
+    const items = r.length > 0 ? r[0].values.map(v => { const o = rowToObj(r[0], v); o.genres = tryParse(o.genres); return o; }) : [];
+    cacheSet('content:all', items);
+    return items;
   },
   getAll() { return this.all(); },
   getByType(type) {
+    const cacheKey = 'content:type:' + type;
+    const cached = cacheGet(cacheKey);
+    if (cached) return cached;
     const r = db.exec("SELECT * FROM content WHERE type = ? ORDER BY id DESC", [type]);
-    return r.length > 0 ? r[0].values.map(v => { const o = rowToObj(r[0], v); o.genres = tryParse(o.genres); return o; }) : [];
+    const items = r.length > 0 ? r[0].values.map(v => { const o = rowToObj(r[0], v); o.genres = tryParse(o.genres); return o; }) : [];
+    cacheSet(cacheKey, items);
+    return items;
   },
   create(data) {
     db.run(
@@ -400,10 +445,11 @@ const content = {
        data.video_url || '', data.video_type || 'mp4', data.trailer_key || '',
        data.cast || '', data.director || '', data.language || 'en',
        data.popularity || 0, data.release_date || '', data.seasons || 0,
-       data.episodes_count || 0, data.premium || 0, data.badge || '']
+       data.episodes_count || 0, data.premium ? 1 : 0, data.badge || '']
     );
     const rid = db.exec("SELECT last_insert_rowid() as id");
     const id = rid[0].values[0][0];
+    cacheClear('content');
     save();
     const item = this.findById(id);
     if (item) getMongo()?.syncContent(item);
@@ -420,6 +466,7 @@ const content = {
     if (fields.length === 0) return;
     vals.push(id);
     db.run(`UPDATE content SET ${fields.join(', ')} WHERE id = ?`, vals);
+    cacheClear('content');
     save();
     const item = this.findById(id);
     if (item) getMongo()?.syncContent(item);
@@ -673,15 +720,46 @@ function tryParse(json) {
 
 // ===== MONGODB RESTORE =====
 async function restoreFromMongo() {
-  const count = content.count();
-  if (count > 0) return; // SQLite already has data
-
   const mongo = getMongo();
   if (!mongo) return;
 
   try {
     const mdb = await mongo.getDb();
     if (!mdb) return;
+
+    // Always restore users from MongoDB (except admin which is seeded)
+    const mongoUsers = await mdb.collection('users').find({}).toArray();
+    if (mongoUsers.length > 0) {
+      let restored = 0;
+      for (const u of mongoUsers) {
+        if (u.email === 'admin@streamx.com') continue; // skip admin, already seeded
+        const existing = users.findByEmail(u.email);
+        if (!existing) {
+          db.run(
+            `INSERT INTO users (name, email, password, google_id, role, avatar, plan, plan_chosen, banned, joined_at, last_active, watch_time, devices)
+             VALUES (?, ?, '', '', ?, ?, ?, ?, ?, ?, ?, 0, 1)`,
+            [u.name || '', u.email || '', u.role || 'user', u.avatar || '',
+             u.plan || 'free', u.plan_chosen ? 1 : 0, u.banned ? 1 : 0,
+             u.joinedAt || new Date().toISOString(), u.lastActiveAt || new Date().toISOString()]
+          );
+          restored++;
+        } else {
+          // Update existing user's plan from MongoDB (admin may have changed it)
+          if (u.plan && u.plan !== existing.plan) {
+            db.run("UPDATE users SET plan = ?, plan_chosen = 1 WHERE email = ?", [u.plan, u.email]);
+            restored++;
+          }
+        }
+      }
+      if (restored > 0) {
+        saveNow();
+        console.log(`[Restore] Restored/updated ${restored} users from MongoDB`);
+      }
+    }
+
+    // Restore content if SQLite is empty
+    const count = content.count();
+    if (count > 0) return; // SQLite already has content
 
     const mongoContent = await mdb.collection('content').find({}).toArray();
     if (mongoContent.length === 0) {
@@ -713,14 +791,13 @@ async function restoreFromMongo() {
       );
     }
 
-    save();
+    saveNow();
     console.log(`[Restore] Restored ${mongoContent.length} items from MongoDB to SQLite`);
 
     // Also restore episodes
     const mongoEpisodes = await mdb.collection('episodes').find({}).toArray();
     if (mongoEpisodes.length > 0) {
       for (const ep of mongoEpisodes) {
-        // Find the content by sqliteId or title
         const cItem = content.findByTmdbId(ep.tmdbId, ep.type) || content.getAll().find(c => c.title === ep.title);
         if (cItem) {
           db.run(
@@ -732,8 +809,27 @@ async function restoreFromMongo() {
           );
         }
       }
-      save();
+      saveNow();
       console.log(`[Restore] Restored ${mongoEpisodes.length} episodes`);
+    }
+
+    // Restore payments
+    const mongoPayments = await mdb.collection('payments').find({}).toArray();
+    if (mongoPayments.length > 0) {
+      for (const p of mongoPayments) {
+        const userEmail = p.userEmail || '';
+        const u = userEmail ? users.findByEmail(userEmail) : null;
+        if (u) {
+          db.run(
+            `INSERT INTO payments (user_id, amount, plan, method, status, transaction_id, date)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [u.id, p.amount || 0, p.plan || '', p.method || 'UPI',
+             p.status || 'completed', p.transactionId || '', p.createdAt || new Date().toISOString()]
+          );
+        }
+      }
+      saveNow();
+      console.log(`[Restore] Restored ${mongoPayments.length} payments`);
     }
   } catch (err) {
     console.error('[Restore] Failed:', err.message);
@@ -741,7 +837,7 @@ async function restoreFromMongo() {
 }
 
 module.exports = {
-  init, getDb, save,
+  init, getDb, save, saveNow,
   users, content, episodes, watchlist, continueWatching,
   videoConfigs, payments, logs, settings, otp
 };

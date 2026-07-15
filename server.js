@@ -24,7 +24,11 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.set('trust proxy', 1);
 
-app.use(express.static(path.join(__dirname, 'public'), { maxAge: '7d', etag: true }));
+if (process.env.NODE_ENV === 'production') {
+  app.set('view cache', true);
+}
+
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: '30d', etag: true, immutable: true }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 app.use(express.json({ limit: '5mb' }));
 app.use(cookieParser());
@@ -149,6 +153,16 @@ async function start() {
   }
 
   listen(PORT);
+
+  // Graceful shutdown — flush DB to disk before exit
+  function shutdown() {
+    console.log('[Server] Shutting down, saving DB...');
+    try { db.saveNow(); } catch(e) {}
+    process.exit(0);
+  }
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
+  process.on('exit', () => { try { db.saveNow(); } catch(e) {} });
 }
 
 start().catch(err => {

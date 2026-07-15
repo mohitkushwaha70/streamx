@@ -37,16 +37,16 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   }));
 }
 
-// ===== LOGIN (Email + Password) =====
+// ===== LOGIN (Email + Password / OTP for Google users) =====
 router.get('/login', (req, res) => {
   if (req.session.user) return res.redirect('/');
   res.render('login');
 });
 
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) {
-    req.session.error = 'Please fill in all fields';
+  if (!email) {
+    req.session.error = 'Please enter your email';
     return res.redirect('/auth/login');
   }
 
@@ -61,8 +61,16 @@ router.post('/login', (req, res) => {
     return res.redirect('/auth/login');
   }
 
+  // Google user (no password) → send OTP automatically
   if (!user.password) {
-    req.session.error = 'This account uses Google sign-in. Please use Google to login.';
+    const code = db.otp.create(email, 'login');
+    await sendOTP(email, code, 'login');
+    req.session.loginEmail = email;
+    return res.redirect('/auth/login/otp/verify');
+  }
+
+  if (!password) {
+    req.session.error = 'Please enter your password';
     return res.redirect('/auth/login');
   }
 
@@ -85,6 +93,55 @@ router.post('/login', (req, res) => {
 
   syncUser(user);
 
+  req.session.user = {
+    id: user.id, name: user.name, email: user.email,
+    role: user.role, avatar: user.avatar, plan: user.plan
+  };
+  res.redirect(user.role === 'admin' ? '/admin' : '/');
+});
+
+// OTP verify for Google users
+router.get('/login/otp/verify', (req, res) => {
+  if (req.session.user) return res.redirect('/');
+  if (!req.session.loginEmail) return res.redirect('/auth/login');
+  res.render('login-otp', { email: req.session.loginEmail });
+});
+
+router.post('/login/otp/verify', (req, res) => {
+  const { code } = req.body;
+  const email = req.session.loginEmail;
+  if (!email) return res.redirect('/auth/login');
+  if (!code || code.length !== 6) {
+    req.session.error = 'Enter the 6-digit OTP';
+    return res.redirect('/auth/login/otp/verify');
+  }
+
+  const valid = db.otp.verify(email, code, 'login');
+  if (!valid) {
+    req.session.error = 'Invalid or expired OTP. Try again.';
+    return res.redirect('/auth/login/otp/verify');
+  }
+
+  const user = db.users.findByEmail(email);
+  if (!user) {
+    req.session.error = 'Account not found';
+    return res.redirect('/auth/login');
+  }
+
+  db.users.updateLastActive(user.id);
+  db.logs.add('user', `User logged in via OTP: ${user.name}`, user.name);
+
+  logActivity('login', `${user.name} (${user.email}) logged in`, user.id, {
+    ip: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown',
+    userAgent: req.headers['user-agent'] || 'unknown',
+    email: user.email,
+    role: user.role,
+    provider: 'otp',
+  });
+
+  syncUser(user);
+
+  delete req.session.loginEmail;
   req.session.user = {
     id: user.id, name: user.name, email: user.email,
     role: user.role, avatar: user.avatar, plan: user.plan

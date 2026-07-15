@@ -529,6 +529,51 @@
   </div>
 </main>
 
+<!-- COMMENTS: separate script block so player errors don't break comments -->
+<script>
+(function(){
+var _CID=<%=item.id%>;
+var _UID=<%=user?user.id:0%>;
+function _esc(t){var d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+function _ago(s){var d=(Date.now()-new Date(s).getTime())/1000;if(d<60)return 'Just now';if(d<3600)return Math.floor(d/60)+'m ago';if(d<86400)return Math.floor(d/3600)+'h ago';if(d<604800)return Math.floor(d/86400)+'d ago';return new Date(s).toLocaleDateString();}
+function _toast(m){var b=document.querySelector('.sx-player-box')||document.querySelector('.sx-player');if(!b)return;var o=b.querySelector('.sx-toast');if(o)o.remove();var e=document.createElement('div');e.className='sx-toast';e.textContent=m;b.appendChild(e);setTimeout(function(){if(e.parentNode)e.remove();},2200);}
+function loadComments(){
+  fetch('/api/comments/'+_CID).then(function(r){return r.json();}).then(function(d){
+    var cs=d.comments||[];
+    var el=document.getElementById('commentList');if(!el)return;
+    el.innerHTML='';
+    var cnt=document.getElementById('commentCount');
+    if(cnt)cnt.textContent=cs.length>0?'('+cs.length+')':'';
+    if(cs.length===0){el.innerHTML='<div class="sx-no-comments">Be the first to comment</div>';return;}
+    cs.forEach(function(c){
+      var ini=c.user_name?c.user_name.charAt(0).toUpperCase():'G';
+      var cols=['#E50914','#3B82F6','#8B5CF6','#EC4899','#F59E0B','#10B981'];
+      var col=cols[(c.user_id||0)%cols.length];
+      var dbtn=(_UID&&_UID===c.user_id)?'<button class="sx-comment-action" onclick="deleteComment('+c.id+')" style="margin-left:auto;color:var(--text3)">Delete</button>':'';
+      el.innerHTML+='<div class="sx-comment"><div class="sx-comment-avatar" style="background:linear-gradient(135deg,'+col+')">'+ini+'</div><div class="sx-comment-body"><div class="sx-comment-meta"><span class="sx-comment-name">'+_esc(c.user_name||'User')+'</span><span class="sx-comment-time">'+_ago(c.created_at)+'</span></div><div class="sx-comment-text">'+_esc(c.text)+'</div><div class="sx-comment-actions"><button class="sx-comment-action" onclick="likeComment('+c.id+')">&#128077; '+((c.likes)||0)+'</button>'+dbtn+'</div></div></div>';
+    });
+  }).catch(function(e){console.error('Comments load error:',e);var el=document.getElementById('commentList');if(el)el.innerHTML='<div class="sx-no-comments">Failed to load comments</div>';});
+}
+window.postComment=function(){
+  var inp=document.getElementById('commentInput');if(!inp)return;var text=inp.value.trim();if(!text)return;
+  var btn=inp.parentElement.querySelector('.sx-comment-submit');if(btn)btn.disabled=true;
+  fetch('/api/comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contentId:_CID,text:text})}).then(function(r){
+    return r.json().then(function(d){return {ok:r.ok,status:r.status,data:d};});
+  }).then(function(res){
+    if(res.status===401){_toast('Please login to comment');return;}
+    if(!res.ok){_toast(res.data.error||'Failed to post comment');return;}
+    if(res.data&&res.data.comment){inp.value='';loadComments();}
+  }).catch(function(e){console.error('Comment post error:',e);_toast('Failed to post comment');})
+  .finally(function(){if(btn)btn.disabled=false;});
+};
+window.likeComment=function(id){fetch('/api/comments/'+id+'/like',{method:'POST'}).then(function(){loadComments();}).catch(function(){});};
+window.deleteComment=function(id){if(!confirm('Delete this comment?'))return;fetch('/api/comments/'+id,{method:'DELETE'}).then(function(){loadComments();}).catch(function(){});};
+var _ci=document.getElementById('commentInput');
+if(_ci)_ci.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();window.postComment();}});
+loadComments();
+})();
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.min.js"></script>
@@ -809,58 +854,6 @@ function clearResume(){try{localStorage.removeItem(resumeKey());}catch(e){}}
   if('<%=item.director%>'){var dir='<%=item.director%>';el.innerHTML+='<div class="sx-cast-item"><div class="sx-cast-avatar"><div class="sx-cast-initial" style="background:linear-gradient(135deg,#f5c51833,#f5c51811)">'+dir[0]+'</div></div><div class="sx-cast-name">'+dir+'</div><div class="sx-cast-char">Director</div></div>';}
 })();
 <%}%>
-
-/* ========================================
-   COMMENTS (Server-side)
-   ======================================== */
-var CONTENT_ID=<%=item.id%>;
-function escapeHtml(t){var d=document.createElement('div');d.textContent=t;return d.innerHTML;}
-function timeAgo(dateStr){
-  var diff=(Date.now()-new Date(dateStr).getTime())/1000;
-  if(diff<60)return 'Just now';
-  if(diff<3600)return Math.floor(diff/60)+'m ago';
-  if(diff<86400)return Math.floor(diff/3600)+'h ago';
-  if(diff<604800)return Math.floor(diff/86400)+'d ago';
-  return new Date(dateStr).toLocaleDateString();
-}
-function loadComments(){
-  fetch('/api/comments/'+CONTENT_ID).then(function(r){return r.json();}).then(function(d){
-    var cs=d.comments||[];
-    var el=document.getElementById('commentList');if(!el)return;
-    el.innerHTML='';
-    document.getElementById('commentCount').textContent=cs.length>0?'('+cs.length+')':'';
-    if(cs.length===0){el.innerHTML='<div class="sx-no-comments">Be the first to comment</div>';return;}
-    var userId=<%=user?user.id:0%>;
-    cs.forEach(function(c){
-      var initial=c.user_name?c.user_name.charAt(0).toUpperCase():'G';
-      var colors=['#E50914','#3B82F6','#8B5CF6','#EC4899','#F59E0B','#10B981'];
-      var color=colors[(c.user_id||0)%colors.length];
-      var delBtn=(userId&&userId===c.user_id)?'<button class="sx-comment-action" onclick="deleteComment('+c.id+')" style="margin-left:auto;color:var(--text3)">Delete</button>':'';
-      el.innerHTML+='<div class="sx-comment"><div class="sx-comment-avatar" style="background:linear-gradient(135deg,'+color+')">'+initial+'</div><div class="sx-comment-body"><div class="sx-comment-meta"><span class="sx-comment-name">'+escapeHtml(c.user_name||'User')+'</span><span class="sx-comment-time">'+timeAgo(c.created_at)+'</span></div><div class="sx-comment-text">'+escapeHtml(c.text)+'</div><div class="sx-comment-actions"><button class="sx-comment-action" onclick="likeComment('+c.id+')">&#128077; '+((c.likes)||0)+'</button>'+delBtn+'</div></div></div>';
-    });
-  }).catch(function(e){console.error('Load comments error:',e);document.getElementById('commentList').innerHTML='<div class="sx-no-comments">Failed to load comments</div>';});
-}
-function postComment(){
-  var inp=document.getElementById('commentInput');var text=inp.value.trim();if(!text)return;
-  var btn=inp.parentElement.querySelector('.sx-comment-submit');if(btn)btn.disabled=true;
-  fetch('/api/comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contentId:CONTENT_ID,text:text})}).then(function(r){
-    return r.json().then(function(d){return {ok:r.ok,status:r.status,data:d};});
-  }).then(function(res){
-    if(res.status===401){showToast('Please login to comment');return;}
-    if(!res.ok){showToast(res.data.error||'Failed to post comment');return;}
-    if(res.data&&res.data.comment){inp.value='';loadComments();}
-  }).catch(function(e){console.error('Post comment error:',e);showToast('Failed to post comment');})
-  .finally(function(){if(btn)btn.disabled=false;});
-}
-function likeComment(id){
-  fetch('/api/comments/'+id+'/like',{method:'POST'}).then(function(){loadComments();}).catch(function(){});
-}
-function deleteComment(id){
-  if(!confirm('Delete this comment?'))return;
-  fetch('/api/comments/'+id,{method:'DELETE'}).then(function(){loadComments();}).catch(function(){});
-}
-document.getElementById('commentInput').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();postComment();}});
-loadComments();
 
 /* ========================================
    ARTPLAYER INIT

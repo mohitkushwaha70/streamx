@@ -826,7 +826,8 @@ function timeAgo(dateStr){
 function loadComments(){
   fetch('/api/comments/'+CONTENT_ID).then(function(r){return r.json();}).then(function(d){
     var cs=d.comments||[];
-    var el=document.getElementById('commentList');el.innerHTML='';
+    var el=document.getElementById('commentList');if(!el)return;
+    el.innerHTML='';
     document.getElementById('commentCount').textContent=cs.length>0?'('+cs.length+')':'';
     if(cs.length===0){el.innerHTML='<div class="sx-no-comments">Be the first to comment</div>';return;}
     var userId=<%=user?user.id:0%>;
@@ -837,16 +838,19 @@ function loadComments(){
       var delBtn=(userId&&userId===c.user_id)?'<button class="sx-comment-action" onclick="deleteComment('+c.id+')" style="margin-left:auto;color:var(--text3)">Delete</button>':'';
       el.innerHTML+='<div class="sx-comment"><div class="sx-comment-avatar" style="background:linear-gradient(135deg,'+color+')">'+initial+'</div><div class="sx-comment-body"><div class="sx-comment-meta"><span class="sx-comment-name">'+escapeHtml(c.user_name||'User')+'</span><span class="sx-comment-time">'+timeAgo(c.created_at)+'</span></div><div class="sx-comment-text">'+escapeHtml(c.text)+'</div><div class="sx-comment-actions"><button class="sx-comment-action" onclick="likeComment('+c.id+')">&#128077; '+((c.likes)||0)+'</button>'+delBtn+'</div></div></div>';
     });
-  }).catch(function(){});
+  }).catch(function(e){console.error('Load comments error:',e);document.getElementById('commentList').innerHTML='<div class="sx-no-comments">Failed to load comments</div>';});
 }
 function postComment(){
   var inp=document.getElementById('commentInput');var text=inp.value.trim();if(!text)return;
+  var btn=inp.parentElement.querySelector('.sx-comment-submit');if(btn)btn.disabled=true;
   fetch('/api/comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contentId:CONTENT_ID,text:text})}).then(function(r){
-    if(!r.ok){if(r.status===401)showToast('Please login to comment');return r.json();}
-    return r.json();
-  }).then(function(d){
-    if(d&&d.comment){inp.value='';loadComments();}
-  }).catch(function(){showToast('Failed to post comment');});
+    return r.json().then(function(d){return {ok:r.ok,status:r.status,data:d};});
+  }).then(function(res){
+    if(res.status===401){showToast('Please login to comment');return;}
+    if(!res.ok){showToast(res.data.error||'Failed to post comment');return;}
+    if(res.data&&res.data.comment){inp.value='';loadComments();}
+  }).catch(function(e){console.error('Post comment error:',e);showToast('Failed to post comment');})
+  .finally(function(){if(btn)btn.disabled=false;});
 }
 function likeComment(id){
   fetch('/api/comments/'+id+'/like',{method:'POST'}).then(function(){loadComments();}).catch(function(){});

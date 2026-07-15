@@ -673,8 +673,8 @@ const comments = {
   },
   add(userId, contentId, text) {
     db.run("INSERT INTO comments (user_id, content_id, text) VALUES (?, ?, ?)", [userId, contentId, text]);
-    saveNow();
     const id = db.exec("SELECT last_insert_rowid() as id")[0]?.values[0]?.[0];
+    saveNow();
     return this.findById(id);
   },
   findById(id) {

@@ -441,13 +441,17 @@
 
       <div class="sx-acts" style="margin-top:8px">
         <% var _inList = (typeof userStatus !== 'undefined' && userStatus && userStatus.inWatchlist); %>
-        <button id="myListBtn" class="sx-act glass" style="<%= _inList ? 'border-color:#4ade80!important;color:#4ade80;' : '' %>" onclick="toggleMyList()">
-          <svg id="myListIcon" viewBox="0 0 24 24" fill="<%= _inList ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-          <span id="myListText"><%= _inList ? 'In My List' : 'My List' %></span>
+        <button id="myListBtn" class="sx-act glass" onclick="toggleMyList()">
+          <svg id="myListIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          <span id="myListText">My List</span>
         </button>
-        <button class="sx-act glass" id="likeBtn" onclick="toggleLike()" style="color:var(--text2);">
+        <button class="sx-act glass" id="likeBtn" onclick="toggleLike()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
           <span>Like</span>
+        </button>
+        <button class="sx-act glass" id="unlikeBtn" onclick="toggleUnlike()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
+          <span>Unlike</span>
         </button>
       </div>
     </div>
@@ -916,28 +920,57 @@ fetch('/api/content?type=<%=item.type%>&limit=8&exclude=<%=item.id%>').then(func
 
 /* My List toggle */
 var _inList=<%= _inList ? 'true' : 'false' %>;
+function setMyListUI(){
+  var btn=document.getElementById('myListBtn');
+  var icon=document.getElementById('myListIcon');
+  var txt=document.getElementById('myListText');
+  if(_inList){
+    btn.style.background='rgba(34,197,94,0.15)';
+    btn.style.borderColor='rgba(34,197,94,0.5)';
+    btn.style.color='#4ade80';
+    icon.setAttribute('fill','currentColor');
+    txt.textContent='In My List';
+  }else{
+    btn.style.background='';
+    btn.style.borderColor='';
+    btn.style.color='';
+    icon.setAttribute('fill','none');
+    txt.textContent='My List';
+  }
+}
 function toggleMyList(){
   if(!<%= user ? 'true' : 'false' %>){window.location.href='/auth/login';return;}
   var url=_inList?'/watchlist/remove':'/watchlist/add';
   fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'id=<%= item.id %>'}).then(function(r){
     if(!r.ok)return;
     _inList=!_inList;
-    var btn=document.getElementById('myListBtn');
-    var icon=document.getElementById('myListIcon');
-    var txt=document.getElementById('myListText');
-    if(_inList){btn.style.borderColor='#4ade80';btn.style.color='#4ade80';icon.setAttribute('fill','currentColor');txt.textContent='In My List';}
-    else{btn.style.borderColor='';btn.style.color='';icon.setAttribute('fill','none');txt.textContent='My List';}
+    setMyListUI();
   }).catch(function(){});
 }
+setMyListUI();
 
-/* Like toggle */
+/* Like / Unlike toggle */
 var _liked=false;
+var _unliked=false;
 function toggleLike(){
   if(!<%= user ? 'true' : 'false' %>){window.location.href='/auth/login';return;}
   _liked=!_liked;
-  var btn=document.getElementById('likeBtn');
-  if(_liked){btn.style.color='#4ade80';btn.querySelector('svg').setAttribute('fill','currentColor');}
-  else{btn.style.color='';btn.querySelector('svg').setAttribute('fill','none');}
+  if(_liked)_unliked=false;
+  var lBtn=document.getElementById('likeBtn');
+  var uBtn=document.getElementById('unlikeBtn');
+  if(_liked){lBtn.style.background='rgba(34,197,94,0.15)';lBtn.style.borderColor='rgba(34,197,94,0.5)';lBtn.style.color='#4ade80';lBtn.querySelector('svg').setAttribute('fill','currentColor');}
+  else{lBtn.style.background='';lBtn.style.borderColor='';lBtn.style.color='';lBtn.querySelector('svg').setAttribute('fill','none');}
+  uBtn.style.background='';uBtn.style.borderColor='';uBtn.style.color='';uBtn.querySelector('svg').setAttribute('fill','none');
+}
+function toggleUnlike(){
+  if(!<%= user ? 'true' : 'false' %>){window.location.href='/auth/login';return;}
+  _unliked=!_unliked;
+  if(_unliked)_liked=false;
+  var lBtn=document.getElementById('likeBtn');
+  var uBtn=document.getElementById('unlikeBtn');
+  if(_unliked){uBtn.style.background='rgba(239,68,68,0.15)';uBtn.style.borderColor='rgba(239,68,68,0.5)';uBtn.style.color='#ef4444';uBtn.querySelector('svg').setAttribute('fill','currentColor');}
+  else{uBtn.style.background='';uBtn.style.borderColor='';uBtn.style.color='';uBtn.querySelector('svg').setAttribute('fill','none');}
+  lBtn.style.background='';lBtn.style.borderColor='';lBtn.style.color='';lBtn.querySelector('svg').setAttribute('fill','none');
 }
 
 })();

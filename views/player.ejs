@@ -629,7 +629,7 @@ function updateVolumeUI(){
   volFill.style.width=(v*100)+'%';volDot.style.left=(v*100)+'%';
 }
 document.getElementById('btnVolume').onclick=function(){
-  if(!art||!art.video)return;art.video.muted=!art.video.muted;updateVolumeUI();
+  if(!art||!art.video)return;art.video.muted=!art.video.muted;updateVolumeUI();showToast(art.video.muted?'Muted':'Unmuted');
 };
 var volDragging=false;
 function setVolume(e){
@@ -698,9 +698,9 @@ var speedMenu=document.getElementById('speedMenu'),qualityMenu=document.getEleme
 
 function closeMenus(){speedMenu.classList.remove('open');qualityMenu.classList.remove('open');}
 
-/* Build speed options */
-(function(){
+function buildSpeedMenu(){
   var el=document.getElementById('speedOptions');
+  el.innerHTML='';
   var speeds=[0.25,0.5,0.75,1,1.25,1.5,1.75,2];
   speeds.forEach(function(s){
     var item=document.createElement('div');
@@ -708,18 +708,12 @@ function closeMenus(){speedMenu.classList.remove('open');qualityMenu.classList.r
     item.innerHTML='<span>'+s+'x'+(s===1?' (Normal)':'')+'</span><span class="sx-menu-check">'+(s===state.speed?'<svg viewBox="0 0 24 24" fill="#E50914" width="16" height="16"><polyline points="20 6 9 17 4 12" fill="none" stroke="#E50914" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>':'')+'</span>';
     item.onclick=function(){
       state.speed=s;if(art&&art.video)art.video.playbackRate=s;
-      closeMenus();showToast('Speed: '+s+'x');showControls();
-      /* Rebuild menu to update active state */
-      el.innerHTML='';speeds.forEach(function(sp){
-        var it=document.createElement('div');
-        it.className='sx-menu-item'+(sp===state.speed?' sx-active':'');
-        it.innerHTML='<span>'+sp+'x'+(sp===1?' (Normal)':'')+'</span><span class="sx-menu-check">'+(sp===state.speed?'<svg viewBox="0 0 24 24" fill="#E50914" width="16" height="16"><polyline points="20 6 9 17 4 12" fill="none" stroke="#E50914" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>':'')+'</span>';
-        it.onclick=arguments.callee;
-      });
+      closeMenus();showToast('Speed: '+s+'x');showControls();buildSpeedMenu();
     };
     el.appendChild(item);
   });
-})();
+}
+buildSpeedMenu();
 
 document.getElementById('btnSpeed').onclick=function(e){
   e.stopPropagation();
@@ -727,28 +721,21 @@ document.getElementById('btnSpeed').onclick=function(e){
   speedMenu.classList.toggle('open');showControls();
 };
 
-/* ========================================
-   QUALITY MENU
-   ======================================== */
-(function(){
+function buildQualityMenu(){
   var el=document.getElementById('qualityOptions');
+  el.innerHTML='';
   var qualities=['Auto','1080p','720p','480p'];
   qualities.forEach(function(q){
     var item=document.createElement('div');
     item.className='sx-menu-item'+(q===state.quality?' sx-active':'');
     item.innerHTML='<span>'+q+'</span><span class="sx-menu-check">'+(q===state.quality?'<svg viewBox="0 0 24 24" fill="#E50914" width="16" height="16"><polyline points="20 6 9 17 4 12" fill="none" stroke="#E50914" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>':'')+'</span>';
     item.onclick=function(){
-      state.quality=q;closeMenus();showToast('Quality: '+q);showControls();
-      el.innerHTML='';qualities.forEach(function(qu){
-        var it=document.createElement('div');
-        it.className='sx-menu-item'+(qu===state.quality?' sx-active':'');
-        it.innerHTML='<span>'+qu+'</span><span class="sx-menu-check">'+(qu===state.quality?'<svg viewBox="0 0 24 24" fill="#E50914" width="16" height="16"><polyline points="20 6 9 17 4 12" fill="none" stroke="#E50914" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>':'')+'</span>';
-        it.onclick=arguments.callee;
-      });
+      state.quality=q;closeMenus();showToast('Quality: '+q);showControls();buildQualityMenu();
     };
     el.appendChild(item);
   });
-})();
+}
+buildQualityMenu();
 
 document.getElementById('btnQuality').onclick=function(e){
   e.stopPropagation();

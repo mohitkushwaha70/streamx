@@ -41,7 +41,7 @@
         <p class="hero-desc"><%= m.description %></p>
         <div class="hero-actions">
           <% if (m.id) { %>
-          <a href="/watch/movie/<%= m.id %>" class="btn btn-primary btn-lg">
+          <a href="<%= user && user.plan_chosen ? '/watch/movie/' + m.id : '/auth/choose-plan' %>" class="btn btn-primary btn-lg">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             Watch Now
           </a>
@@ -106,7 +106,7 @@
     </div>
     <div class="content-row">
       <% continueWatching.forEach(item => { %>
-      <a href="/watch/<%= item.type === 'series' ? 'series' : 'movie' %>/<%= item.id %>" class="content-card">
+      <a href="<%= user && user.plan_chosen ? '/watch/' + (item.type === 'series' ? 'series' : 'movie') + '/' + item.id : '/auth/choose-plan' %>" class="content-card">
         <div class="card-image">
           <img src="<%= item.poster || '/placeholder.jpg' %>" alt="<%= item.title %>" loading="lazy">
           <div class="card-progress">

@@ -53,6 +53,7 @@ function createTables() {
     role TEXT DEFAULT 'user' CHECK(role IN ('user','admin')),
     avatar TEXT DEFAULT '',
     plan TEXT DEFAULT 'free' CHECK(plan IN ('free','premium')),
+    plan_chosen INTEGER DEFAULT 0,
     banned INTEGER DEFAULT 0,
     joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     last_active DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -61,6 +62,7 @@ function createTables() {
   )`);
 
   try { db.run("ALTER TABLE users ADD COLUMN banned INTEGER DEFAULT 0"); } catch(e) {}
+  try { db.run("ALTER TABLE users ADD COLUMN plan_chosen INTEGER DEFAULT 0"); } catch(e) {}
 
   db.run(`CREATE TABLE IF NOT EXISTS content (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

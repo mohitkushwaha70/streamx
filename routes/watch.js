@@ -34,6 +34,11 @@ router.get('/:type/:id', (req, res) => {
     return res.redirect('/auth/login');
   }
 
+  if (!req.session.user.plan_chosen) {
+    req.session.error = 'Please choose a plan to start watching';
+    return res.redirect('/auth/choose-plan');
+  }
+
   const { type, id } = req.params;
   const itemId = parseInt(id);
   const ep = parseInt(req.query.ep) || 1;

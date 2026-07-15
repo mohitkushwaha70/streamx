@@ -86,7 +86,8 @@ router.post('/login', (req, res) => {
 
   req.session.user = {
     id: user.id, name: user.name, email: user.email,
-    role: user.role, avatar: user.avatar, plan: user.plan
+    role: user.role, avatar: user.avatar, plan: user.plan,
+    plan_chosen: user.plan_chosen
   };
   res.redirect(user.role === 'admin' ? '/admin' : '/');
 });
@@ -131,7 +132,8 @@ router.post('/register', (req, res) => {
 
   req.session.user = {
     id: newUser.id, name: newUser.name, email: newUser.email,
-    role: newUser.role, avatar: newUser.avatar, plan: newUser.plan
+    role: newUser.role, avatar: newUser.avatar, plan: newUser.plan,
+    plan_chosen: 0
   };
   res.redirect('/auth/choose-plan');
 });
@@ -145,10 +147,16 @@ router.get('/choose-plan', (req, res) => {
 router.post('/choose-plan', (req, res) => {
   if (!req.session.user) return res.redirect('/auth/login');
   const { plan } = req.body;
-  if (plan === 'free') {
-    return res.redirect('/');
+  if (plan !== 'free' && plan !== 'premium') return res.redirect('/auth/choose-plan');
+
+  db.users.update(req.session.user.id, { plan, plan_chosen: 1 });
+  req.session.user.plan = plan;
+  req.session.user.plan_chosen = 1;
+
+  if (plan === 'premium') {
+    return res.redirect('/pricing');
   }
-  res.redirect('/pricing');
+  res.redirect('/');
 });
 
 // ===== GOOGLE OAUTH =====
@@ -180,9 +188,10 @@ router.get('/google/callback', (req, res, next) => {
 
     req.session.user = {
       id: req.user.id, name: req.user.name, email: req.user.email,
-      role: req.user.role, avatar: req.user.avatar, plan: req.user.plan
+      role: req.user.role, avatar: req.user.avatar, plan: req.user.plan,
+      plan_chosen: req.user.plan_chosen || 0
     };
-    res.redirect(req.user._isNew ? '/auth/choose-plan' : '/');
+    res.redirect(req.user._isNew || !req.user.plan_chosen ? '/auth/choose-plan' : '/');
   });
 });
 

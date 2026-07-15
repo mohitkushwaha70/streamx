@@ -89,7 +89,7 @@ router.post('/verify', async (req, res) => {
     const plan = PLANS[planType];
     if (!plan) return res.status(400).json({ error: 'Invalid plan type' });
 
-    db.users.update(user.id, { plan: plan.plan });
+    db.users.update(user.id, { plan: plan.plan, plan_chosen: 1 });
 
     const expiryDate = new Date();
     expiryDate.setMonth(expiryDate.getMonth() + plan.months);
@@ -98,6 +98,7 @@ router.post('/verify', async (req, res) => {
     db.logs.add('payment', `${user.name} upgraded to ${plan.plan} (${plan.label}) via Razorpay — ₹${plan.amount / 100}`);
 
     req.session.user.plan = plan.plan;
+    req.session.user.plan_chosen = 1;
 
     res.json({ success: true, plan: plan.plan, expiryDate: expiryDate.toISOString() });
   } catch (err) {

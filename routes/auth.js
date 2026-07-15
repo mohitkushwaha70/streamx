@@ -136,9 +136,7 @@ router.get('/google', (req, res, next) => {
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     return res.redirect('/auth/login?error=google_not_configured');
   }
-  const proto = req.headers['x-forwarded-proto'] || req.protocol || 'http';
-  const host = req.headers['x-forwarded-host'] || req.headers['x-forwarded-for']?.split(',')[0] || req.get('host') || 'localhost:3000';
-  const callbackURL = proto + '://' + host + '/auth/google/callback';
+  const callbackURL = (process.env.NEXT_PUBLIC_APP_URL || 'https://streamx-ntpv.onrender.com') + '/auth/google/callback';
   passport.authenticate('google', { scope: ['profile', 'email'], callbackURL })(req, res, next);
 });
 
@@ -146,7 +144,8 @@ router.get('/google/callback', (req, res, next) => {
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     return res.redirect('/auth/login?error=google_not_configured');
   }
-  passport.authenticate('google', { failureRedirect: '/auth/login' })(req, res, () => {
+  const callbackURL = (process.env.NEXT_PUBLIC_APP_URL || 'https://streamx-ntpv.onrender.com') + '/auth/google/callback';
+  passport.authenticate('google', { failureRedirect: '/auth/login', callbackURL })(req, res, () => {
     db.users.updateLastActive(req.user.id);
 
     logActivity('login', `${req.user.name} (${req.user.email}) logged in via Google`, req.user.id, {

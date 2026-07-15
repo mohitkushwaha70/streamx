@@ -4,18 +4,22 @@ import { db } from '@/lib/db';
 import { signToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
-function getBaseUrl(req: NextRequest): string {
-  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
-  const proto = req.headers.get('x-forwarded-proto') || 'https';
-  const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || req.nextUrl.host;
-  return `${proto}://${host}`;
+function getBaseUrl(): string {
+  const url = process.env.NEXT_PUBLIC_APP_URL;
+  if (!url) throw new Error('NEXT_PUBLIC_APP_URL is not set');
+  return url;
 }
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code');
   const errParam = req.nextUrl.searchParams.get('error');
 
-  const baseUrl = getBaseUrl(req);
+  let baseUrl: string;
+  try {
+    baseUrl = getBaseUrl();
+  } catch {
+    return Response.redirect('/login?error=google_not_configured');
+  }
 
   if (errParam || !code) {
     return Response.redirect(`${baseUrl}/login?error=google_auth_failed`);

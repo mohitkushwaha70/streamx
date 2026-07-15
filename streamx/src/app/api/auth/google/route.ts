@@ -1,18 +1,23 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest } from 'next/server';
 
-function getBaseUrl(req: NextRequest): string {
-  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
-  const proto = req.headers.get('x-forwarded-proto') || 'https';
-  const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || req.nextUrl.host;
-  return `${proto}://${host}`;
+function getBaseUrl(): string {
+  const url = process.env.NEXT_PUBLIC_APP_URL;
+  if (!url) throw new Error('NEXT_PUBLIC_APP_URL is not set');
+  return url;
 }
 
 export async function GET(req: NextRequest) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   if (!clientId) return new Response('Google OAuth not configured', { status: 500 });
 
-  const baseUrl = getBaseUrl(req);
+  let baseUrl: string;
+  try {
+    baseUrl = getBaseUrl();
+  } catch {
+    return new Response('NEXT_PUBLIC_APP_URL is not configured on the server', { status: 500 });
+  }
+
   const redirectUri = `${baseUrl}/api/auth/google/callback`;
 
   const params = new URLSearchParams({

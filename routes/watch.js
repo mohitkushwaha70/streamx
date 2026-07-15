@@ -78,7 +78,7 @@ router.get('/:type/:id', (req, res) => {
     db.continueWatching.upsert(
       req.session.user.id, item.tmdb_id || item.id, item.type === 'series' ? 'series' : 'movie',
       item.title, item.poster, item.genre, item.duration || (item.seasons ? item.seasons + ' Seasons' : ''),
-      Math.floor(Math.random() * 30) + 10
+      0
     );
   }
 

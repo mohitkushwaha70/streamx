@@ -147,15 +147,12 @@ router.get('/choose-plan', (req, res) => {
 router.post('/choose-plan', (req, res) => {
   if (!req.session.user) return res.redirect('/auth/login');
   const { plan } = req.body;
-  if (plan !== 'free' && plan !== 'premium') return res.redirect('/auth/choose-plan');
+  if (plan !== 'free') return res.redirect('/pricing');
 
-  db.users.update(req.session.user.id, { plan, plan_chosen: 1 });
-  req.session.user.plan = plan;
+  db.users.update(req.session.user.id, { plan: 'free', plan_chosen: 1 });
+  req.session.user.plan = 'free';
   req.session.user.plan_chosen = 1;
 
-  if (plan === 'premium') {
-    return res.redirect('/pricing');
-  }
   res.redirect('/');
 });
 

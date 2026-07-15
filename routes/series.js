@@ -15,7 +15,7 @@ router.get('/:id', (req, res) => {
   if (!item || (item.type !== 'series' && item.type !== 'anime')) return res.redirect('/series');
   const episodes = db.episodes.findByContent(item.id);
   const related = db.content.list('series', { genre: item.genre, limit: 8 }).items.filter(s => s.id !== item.id);
-  res.render('detail', { item: { ...item, episodes }, type: 'series', related, streaming: {} });
+  res.render('detail', { item: { ...item, episodes }, type: item.type, related, streaming: {} });
 });
 
 module.exports = router;

@@ -7,7 +7,7 @@
     <div class="hero-bg" style="background-image: url('<%= item.backdrop %>')"></div>
     <div class="hero-content detail-content">
       <div class="hero-badge">
-        <% if (item.premium) { %>⭐ PREMIUM<% } else { %>🔥 <%= type === 'series' ? item.seasons + ' Season' + (item.seasons > 1 ? 's' : '') : item.duration %><% } %>
+        <% if (item.premium) { %>⭐ PREMIUM<% } else { %>🔥 <%= (type === 'series' || type === 'anime') ? (item.seasons || 1) + ' Season' + ((item.seasons || 1) > 1 ? 's' : '') : item.duration %><% } %>
       </div>
       <h1 class="hero-title"><%= item.title %></h1>
       <div class="hero-meta">

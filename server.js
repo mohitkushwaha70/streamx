@@ -7,6 +7,12 @@ const compression = require('compression');
 
 try { require('dotenv').config(); } catch(e) {}
 
+const _realWarn = console.warn;
+console.warn = function() {
+  if (arguments[0] && String(arguments[0]).includes('MemoryStore')) return;
+  _realWarn.apply(console, arguments);
+};
+
 process.on('uncaughtException', (err) => {
   console.error('Uncaught exception:', err.message);
 });
@@ -32,18 +38,12 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: '30d', etag: tr
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 app.use(express.json({ limit: '5mb' }));
 app.use(cookieParser());
-const _origWarn = console.warn;
-console.warn = function() {
-  if (arguments[0] && String(arguments[0]).includes('MemoryStore')) return;
-  _origWarn.apply(console, arguments);
-};
 app.use(session({
   secret: process.env.SESSION_SECRET || 'streamx_secret_2026',
   resave: false,
   saveUninitialized: false,
   cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
-console.warn = _origWarn;
 app.use(passport.initialize());
 app.use(passport.session());
 

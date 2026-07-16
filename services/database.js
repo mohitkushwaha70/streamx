@@ -898,6 +898,9 @@ async function restoreFromMongo() {
 
     let contentRestored = 0;
     for (const doc of mongoContent) {
+      // Skip soft-deleted items
+      if (doc.deleted) continue;
+
       const key = (doc.tmdbId || 0) + ':' + (doc.type || 'movie');
       if (sqliteIds.has(key)) continue; // already in SQLite
 
@@ -925,6 +928,7 @@ async function restoreFromMongo() {
 
     // Also update existing content from MongoDB (video_url may have changed)
     for (const doc of mongoContent) {
+      if (doc.deleted) continue;
       if (!doc.tmdbId) continue;
       const existing = content.findByTmdbId(doc.tmdbId, doc.type || 'movie');
       if (existing && doc.videoUrl && doc.videoUrl !== existing.video_url) {
@@ -943,7 +947,9 @@ async function restoreFromMongo() {
     // Also restore episodes
     const mongoEpisodes = await mdb.collection('episodes').find({}).toArray();
     if (mongoEpisodes.length > 0) {
+      let epRestored = 0;
       for (const ep of mongoEpisodes) {
+        if (ep.deleted) continue;
         const cItem = content.findByTmdbId(ep.tmdbId, ep.type) || content.getAll().find(c => c.title === ep.title);
         if (cItem) {
           db.run(
@@ -953,10 +959,11 @@ async function restoreFromMongo() {
              ep.description || '', ep.duration || '', ep.videoUrl || '',
              ep.airDate || '', ep.rating || '']
           );
+          epRestored++;
         }
       }
       saveNow();
-      console.log(`[Restore] Restored ${mongoEpisodes.length} episodes`);
+      console.log(`[Restore] Restored ${epRestored} episodes`);
     }
 
     // Restore payments

@@ -137,8 +137,15 @@ async function deleteContent(contentId) {
   await retryOp(async () => {
     const db = await getDb();
     if (!db) return;
-    await db.collection('content').deleteOne({ sqliteId: contentId });
-    await db.collection('episodes').deleteMany({ contentSqliteId: contentId });
+    // Soft delete: mark as deleted instead of removing (prevents restore on Render restart)
+    await db.collection('content').updateOne(
+      { sqliteId: contentId },
+      { $set: { deleted: true, deletedAt: new Date() } }
+    );
+    await db.collection('episodes').updateMany(
+      { contentSqliteId: contentId },
+      { $set: { deleted: true, deletedAt: new Date() } }
+    );
   });
 }
 
@@ -253,7 +260,7 @@ async function fullSyncContent(contentArray) {
     if (!db) return;
     for (const item of contentArray) {
       await db.collection('content').updateOne(
-        { sqliteId: item.id },
+        { sqliteId: item.id, deleted: { $ne: true } },
         {
           $set: {
             sqliteId: item.id,

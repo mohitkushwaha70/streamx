@@ -891,7 +891,7 @@ async function restoreFromMongo() {
 
     // Restore content — ALWAYS merge, not just when empty
     const sqliteContent = content.getAll();
-    const sqliteIds = new Set(sqliteContent.map(c => c.tmdb_id + ':' + c.type));
+    const sqliteIds = new Set(sqliteContent.map(c => c.id));
 
     const mongoContent = await mdb.collection('content').find({}).toArray();
     if (mongoContent.length === 0) {
@@ -904,8 +904,8 @@ async function restoreFromMongo() {
       // Skip soft-deleted items
       if (doc.deleted) continue;
 
-      const key = (doc.tmdbId || 0) + ':' + (doc.type || 'movie');
-      if (sqliteIds.has(key)) continue; // already in SQLite
+      const sqliteId = doc.sqliteId || doc.id;
+      if (sqliteIds.has(sqliteId)) continue; // already in SQLite by rowid
 
       db.run(
         `INSERT INTO content (tmdb_id, title, type, genre, genres, year, rating, vote_count,
@@ -932,8 +932,7 @@ async function restoreFromMongo() {
     // Also update existing content from MongoDB (video_url may have changed)
     for (const doc of mongoContent) {
       if (doc.deleted) continue;
-      if (!doc.tmdbId) continue;
-      const existing = content.findByTmdbId(doc.tmdbId, doc.type || 'movie');
+      const existing = doc.sqliteId ? content.findById(doc.sqliteId) : content.findByTmdbId(doc.tmdbId, doc.type || 'movie');
       if (existing && doc.videoUrl && doc.videoUrl !== existing.video_url) {
         db.run("UPDATE content SET video_url = ?, video_type = ? WHERE id = ?",
           [doc.videoUrl, doc.videoType || 'mp4', existing.id]);

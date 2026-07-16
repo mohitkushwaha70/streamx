@@ -391,7 +391,7 @@ const content = {
     item.genres = tryParse(item.genres);
     return item;
   },
-  upsert(data) {
+  async upsert(data) {
     const existing = this.findByTmdbId(data.tmdb_id, data.type);
     if (existing) {
       db.run(
@@ -408,7 +408,8 @@ const content = {
       cacheClear('content');
       saveNow();
       const item = this.findById(existing.id);
-      if (item) getMongo()?.syncContent(item);
+      const mongo = getMongo();
+      if (item && mongo) await mongo.syncContent(item).catch(e => console.error('[MongoDB] content upsert sync failed:', e.message));
       return existing.id;
     } else {
       db.run(
@@ -427,7 +428,8 @@ const content = {
       cacheClear('content');
       saveNow();
       const item = this.findById(id);
-      if (item) getMongo()?.syncContent(item);
+      const mongo = getMongo();
+      if (item && mongo) await mongo.syncContent(item).catch(e => console.error('[MongoDB] content upsert sync failed:', e.message));
       return id;
     }
   },
@@ -468,11 +470,12 @@ const content = {
     const r = db.exec(q, type ? [type] : []);
     return r[0]?.values[0]?.[0] || 0;
   },
-  delete(id) {
+  async delete(id) {
     db.run("DELETE FROM content WHERE id = ?", [id]);
     cacheClear('content');
     saveNow();
-    getMongo()?.deleteContent(id);
+    const mongo = getMongo();
+    if (mongo) await mongo.deleteContent(id).catch(e => console.error('[MongoDB] content delete sync failed:', e.message));
   },
   all() {
     const cached = cacheGet('content:all');
@@ -492,7 +495,7 @@ const content = {
     cacheSet(cacheKey, items);
     return items;
   },
-  create(data) {
+  async create(data) {
     db.run(
       `INSERT INTO content (tmdb_id, title, type, genre, genres, year, rating, vote_count,
        duration, description, poster, backdrop, video_url, video_type, trailer_key, cast,
@@ -511,10 +514,11 @@ const content = {
     cacheClear('content');
     saveNow();
     const item = this.findById(id);
-    if (item) getMongo()?.syncContent(item);
+    const mongo = getMongo();
+    if (item && mongo) await mongo.syncContent(item).catch(e => console.error('[MongoDB] content create sync failed:', e.message));
     return id;
   },
-  update(id, data) {
+  async update(id, data) {
     const fields = [];
     const vals = [];
     for (const [k, v] of Object.entries(data)) {
@@ -523,12 +527,14 @@ const content = {
       vals.push(k === 'genres' ? JSON.stringify(v) : v);
     }
     if (fields.length === 0) return;
+    fields.push('updated_at = CURRENT_TIMESTAMP');
     vals.push(id);
     db.run(`UPDATE content SET ${fields.join(', ')} WHERE id = ?`, vals);
     cacheClear('content');
     saveNow();
     const item = this.findById(id);
-    if (item) getMongo()?.syncContent(item);
+    const mongo = getMongo();
+    if (item && mongo) await mongo.syncContent(item).catch(e => console.error('[MongoDB] content update sync failed:', e.message));
   }
 };
 

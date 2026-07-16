@@ -10,7 +10,7 @@ router.get('/', (req, res) => {
 
   const heroPool = allContent.filter(c => c.video_url || c.video_type);
   const heroMovies = heroPool.length > 0
-    ? heroPool.sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 8).map(m => ({
+    ? heroPool.sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5).map(m => ({
         ...m,
         backdrop: m.backdrop || (m.poster ? m.poster : ''),
       }))

@@ -929,14 +929,27 @@ async function restoreFromMongo() {
       contentRestored++;
     }
 
-    // Also update existing content from MongoDB (video_url may have changed)
+    // Also update existing content from MongoDB (all fields may have changed via admin edit)
     for (const doc of mongoContent) {
       if (doc.deleted) continue;
       const existing = doc.sqliteId ? content.findById(doc.sqliteId) : content.findByTmdbId(doc.tmdbId, doc.type || 'movie');
-      if (existing && doc.videoUrl && doc.videoUrl !== existing.video_url) {
-        db.run("UPDATE content SET video_url = ?, video_type = ? WHERE id = ?",
-          [doc.videoUrl, doc.videoType || 'mp4', existing.id]);
-        contentRestored++;
+      if (existing) {
+        const mongoTime = doc.updatedAt ? new Date(doc.updatedAt).getTime() : 0;
+        const sqlTime = existing.updated_at ? new Date(existing.updated_at).getTime() : 0;
+        if (mongoTime > sqlTime) {
+          db.run(`UPDATE content SET title=?, genre=?, genres=?, year=?, rating=?, vote_count=?, duration=?,
+            description=?, poster=?, backdrop=?, video_url=?, video_type=?, trailer_key=?, cast=?,
+            director=?, language=?, popularity=?, release_date=?, seasons=?, episodes_count=?,
+            premium=?, badge=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`,
+            [doc.title || existing.title, doc.genre || '', JSON.stringify(doc.genres || []),
+             doc.year || 0, doc.rating || 0, doc.voteCount || 0, doc.duration || '',
+             doc.description || '', doc.poster || '', doc.backdrop || '',
+             doc.videoUrl || '', doc.videoType || 'mp4', doc.trailerKey || '',
+             doc.cast || '', doc.director || '', doc.language || 'en',
+             doc.popularity || 0, doc.releaseDate || '', doc.seasons || 0,
+             doc.episodesCount || 0, doc.premium ? 1 : 0, doc.badge || '', existing.id]);
+          contentRestored++;
+        }
       }
     }
 

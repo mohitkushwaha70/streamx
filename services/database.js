@@ -54,6 +54,7 @@ async function init() {
   saveNow();
 
   fixVideoTypes();
+  sanitizeUrls();
 
   // Step 1: Restore from MongoDB FIRST (fills empty SQLite with MongoDB data)
   await restoreFromMongo().catch(err => console.error('[Restore] error:', err.message));
@@ -80,6 +81,9 @@ async function init() {
 async function fullPushToMongo() {
   const mongo = getMongo();
   if (!mongo) return;
+
+  // Sanitize before push
+  sanitizeUrls();
 
   // Push ALL content
   const allContent = content.getAll();
@@ -976,7 +980,8 @@ async function restoreFromMongo() {
     }
 
     // Fix any content with wrong video_type (e.g. all set to mp4 for HF URLs)
-    fixVideoTypes();
+  fixVideoTypes();
+  sanitizeUrls();
 
   } catch (err) {
     console.error('[Restore] Failed:', err.message);
@@ -1008,6 +1013,24 @@ function fixVideoTypes() {
     saveNow();
     cacheClear('content');
     console.log(`[Fix] Corrected video_type for ${fixed} content items`);
+  }
+}
+
+function sanitizeUrls() {
+  const all = content.getAll();
+  let fixed = 0;
+  for (const item of all) {
+    const url = item.video_url || '';
+    const cleaned = url.replace(/["'`]/g, '').trim();
+    if (cleaned !== url) {
+      db.run(`UPDATE content SET video_url = ? WHERE id = ?`, [cleaned, item.id]);
+      fixed++;
+    }
+  }
+  if (fixed > 0) {
+    saveNow();
+    cacheClear('content');
+    console.log(`[Fix] Sanitized ${fixed} content URLs (removed quotes)`);
   }
 }
 

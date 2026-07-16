@@ -527,7 +527,7 @@
   var vSrc = currentEpisode ? (currentEpisode.videoUrl||currentEpisode.video_url||'') : (item.videoUrl||item.video_url||'');
   var vMime = getVideoMimeType(vSrc);
 %>
-var VURL='<%=vSrc%>',VTYPE='<%=vMime%>',art,hidetimer=null;
+var VURL='<%-vSrc%>',VTYPE='<%-vMime%>',art,hidetimer=null;
 var bx=document.getElementById('pBox');
 
 /* ========================================

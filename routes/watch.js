@@ -7,11 +7,12 @@ const HF_OUR_DATASET = 'mohit8287kushwaha/Mohit8287kushwahaStreamxvedios';
 function cleanUrl(url) {
   if (!url) return '';
   try {
+    url = url.replace(/["'`]/g, '').trim();
     const u = new URL(url);
     u.searchParams.delete('download');
     return u.toString();
   } catch(e) {
-    return url.replace(/[?&]download=true/g, '').replace(/\?&/g, '?').replace(/[?&]$/, '');
+    return url.replace(/["'`]/g, '').replace(/[?&]download=true/g, '').replace(/\?&/g, '?').replace(/[?&]$/, '').trim();
   }
 }
 

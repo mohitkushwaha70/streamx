@@ -1,6 +1,5 @@
 const express = require('express');
 const session = require('express-session');
-const { MongoStore } = require('connect-mongo');
 const cookieParser = require('cookie-parser');
 const passport = require('passport');
 const path = require('path');
@@ -33,15 +32,25 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: '30d', etag: tr
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 app.use(express.json({ limit: '5mb' }));
 app.use(cookieParser());
+
+let sessionStore;
+const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URL || process.env.DATABASE_URL || 'mongodb+srv://mohit8287kushwaha_db_user:O8SfUFbflOuqgu2H@cluster0.gp5ibvr.mongodb.net/streamx?retryWrites=true&w=majority&appName=Cluster0';
+try {
+  const { MongoStore } = require('connect-mongo');
+  sessionStore = MongoStore.create({
+    mongoUrl: mongoUri,
+    collectionName: 'sessions',
+    ttl: 24 * 60 * 60
+  });
+} catch(e) {
+  console.warn('[Session] MongoStore unavailable, using MemoryStore:', e.message);
+}
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'streamx_secret_2026',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI || process.env.MONGO_URL || process.env.DATABASE_URL,
-    collectionName: 'sessions',
-    ttl: 24 * 60 * 60
-  }),
+  store: sessionStore,
   cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 app.use(passport.initialize());

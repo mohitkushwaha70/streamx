@@ -20,7 +20,6 @@
     "compressible": "^2.0.18",
     "compression": "^1.8.1",
     "concat-stream": "^1.6.2",
-    "connect-mongo": "^6.0.0",
     "content-disposition": "^0.5.4",
     "content-type": "^1.0.5",
     "cookie": "^0.7.2",

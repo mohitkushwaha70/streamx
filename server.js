@@ -32,31 +32,18 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: '30d', etag: tr
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 app.use(express.json({ limit: '5mb' }));
 app.use(cookieParser());
-
-let sessionStore;
-const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URL || process.env.DATABASE_URL || 'mongodb+srv://mohit8287kushwaha_db_user:O8SfUFbflOuqgu2H@cluster0.gp5ibvr.mongodb.net/streamx?retryWrites=true&w=majority&appName=Cluster0';
-try {
-  const MongoStore = require('connect-mongo').default || require('connect-mongo').MongoStore;
-  sessionStore = MongoStore.create({
-    mongoUrl: mongoUri,
-    collectionName: 'sessions',
-    ttl: 24 * 60 * 60
-  });
-} catch(e) {}
-
-const origWarn = console.warn;
+const _origWarn = console.warn;
 console.warn = function() {
   if (arguments[0] && String(arguments[0]).includes('MemoryStore')) return;
-  origWarn.apply(console, arguments);
+  _origWarn.apply(console, arguments);
 };
 app.use(session({
   secret: process.env.SESSION_SECRET || 'streamx_secret_2026',
   resave: false,
   saveUninitialized: false,
-  store: sessionStore,
   cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
-console.warn = origWarn;
+console.warn = _origWarn;
 app.use(passport.initialize());
 app.use(passport.session());
 

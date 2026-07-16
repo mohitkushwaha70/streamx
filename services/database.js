@@ -54,16 +54,29 @@ async function init() {
   } catch(e) {}
   saveNow();
 
-  // Sync admin to MongoDB after all objects are ready
-  const admin = users.findByEmail('admin@streamx.com');
-  if (admin) getMongo()?.syncUser(admin);
-
   // Fix any content with wrong video_type on startup
   fixVideoTypes();
 
-  // Restore content from MongoDB if SQLite is empty (data loss recovery)
-  // Non-blocking: don't await — let server start immediately
-  restoreFromMongo().catch(err => console.error('[Restore] background error:', err.message));
+  // Restore from MongoDB — await so data is ready before serving
+  await restoreFromMongo().catch(err => console.error('[Restore] background error:', err.message));
+
+  // Sync admin to MongoDB after all objects are ready (including restored data)
+  const admin = users.findByEmail('admin@streamx.com');
+  if (admin) getMongo()?.syncUser(admin);
+
+  // Periodic full sync every 5 min (safety net for Render restarts)
+  setInterval(() => {
+    try {
+      const allContent = content.getAll();
+      const allUsers = db.exec("SELECT * FROM users").length > 0
+        ? db.exec("SELECT * FROM users")[0].values.map(v => rowToObj(db.exec("SELECT * FROM users")[0], v))
+        : [];
+      getMongo()?.fullSyncContent(allContent);
+      getMongo()?.fullSyncUsers(allUsers);
+    } catch(e) {
+      console.error('[FullSync] error:', e.message);
+    }
+  }, 5 * 60 * 1000);
 
   return db;
 }
@@ -800,26 +813,45 @@ async function restoreFromMongo() {
     const mdb = await mongo.getDb();
     if (!mdb) return;
 
-    // Always restore users from MongoDB (except admin which is seeded)
+    // Restore/update ALL users from MongoDB (including admin)
     const mongoUsers = await mdb.collection('users').find({}).toArray();
     if (mongoUsers.length > 0) {
       let restored = 0;
       for (const u of mongoUsers) {
-        if (u.email === 'admin@streamx.com') continue; // skip admin, already seeded
         const existing = users.findByEmail(u.email);
         if (!existing) {
           db.run(
             `INSERT INTO users (name, email, password, google_id, role, avatar, plan, plan_chosen, banned, joined_at, last_active, watch_time, devices)
              VALUES (?, ?, '', '', ?, ?, ?, ?, ?, ?, ?, 0, 1)`,
             [u.name || '', u.email || '', u.role || 'user', u.avatar || '',
-             u.plan || 'free', u.plan_chosen ? 1 : 0, u.banned ? 1 : 0,
-             u.joinedAt || new Date().toISOString(), u.lastActiveAt || new Date().toISOString()]
+             u.plan || 'free', u.planChosen ? 1 : 0, u.banned ? 1 : 0,
+             u.joinedAt ? new Date(u.joinedAt).toISOString() : new Date().toISOString(),
+             u.lastActiveAt ? new Date(u.lastActiveAt).toISOString() : new Date().toISOString()]
           );
           restored++;
         } else {
-          // Update existing user's plan from MongoDB (admin may have changed it)
+          // Update existing user's plan, avatar, role from MongoDB
+          const updates = [];
+          const params = [];
           if (u.plan && u.plan !== existing.plan) {
-            db.run("UPDATE users SET plan = ?, plan_chosen = 1 WHERE email = ?", [u.plan, u.email]);
+            updates.push('plan = ?');
+            params.push(u.plan);
+          }
+          if (u.avatar && u.avatar !== existing.avatar) {
+            updates.push('avatar = ?');
+            params.push(u.avatar);
+          }
+          if (u.role && u.role !== existing.role) {
+            updates.push('role = ?');
+            params.push(u.role);
+          }
+          if (u.banned !== undefined && !!u.banned !== !!existing.banned) {
+            updates.push('banned = ?');
+            params.push(u.banned ? 1 : 0);
+          }
+          if (updates.length > 0) {
+            params.push(u.email);
+            db.run(`UPDATE users SET ${updates.join(', ')} WHERE email = ?`, params);
             restored++;
           }
         }

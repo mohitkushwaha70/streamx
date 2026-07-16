@@ -528,6 +528,8 @@
   var vMime = getVideoMimeType(vSrc);
 %>
 var VURL='<%-vSrc%>',VTYPE='<%-vMime%>',art,hidetimer=null;
+if(VTYPE==='mkv')VTYPE='';
+if(VTYPE==='webm')VTYPE='video/webm';
 var bx=document.getElementById('pBox');
 
 /* ========================================

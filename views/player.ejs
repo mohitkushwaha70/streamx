@@ -13,7 +13,7 @@
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
 }
 .sx-watch{background:var(--bg);min-height:100vh;position:relative;overflow-x:hidden;font-family:var(--font);color:var(--text)}
-.sx-backdrop{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:url('<%= item.backdrop || item.poster %>');background-size:cover;background-position:center 15%;filter:blur(80px) brightness(.08) saturate(1.3);transform:scale(1.3)}
+.sx-backdrop{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:url('<%- item.backdrop || item.poster %>');background-size:cover;background-position:center 15%;filter:blur(80px) brightness(.08) saturate(1.3);transform:scale(1.3)}
 .sx-backdrop::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,5,5,.2) 0%,rgba(5,5,5,.5) 40%,var(--bg) 100%)}
 .sx-wrap{position:relative;z-index:1;max-width:var(--max-w);margin:0 auto;padding:0 var(--gap)}
 
@@ -662,9 +662,11 @@ document.addEventListener('fullscreenchange',function(){
    SPEED MENU
    ======================================== */
 var state={speed:1,quality:'Auto',autoNext:true};
+window.state=state;
 var speedMenu=document.getElementById('speedMenu'),qualityMenu=document.getElementById('qualityMenu');
 
 function closeMenus(){speedMenu.classList.remove('open');qualityMenu.classList.remove('open');}
+window.closeMenus=closeMenus;
 
 function buildSpeedMenu(){
   var el=document.getElementById('speedOptions');
@@ -740,7 +742,7 @@ var NX=(function(){
   <% if(episodes.length>0){ %>
     <% var nxEp=episodes.find(function(e){return e.number===ep+1}); %>
     <% if(nxEp){ %>
-      return{poster:'<%=item.poster%>',title:'<%=nxEp.title.replace(/'/g,"\\'")%>',num:<%=nxEp.number%>,url:'/watch/<%=type%>/<%=item.id%>?ep=<%=nxEp.number%>'};
+      return{poster:'<%-item.poster%>',title:'<%=nxEp.title.replace(/'/g,"\\'")%>',num:<%=nxEp.number%>,url:'/watch/<%=type%>/<%=item.id%>?ep=<%=nxEp.number%>'};
     <% } %>
   <% } %>
   return null;
@@ -778,7 +780,7 @@ function clearResume(){try{localStorage.removeItem(resumeKey());}catch(e){}}
    ======================================== */
 <% if(item.cast){ %>
 (function(){
-  var names='<%=item.cast%>'.split(',').map(function(s){return s.trim()}).filter(Boolean);
+  var names='<%-item.cast%>'.split(',').map(function(s){return s.trim()}).filter(Boolean);
   var el=document.getElementById('sxCast');if(!el)return;
   var colors=['#E50914','#3B82F6','#8B5CF6','#EC4899','#F59E0B','#10B981'];
   names.forEach(function(n,i){
@@ -786,7 +788,7 @@ function clearResume(){try{localStorage.removeItem(resumeKey());}catch(e){}}
     var c=colors[i%colors.length];
     el.innerHTML+='<div class="sx-cast-item"><div class="sx-cast-avatar"><div class="sx-cast-initial" style="background:linear-gradient(135deg,'+c+'33,'+c+'11)">'+init+'</div></div><div class="sx-cast-name">'+n+'</div><div class="sx-cast-char">Actor</div></div>';
   });
-  if('<%=item.director%>'){var dir='<%=item.director%>';el.innerHTML+='<div class="sx-cast-item"><div class="sx-cast-avatar"><div class="sx-cast-initial" style="background:linear-gradient(135deg,#f5c51833,#f5c51811)">'+dir[0]+'</div></div><div class="sx-cast-name">'+dir+'</div><div class="sx-cast-char">Director</div></div>';}
+  if('<%-item.director%>'){var dir='<%-item.director%>';el.innerHTML+='<div class="sx-cast-item"><div class="sx-cast-avatar"><div class="sx-cast-initial" style="background:linear-gradient(135deg,#f5c51833,#f5c51811)">'+dir[0]+'</div></div><div class="sx-cast-name">'+dir+'</div><div class="sx-cast-char">Director</div></div>';}
 })();
 <%}%>
 
@@ -795,7 +797,7 @@ function clearResume(){try{localStorage.removeItem(resumeKey());}catch(e){}}
    ======================================== */
 var pc={
   container:'#artplayer-app',url:VURL,type:VTYPE,
-  poster:'<%=item.backdrop||item.poster%>',theme:'#E50914',
+  poster:'<%-item.backdrop||item.poster%>',theme:'#E50914',
   volume:.7,muted:false,autoplay:false,pip:false,
   autoSize:false,autoMini:true,screenshot:false,setting:false,
   loop:false,flip:false,playbackRate:true,aspectRatio:false,

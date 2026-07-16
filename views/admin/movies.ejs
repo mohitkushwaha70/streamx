@@ -33,7 +33,7 @@
               <td><%= m.year %></td>
               <td>★ <%= m.rating %></td>
               <td><span class="plan-badge <%= m.premium ? 'premium' : 'free' %>"><%= m.premium ? 'Premium' : 'Free' %></span>
-                <% if (m.hasVideo) { %><span class="plan-badge" style="background:#10b981;color:#fff;margin-left:4px;">✓ Video</span><% } %>
+                <% if (m.video_url) { %><span class="plan-badge" style="background:#10b981;color:#fff;margin-left:4px;">✓ Video</span><% } %>
               </td>
               <td>
                 <div class="action-btns">

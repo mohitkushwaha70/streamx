@@ -156,7 +156,7 @@
           <thead><tr><th>ID</th><th>User</th><th>Amount</th><th>Plan</th><th>Method</th><th>Date</th><th>Status</th></tr></thead>
           <tbody>
             <% paymentData.recentPayments.forEach(p => { %>
-              <% const payUser = users.find(u => u.id === p.userId); %>
+              <% const payUser = users.find(u => u.id === p.user_id); %>
               <tr>
                 <td style="color: var(--text-muted); font-family: monospace;"><%= p.transactionId %></td>
                 <td>

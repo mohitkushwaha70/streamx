@@ -34,7 +34,7 @@
         <div class="content-grid">
           <% watchlist.forEach(item => { %>
             <div class="content-card">
-              <a href="<%= item.seasons ? '/series/' + item.id : '/movies/' + item.id %>">
+              <a href="<%= item.type === 'series' ? '/series/' + item.id : '/movies/' + item.id %>">
                 <div class="card-image">
                   <% if (item.premium) { %><div class="card-badge premium">Premium</div><% } %>
                   <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">
@@ -69,7 +69,7 @@
         <div class="content-grid">
           <% favorites.forEach(item => { %>
             <div class="content-card">
-              <a href="<%= item.seasons ? '/series/' + item.id : '/movies/' + item.id %>">
+              <a href="<%= item.type === 'series' ? '/series/' + item.id : '/movies/' + item.id %>">
                 <div class="card-image">
                   <% if (item.premium) { %><div class="card-badge premium">Premium</div><% } %>
                   <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">
@@ -104,7 +104,7 @@
         <div class="content-grid">
           <% savedItems.forEach(item => { %>
             <div class="content-card">
-              <a href="<%= item.seasons ? '/series/' + item.id : '/movies/' + item.id %>">
+              <a href="<%= item.type === 'series' ? '/series/' + item.id : '/movies/' + item.id %>">
                 <div class="card-image">
                   <% if (item.premium) { %><div class="card-badge premium">Premium</div><% } %>
                   <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">

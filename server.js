@@ -1,5 +1,6 @@
 const express = require('express');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const cookieParser = require('cookie-parser');
 const passport = require('passport');
 const path = require('path');
@@ -32,19 +33,17 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: '30d', etag: tr
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 app.use(express.json({ limit: '5mb' }));
 app.use(cookieParser());
-
-const origWarn = console.warn;
-console.warn = (...args) => {
-  if (args[0] && args[0].includes && args[0].includes('MemoryStore')) return;
-  origWarn(...args);
-};
 app.use(session({
   secret: process.env.SESSION_SECRET || 'streamx_secret_2026',
   resave: false,
   saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    collectionName: 'sessions',
+    ttl: 24 * 60 * 60
+  }),
   cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
-console.warn = origWarn;
 app.use(passport.initialize());
 app.use(passport.session());
 

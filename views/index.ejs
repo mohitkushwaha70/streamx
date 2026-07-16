@@ -29,7 +29,7 @@
       <div class="hero-bg" style="background-image: url('<%= m.backdrop || m.poster || '' %>')"></div>
       <div class="hero-content">
         <div class="hero-badge">
-          <% if (m.premium) { %>⭐ PREMIUM<% } else { %>🔥 TRENDING<% } %>
+          <% if (m.premium) { %>⭐ PREMIUM<% } else if (m.type === 'anime') { %>🎌 ANIME<% } else if (m.type === 'series') { %>📺 SERIES<% } else { %>🔥 TRENDING<% } %>
         </div>
         <h1 class="hero-title"><%= m.title %></h1>
         <div class="hero-meta">
@@ -41,7 +41,7 @@
         <p class="hero-desc"><%= m.description %></p>
         <div class="hero-actions">
           <% if (m.id) { %>
-          <a href="<%= user && user.plan_chosen ? '/watch/movie/' + m.id : '/auth/choose-plan' %>" class="btn btn-primary btn-lg">
+          <a href="<%= user && user.plan_chosen ? '/watch/' + m.type + '/' + m.id : '/auth/choose-plan' %>" class="btn btn-primary btn-lg">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             Watch Now
           </a>

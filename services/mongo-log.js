@@ -127,6 +127,7 @@ async function syncContent(contentData) {
           updatedAt: new Date(),
         },
         $setOnInsert: { createdAt: new Date() },
+        $unset: { deleted: '', deletedAt: '' },
       },
       { upsert: true }
     );
@@ -291,6 +292,7 @@ async function fullSyncContent(contentArray) {
             updatedAt: new Date(),
           },
           $setOnInsert: { createdAt: new Date() },
+          $unset: { deleted: '', deletedAt: '' },
         },
         { upsert: true }
       );

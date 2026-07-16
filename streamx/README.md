@@ -89,7 +89,6 @@ npm run dev
 | `JWT_SECRET` | Secret for JWT signing (min 32 chars) |
 | `HF_TOKEN` | HuggingFace API token |
 | `HF_BUCKET` | HuggingFace repo ID (e.g. `user/streamx-storage`) |
-| `TMDB_READ_ACCESS_TOKEN` | TMDB API read access token |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name (optional) |
 | `CLOUDINARY_API_KEY` | Cloudinary API key (optional) |
 | `CLOUDINARY_API_SECRET` | Cloudinary API secret (optional) |
@@ -136,7 +135,7 @@ streamx/
 │   │   └── ui/             # Reusable UI components
 │   ├── hooks/              # Custom React hooks
 │   ├── lib/                # Utilities, auth, db
-│   ├── services/           # TMDB, HuggingFace sync
+│   ├── services/           # HuggingFace sync
 │   ├── store/              # State management
 │   └── types/              # TypeScript types
 ├── next.config.ts

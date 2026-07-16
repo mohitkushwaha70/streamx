@@ -1,10 +1,10 @@
 {
-  "note": "HF dataset: mohit8287kushwaha/Mohit8287kushwahaStreamxvedios - Upload movies and add TMDB ID",
+  "note": "HF dataset: mohit8287kushwaha/Mohit8287kushwahaStreamxvedios - Upload movies via admin panel",
   "videos": {
     "1303331": {
       "title": "Dhamaal 4 (2026)",
-      "poster": "https://image.tmdb.org/t/p/w500/5d7hpbefNiuebl5eqP5cRrckVxs.jpg",
-      "backdrop": "https://image.tmdb.org/t/p/original/95sjD0dRajtU6SKD6Gq6PtrGoGY.jpg",
+      "poster": "https://picsum.photos/seed/dhamaal/400/600",
+      "backdrop": "https://picsum.photos/seed/dhamaal-bg/1200/600",
       "genre": "Comedy",
       "year": 2026,
       "rating": 7.0,

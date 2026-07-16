@@ -1,6 +1,5 @@
 export interface ContentItem {
   id: string;
-  tmdbId?: number;
   title: string;
   slug: string;
   type: 'MOVIE' | 'SERIES' | 'ANIME';

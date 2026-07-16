@@ -111,22 +111,8 @@ body{background:#060814;color:#E2E8F0;font-family:'Inter',sans-serif}
             </div>
 
             <div class="upload-field">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <label style="flex:1;">Title</label>
-                <button type="button" id="fetchMetaBtn" onclick="fetchEditMetadata()" style="padding:4px 12px;background:rgba(37,99,235,0.15);color:#60A5FA;border:1px solid rgba(37,99,235,0.3);border-radius:8px;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:4px;white-space:nowrap;">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                  Fetch Metadata
-                </button>
-              </div>
+              <label>Title</label>
               <input type="text" name="title" id="editTitle" value="<%= item.title %>" required>
-            </div>
-
-            <!-- Metadata Loading -->
-            <div id="editMetaLoading" style="display:none;padding:10px 16px;background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.2);border-radius:12px;margin-bottom:14px;">
-              <div style="display:flex;align-items:center;gap:8px;">
-                <div style="width:14px;height:14px;border:2px solid rgba(37,99,235,0.3);border-top-color:#3B82F6;border-radius:50%;animation:spinLoader 0.7s linear infinite;"></div>
-                <span style="color:#60A5FA;font-size:0.78rem;font-weight:500;">Fetching from TMDB...</span>
-              </div>
             </div>
 
             <div class="upload-field">
@@ -230,46 +216,6 @@ body{background:#060814;color:#E2E8F0;font-family:'Inter',sans-serif}
 </div>
 
 <script>
-function fetchEditMetadata() {
-  var titleInput = document.getElementById('editTitle');
-  var title = titleInput.value.trim();
-  var typeSelect = document.getElementById('editType');
-  var type = typeSelect.value || 'movie';
-  if (!title) return;
-
-  var loading = document.getElementById('editMetaLoading');
-  var btn = document.getElementById('fetchMetaBtn');
-  loading.style.display = 'block';
-  btn.style.opacity = '0.5';
-  btn.style.pointerEvents = 'none';
-
-  fetch('/admin/api/metadata?title=' + encodeURIComponent(title) + '&type=' + encodeURIComponent(type))
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      loading.style.display = 'none';
-      btn.style.opacity = '1';
-      btn.style.pointerEvents = '';
-      if (!data.found) return;
-
-      if (data.title) document.getElementById('editTitle').value = data.title;
-      if (data.description) document.getElementById('editDescription').value = data.description;
-      if (data.genre) document.getElementById('editGenre').value = data.genre;
-      if (data.year) document.getElementById('editYear').value = data.year;
-      if (data.rating) document.getElementById('editRating').value = data.rating;
-      if (data.duration) document.getElementById('editDuration').value = data.duration;
-      if (data.poster) document.getElementById('editPoster').value = data.poster;
-      if (data.backdrop) document.getElementById('editBackdrop').value = data.backdrop;
-      if (data.cast) document.getElementById('editCast').value = data.cast;
-      if (data.director) document.getElementById('editDirector').value = data.director;
-      if (data.language) document.getElementById('editLanguage').value = data.language;
-    })
-    .catch(function() {
-      loading.style.display = 'none';
-      btn.style.opacity = '1';
-      btn.style.pointerEvents = '';
-    });
-}
-
 // Auto-clean title on URL change
 var editUrlInput = document.getElementById('editVideoUrl');
 var editTitleInput = document.getElementById('editTitle');

@@ -87,34 +87,6 @@
       </div>
     </div>
 
-    <!-- Trending from TMDB -->
-    <% if (trendingContent && trendingContent.length > 0) { %>
-    <div class="admin-card" style="margin-bottom: 20px;">
-      <div class="admin-card-header">
-        <h3>Trending on TMDB</h3>
-        <span class="admin-count">Live Data</span>
-      </div>
-      <div style="padding: 16px 20px;">
-        <div class="trending-scroll">
-          <% trendingContent.forEach(item => { %>
-          <div class="trending-item">
-            <div class="trending-poster">
-              <img src="<%= item.poster %>" alt="<%= item.title %>" onerror="this.onerror=null;this.src='/placeholder.jpg';">
-              <div class="trending-overlay">
-                <span class="trending-type"><%= item.mediaType === 'movie' ? 'Movie' : 'TV' %></span>
-              </div>
-            </div>
-            <div class="trending-info">
-              <h4><%= item.title %></h4>
-              <span class="trending-rating">★ <%= item.rating %></span>
-            </div>
-          </div>
-          <% }) %>
-        </div>
-      </div>
-    </div>
-    <% } %>
-
     <div class="admin-grid">
       <div class="admin-card">
         <div class="admin-card-header">

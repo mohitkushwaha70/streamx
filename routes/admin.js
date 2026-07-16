@@ -36,21 +36,6 @@ router.get('/api/clean-title', (req, res) => {
   res.json({ title: cleaned, year: parts.year, season: parts.season, episode: parts.episode, type: contentType, genre });
 });
 
-// API: Fetch TMDB metadata
-router.get('/api/metadata', async (req, res) => {
-  const title = req.query.title || '';
-  const type = req.query.type || 'movie';
-  if (!title) return res.json({ found: false });
-  try {
-    const meta = await metadata.fetchTmdbMetadata(title, type);
-    if (meta) return res.json({ found: true, ...meta });
-    res.json({ found: false });
-  } catch(e) {
-    console.error('[Admin API] Metadata error:', e.message);
-    res.json({ found: false });
-  }
-});
-
 function computeRevenue() {
   const allUsers = db.users.getAll();
   const allPayments = db.payments.getAll();

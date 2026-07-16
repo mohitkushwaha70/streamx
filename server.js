@@ -1,6 +1,6 @@
 const express = require('express');
 const session = require('express-session');
-const MongoStore = require('connect-mongo');
+const { MongoStore } = require('connect-mongo');
 const cookieParser = require('cookie-parser');
 const passport = require('passport');
 const path = require('path');
@@ -38,7 +38,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
+    mongoUrl: process.env.MONGODB_URI || process.env.MONGO_URL || process.env.DATABASE_URL,
     collectionName: 'sessions',
     ttl: 24 * 60 * 60
   }),

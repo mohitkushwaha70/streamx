@@ -1,5 +1,3 @@
-const tmdb = require('./tmdb');
-
 const EXT_RE = /\.(mp4|mkv|webm|avi|mov|flv|wmv|m4v|ts|mpd|m3u8)$/i;
 const QUALITY_RE = /\b(2160p|1080p|720p|480p|4K|hd|hq)\b/gi;
 const TAG_RE = /\b(web-dl|webrip|bluray|dvdrip|hdtc|cam|hdcam|proper|extended|unrated|directors?.?cut|hc|hdts|ts|tc|camrip|scr|screener|dvdscr|bdrip|brrip|remux|hevc|h264|h265|x264|x265|aac|dts|ac3|flac|mp3|10bit|hdr|sdr|dual.?audio|multi|subbed|dubbed|esubs|ssub|fsub)\b/gi;
@@ -113,54 +111,4 @@ function detectGenre(url, title) {
   return '';
 }
 
-async function fetchTmdbMetadata(title, type) {
-  if (!title || title === 'Untitled Video') return null;
-
-  try {
-    const isTv = type === 'series' || type === 'anime';
-    const results = await tmdb.searchMovies(title);
-    if (!results || results.length === 0) return null;
-
-    // Find best match
-    let match = null;
-    const lowerTitle = title.toLowerCase();
-
-    // Try exact title match first
-    for (const r of results) {
-      const rTitle = (r.title || r.name || '').toLowerCase();
-      if (rTitle === lowerTitle || lowerTitle.includes(rTitle) || rTitle.includes(lowerTitle)) {
-        match = r;
-        break;
-      }
-    }
-
-    // Fallback to first result
-    if (!match) match = results[0];
-    if (!match) return null;
-
-    // Fetch full details with credits
-    const details = await tmdb.getDetails(match.id, isTv, true);
-
-    const formatted = tmdb.formatMovie(details, null);
-    return {
-      title: formatted.title,
-      description: formatted.description,
-      poster: formatted.poster,
-      backdrop: formatted.backdrop,
-      genre: formatted.genre,
-      genres: formatted.genres,
-      year: formatted.year,
-      rating: formatted.rating,
-      duration: formatted.duration,
-      cast: formatted.cast,
-      director: formatted.director,
-      language: formatted.language,
-      tmdbId: formatted.id
-    };
-  } catch(e) {
-    console.error('[Metadata] TMDB fetch failed:', e.message);
-    return null;
-  }
-}
-
-module.exports = { cleanVideoTitle, parseFilenameParts, detectContentType, detectGenre, fetchTmdbMetadata };
+module.exports = { cleanVideoTitle, parseFilenameParts, detectContentType, detectGenre };

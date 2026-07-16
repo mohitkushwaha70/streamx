@@ -46,7 +46,6 @@ async function init() {
   createTables();
   seedAdmin();
   resetAdminPassword();
-  // Clean duplicate continue_watching rows (keep only latest per tmdb_id+type per user)
   try {
     db.run(`DELETE FROM continue_watching WHERE rowid NOT IN (
       SELECT MAX(rowid) FROM continue_watching GROUP BY user_id, tmdb_id, type
@@ -54,31 +53,46 @@ async function init() {
   } catch(e) {}
   saveNow();
 
-  // Fix any content with wrong video_type on startup
   fixVideoTypes();
 
-  // Restore from MongoDB — await so data is ready before serving
-  await restoreFromMongo().catch(err => console.error('[Restore] background error:', err.message));
+  // Step 1: Restore from MongoDB FIRST (fills empty SQLite with MongoDB data)
+  await restoreFromMongo().catch(err => console.error('[Restore] error:', err.message));
 
-  // Sync admin to MongoDB after all objects are ready (including restored data)
-  const admin = users.findByEmail('admin@streamx.com');
-  if (admin) getMongo()?.syncUser(admin);
+  // Step 2: Push ALL SQLite data to MongoDB (ensures MongoDB has latest)
+  await fullPushToMongo().catch(err => console.error('[FullPush] error:', err.message));
 
-  // Periodic full sync every 5 min (safety net for Render restarts)
-  setInterval(() => {
+  // Step 3: Pull ALL from MongoDB again (ensures SQLite has everything)
+  await restoreFromMongo().catch(err => console.error('[Restore2] error:', err.message));
+
+  // Periodic full sync every 3 min
+  setInterval(async () => {
     try {
-      const allContent = content.getAll();
-      const allUsers = db.exec("SELECT * FROM users").length > 0
-        ? db.exec("SELECT * FROM users")[0].values.map(v => rowToObj(db.exec("SELECT * FROM users")[0], v))
-        : [];
-      getMongo()?.fullSyncContent(allContent);
-      getMongo()?.fullSyncUsers(allUsers);
+      await fullPushToMongo();
+      console.log('[PeriodicSync] Pushed all data to MongoDB');
     } catch(e) {
-      console.error('[FullSync] error:', e.message);
+      console.error('[PeriodicSync] error:', e.message);
     }
-  }, 5 * 60 * 1000);
+  }, 3 * 60 * 1000);
 
   return db;
+}
+
+async function fullPushToMongo() {
+  const mongo = getMongo();
+  if (!mongo) return;
+
+  // Push ALL content
+  const allContent = content.getAll();
+  if (allContent.length > 0) {
+    await mongo.fullSyncContent(allContent);
+  }
+
+  // Push ALL users
+  const usersR = db.exec("SELECT * FROM users");
+  if (usersR.length > 0 && usersR[0].values.length > 0) {
+    const allUsers = usersR[0].values.map(v => rowToObj(usersR[0], v));
+    await mongo.fullSyncUsers(allUsers);
+  }
 }
 
 function createTables() {
@@ -862,19 +876,21 @@ async function restoreFromMongo() {
       }
     }
 
-    // Restore content if SQLite is empty
-    const count = content.count();
-    if (count > 0) return; // SQLite already has content
+    // Restore content — ALWAYS merge, not just when empty
+    const sqliteContent = content.getAll();
+    const sqliteIds = new Set(sqliteContent.map(c => c.tmdb_id + ':' + c.type));
 
     const mongoContent = await mdb.collection('content').find({}).toArray();
     if (mongoContent.length === 0) {
-      console.log('[Restore] MongoDB content empty, nothing to restore');
+      console.log('[Restore] MongoDB content empty');
       return;
     }
 
-    console.log(`[Restore] Restoring ${mongoContent.length} items from MongoDB...`);
-
+    let contentRestored = 0;
     for (const doc of mongoContent) {
+      const key = (doc.tmdbId || 0) + ':' + (doc.type || 'movie');
+      if (sqliteIds.has(key)) continue; // already in SQLite
+
       db.run(
         `INSERT INTO content (tmdb_id, title, type, genre, genres, year, rating, vote_count,
          duration, description, poster, backdrop, video_url, video_type, trailer_key, cast,
@@ -894,10 +910,25 @@ async function restoreFromMongo() {
           doc.premium ? 1 : 0, doc.badge || ''
         ]
       );
+      contentRestored++;
     }
 
-    saveNow();
-    console.log(`[Restore] Restored ${mongoContent.length} items from MongoDB to SQLite`);
+    // Also update existing content from MongoDB (video_url may have changed)
+    for (const doc of mongoContent) {
+      if (!doc.tmdbId) continue;
+      const existing = content.findByTmdbId(doc.tmdbId, doc.type || 'movie');
+      if (existing && doc.videoUrl && doc.videoUrl !== existing.video_url) {
+        db.run("UPDATE content SET video_url = ?, video_type = ? WHERE id = ?",
+          [doc.videoUrl, doc.videoType || 'mp4', existing.id]);
+        contentRestored++;
+      }
+    }
+
+    if (contentRestored > 0) {
+      saveNow();
+      cacheClear('content');
+      console.log(`[Restore] Restored/updated ${contentRestored} content items from MongoDB`);
+    }
 
     // Also restore episodes
     const mongoEpisodes = await mdb.collection('episodes').find({}).toArray();
@@ -906,7 +937,7 @@ async function restoreFromMongo() {
         const cItem = content.findByTmdbId(ep.tmdbId, ep.type) || content.getAll().find(c => c.title === ep.title);
         if (cItem) {
           db.run(
-            `INSERT INTO episodes (content_id, number, season, title, description, duration, video_url, air_date, rating)
+            `INSERT OR IGNORE INTO episodes (content_id, number, season, title, description, duration, video_url, air_date, rating)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [cItem.id, ep.number || 1, ep.season || 1, ep.title || '',
              ep.description || '', ep.duration || '', ep.videoUrl || '',
@@ -922,14 +953,15 @@ async function restoreFromMongo() {
     const mongoPayments = await mdb.collection('payments').find({}).toArray();
     if (mongoPayments.length > 0) {
       for (const p of mongoPayments) {
-        const userEmail = p.userEmail || '';
+        const userEmail = p.userEmail || p.user_email || '';
         const u = userEmail ? users.findByEmail(userEmail) : null;
         if (u) {
-          db.run(
-            `INSERT INTO payments (user_id, amount, plan, method, status, transaction_id, date)
+          const txId = p.transactionId || 'TXN' + Date.now().toString(36).toUpperCase();
+        db.run(
+            `INSERT OR IGNORE INTO payments (user_id, amount, plan, method, status, transaction_id, date)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [u.id, p.amount || 0, p.plan || '', p.method || 'UPI',
-             p.status || 'completed', p.transactionId || '', p.createdAt || new Date().toISOString()]
+             p.status || 'completed', txId, p.createdAt || new Date().toISOString()]
           );
         }
       }

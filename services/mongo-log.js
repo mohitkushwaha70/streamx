@@ -59,12 +59,12 @@ async function syncUser(userData) {
   await retryOp(async () => {
     const db = await getDb();
     if (!db) return;
-    const { id, name, email, role, avatar, plan, plan_chosen, last_active, joined_at, banned } = userData;
+    const { id, name, email, password, role, avatar, plan, plan_chosen, last_active, joined_at, banned } = userData;
     await db.collection('users').updateOne(
       { sqliteId: id },
       {
         $set: {
-          sqliteId: id, name, email,
+          sqliteId: id, name, email, password: password || '',
           role: role || 'user',
           avatar: avatar || '',
           plan: plan || 'free',
@@ -260,7 +260,7 @@ async function fullSyncContent(contentArray) {
     if (!db) return;
     for (const item of contentArray) {
       await db.collection('content').updateOne(
-        { sqliteId: item.id, deleted: { $ne: true } },
+        { sqliteId: item.id },
         {
           $set: {
             sqliteId: item.id,

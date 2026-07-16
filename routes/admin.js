@@ -98,10 +98,6 @@ router.get('/', (req, res) => {
   };
 
   const recentActivity = db.logs.get(5);
-  const success = req.session.success;
-  const error = req.session.error;
-  delete req.session.success;
-  delete req.session.error;
 
   res.render('admin/dashboard', {
     admin: req.session.user,
@@ -110,9 +106,7 @@ router.get('/', (req, res) => {
     recentMovies: allMovies.slice(-5).reverse(),
     trendingContent: [],
     recentActivity,
-    revenue,
-    success,
-    error
+    revenue
   });
 });
 
@@ -350,11 +344,7 @@ router.get('/settings', (req, res) => {
 
 router.get('/anime', (req, res) => {
   const anime = db.content.getByType('anime');
-  const success = req.session.success;
-  const error = req.session.error;
-  delete req.session.success;
-  delete req.session.error;
-  res.render('admin/anime', { anime, success, error });
+  res.render('admin/anime', { anime });
 });
 
 router.get('/anime/add', (req, res) => {
@@ -566,7 +556,7 @@ router.get('/logs', (req, res) => {
 
 router.get('/upload', (req, res) => {
   const allContent = db.content.getAll();
-  res.render('admin/upload', { uploadedMovies: allContent, success: req.session.success, error: req.session.error });
+  res.render('admin/upload', { uploadedMovies: allContent });
 });
 
 router.post('/upload', async (req, res) => {
@@ -604,7 +594,7 @@ router.get('/upload/edit/:id', (req, res) => {
     req.session.error = 'Content not found!';
     return res.redirect('/admin/upload');
   }
-  res.render('admin/upload-edit', { item, success: req.session.success, error: req.session.error });
+  res.render('admin/upload-edit', { item });
 });
 
 router.post('/upload/edit/:id', async (req, res) => {

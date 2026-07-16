@@ -66,6 +66,7 @@ const videoProxyRoutes = require('./routes/video-proxy');
 const searchRoutes = require('./routes/search');
 const paymentRoutes = require('./routes/payment');
 const apiRoutes = require('./routes/api');
+const freeRoutes = require('./routes/free');
 const { changeEmitter } = require('./data/sample');
 const { getSourceIcon, getSourceColor } = require('./services/watchmode');
 const { avatars: allAvatars, categories: avatarCategories } = require('./data/avatars');
@@ -123,6 +124,7 @@ app.use('/stream', videoProxyRoutes);
 app.use('/api', apiRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/free-movies', freeRoutes);
 app.use((err, req, res, next) => {
   console.error('=== ERROR ===');
   console.error('URL:', req.method, req.originalUrl);
@@ -144,8 +146,8 @@ async function start() {
     });
     server.on('error', (err) => {
       if (err.code === 'EADDRINUSE') {
-        console.log(`Port ${port} in use, trying ${port + 1}`);
-        listen(port + 1);
+        console.error(`Port ${port} already in use. Exiting.`);
+        process.exit(1);
       } else {
         console.error('Server error:', err.message);
       }

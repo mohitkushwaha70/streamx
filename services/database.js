@@ -287,9 +287,12 @@ function seedAdmin() {
 }
 
 function resetAdminPassword() {
-  const hash = bcrypt.hashSync('mohit@12100890', 10);
-  db.run(`UPDATE users SET password = ? WHERE email = 'admin@streamx.com'`, [hash]);
-  saveNow();
+  const existing = users.findByEmail('admin@streamx.com');
+  if (!existing || !existing.password) {
+    const hash = bcrypt.hashSync('mohit@12100890', 10);
+    db.run(`UPDATE users SET password = ? WHERE email = 'admin@streamx.com'`, [hash]);
+    saveNow();
+  }
 }
 
 let saveTimeout = null;
@@ -846,8 +849,8 @@ async function restoreFromMongo() {
         if (!existing) {
           db.run(
             `INSERT INTO users (name, email, password, google_id, role, avatar, plan, plan_chosen, banned, joined_at, last_active, watch_time, devices)
-             VALUES (?, ?, '', '', ?, ?, ?, ?, ?, ?, ?, 0, 1)`,
-            [u.name || '', u.email || '', u.role || 'user', u.avatar || '',
+             VALUES (?, ?, ?, '', ?, ?, ?, ?, ?, ?, ?, 0, 1)`,
+            [u.name || '', u.email || '', u.password || '', u.role || 'user', u.avatar || '',
              u.plan || 'free', u.planChosen ? 1 : 0, u.banned ? 1 : 0,
              u.joinedAt ? new Date(u.joinedAt).toISOString() : new Date().toISOString(),
              u.lastActiveAt ? new Date(u.lastActiveAt).toISOString() : new Date().toISOString()]
@@ -997,7 +1000,7 @@ async function restoreFromMongo() {
 
 function detectVideoType(url, fallback) {
   if (!url) return fallback || 'mp4';
-  var u = url.toLowerCase();
+  const u = url.toLowerCase();
   if (u.includes('youtube.com') || u.includes('youtu.be')) return 'youtube';
   if (u.includes('.m3u8') || u.includes('m3u8?') || u.includes('m3u8&')) return 'm3u8';
   if (u.includes('.mpd') || u.includes('mpd?') || u.includes('mpd&')) return 'mpd';
@@ -1028,7 +1031,7 @@ function sanitizeUrls() {
   let fixed = 0;
   for (const item of all) {
     const url = item.video_url || '';
-    const cleaned = url.replace(/["'`]/g, '').trim();
+    const cleaned = url.replace(/^["'`]+|["'`]+$/g, '').trim();
     if (cleaned !== url) {
       db.run(`UPDATE content SET video_url = ? WHERE id = ?`, [cleaned, item.id]);
       fixed++;
@@ -1043,22 +1046,22 @@ function sanitizeUrls() {
 
 const userLikes = {
   get(userId, contentId) {
-    const db = getDb();
-    const row = db.exec(`SELECT type FROM user_likes WHERE user_id=${Number(userId)} AND content_id=${Number(contentId)}`);
+    const d = getDb();
+    const row = d.exec(`SELECT type FROM user_likes WHERE user_id=? AND content_id=?`, [Number(userId), Number(contentId)]);
     if (row.length && row[0].values.length) return row[0].values[0][0];
     return null;
   },
   getCounts(contentId) {
-    const db = getDb();
-    const likes = db.exec(`SELECT COUNT(*) FROM user_likes WHERE content_id=${Number(contentId)} AND type='like'`);
-    const dislikes = db.exec(`SELECT COUNT(*) FROM user_likes WHERE content_id=${Number(contentId)} AND type='dislike'`);
+    const d = getDb();
+    const likes = d.exec(`SELECT COUNT(*) FROM user_likes WHERE content_id=? AND type='like'`, [Number(contentId)]);
+    const dislikes = d.exec(`SELECT COUNT(*) FROM user_likes WHERE content_id=? AND type='dislike'`, [Number(contentId)]);
     return {
       likes: (likes.length && likes[0].values.length) ? likes[0].values[0][0] : 0,
       dislikes: (dislikes.length && dislikes[0].values.length) ? dislikes[0].values[0][0] : 0
     };
   },
   toggle(userId, contentId, type) {
-    const db = getDb();
+    const d = getDb();
     const existing = this.get(userId, contentId);
     if (existing === type) {
       db.run(`DELETE FROM user_likes WHERE user_id=? AND content_id=?`, [Number(userId), Number(contentId)]);

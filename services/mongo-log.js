@@ -9,8 +9,9 @@ async function getDb() {
   if (_db) return _db;
   try {
     client = new MongoClient(MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 15000,
+      connectTimeoutMS: 15000,
+      socketTimeoutMS: 30000,
     });
     await client.connect();
     _db = client.db('streamx');
@@ -26,7 +27,7 @@ async function getDb() {
 
 function isConnected() { return _connected; }
 
-async function retryOp(fn, retries = 2) {
+async function retryOp(fn, retries = 5) {
   for (let i = 0; i <= retries; i++) {
     try {
       await fn();
@@ -34,7 +35,8 @@ async function retryOp(fn, retries = 2) {
     } catch (err) {
       if (i < retries) {
         _db = null; // force reconnect
-        await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+        const delay = Math.min(2000 * Math.pow(2, i), 15000);
+        await new Promise(r => setTimeout(r, delay));
       } else {
         console.error('[MongoDB] retryOp failed after ' + (retries + 1) + ' attempts:', err.message);
         return false;

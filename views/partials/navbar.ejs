@@ -31,7 +31,7 @@
       <div class="nav-user">
         <div class="avatar" style="<%= navIsImage ? 'padding:0;overflow:hidden;' : '' %>display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:white;overflow:hidden;">
           <% if (navIsImage) { %>
-            <img src="<%= user.avatar %>" alt="<%= user.name %>" style="width:100%;height:100%;object-fit:cover;">
+            <img src="<%= user.avatar %>" alt="<%= user.name %>" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div style="width:100%;height:100%;display:none;align-items:center;justify-content:center;background:linear-gradient(135deg,<%= navColor %>dd,<%= navColor %>);"><%= user.name ? user.name.charAt(0).toUpperCase() : 'U' %></div>
           <% } else if (navIsSvgKey) { %>
             <%- navAvatarMap[uav] %>
           <% } else { %>
@@ -43,7 +43,7 @@
         <div class="dropdown-header">
           <div class="avatar-lg" style="<%= navIsImage ? 'padding:0;overflow:hidden;' : '' %>display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;color:white;overflow:hidden;">
             <% if (navIsImage) { %>
-              <img src="<%= user.avatar %>" alt="<%= user.name %>" style="width:100%;height:100%;object-fit:cover;">
+              <img src="<%= user.avatar %>" alt="<%= user.name %>" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div style="width:100%;height:100%;display:none;align-items:center;justify-content:center;background:linear-gradient(135deg,<%= navColor %>dd,<%= navColor %>);"><%= user.name ? user.name.charAt(0).toUpperCase() : 'U' %></div>
             <% } else if (navIsSvgKey) { %>
               <%- navAvatarMap[uav] %>
             <% } else { %>

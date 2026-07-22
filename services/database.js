@@ -4,6 +4,7 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 
 let mongoSync = null;
+let _restoreSucceeded = false;
 function getMongo() {
   if (!mongoSync) {
     try { mongoSync = require('./mongo-log'); } catch(e) { console.error('[MongoDB] module load failed:', e.message); }
@@ -56,17 +57,35 @@ async function init() {
   fixVideoTypes();
   sanitizeUrls();
 
-  // Step 1: Restore from MongoDB FIRST (fills empty SQLite with MongoDB data)
-  await restoreFromMongo().catch(err => console.error('[Restore] error:', err.message));
+  // Step 1: Restore from MongoDB — retry until successful (prevents empty push wiping MongoDB)
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    const restored = await restoreFromMongo().catch(err => {
+      console.error(`[Restore] attempt ${attempt} error:`, err.message);
+      return false;
+    });
+    if (restored !== false) { _restoreSucceeded = true; break; }
+    if (attempt < 5) {
+      const delay = Math.min(5000 * attempt, 30000);
+      console.log(`[Restore] attempt ${attempt} failed, retrying in ${delay/1000}s...`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+  if (!_restoreSucceeded) {
+    console.error('[Restore] WARNING: All restore attempts failed. Server running without MongoDB backup data.');
+    console.error('[Restore] Periodic sync will NOT push to MongoDB until restore succeeds.');
+  }
 
-  // Step 2: Push ALL SQLite data to MongoDB (ensures MongoDB has latest)
-  await fullPushToMongo().catch(err => console.error('[FullPush] error:', err.message));
+  // Step 2: Push ALL SQLite data to MongoDB (only if restore succeeded — prevents wiping MongoDB with empty SQLite)
+  if (_restoreSucceeded) {
+    await fullPushToMongo().catch(err => console.error('[FullPush] error:', err.message));
 
-  // Step 3: Pull ALL from MongoDB again (ensures SQLite has everything)
-  await restoreFromMongo().catch(err => console.error('[Restore2] error:', err.message));
+    // Step 3: Pull ALL from MongoDB again (ensures SQLite has everything)
+    await restoreFromMongo().catch(err => console.error('[Restore2] error:', err.message));
+  }
 
-  // Periodic full sync every 3 min
+  // Periodic full sync every 3 min — ONLY if restore succeeded
   setInterval(async () => {
+    if (!_restoreSucceeded) return;
     try {
       await fullPushToMongo();
       console.log('[PeriodicSync] Pushed all data to MongoDB');
@@ -834,11 +853,11 @@ function tryParse(json) {
 // ===== MONGODB RESTORE =====
 async function restoreFromMongo() {
   const mongo = getMongo();
-  if (!mongo) return;
+  if (!mongo) return false;
 
   try {
     const mdb = await mongo.getDb();
-    if (!mdb) return;
+    if (!mdb) return false;
 
     // Restore/update ALL users from MongoDB (including admin)
     const mongoUsers = await mdb.collection('users').find({}).toArray();
@@ -860,9 +879,17 @@ async function restoreFromMongo() {
           // Update existing user's plan, avatar, role from MongoDB
           const updates = [];
           const params = [];
+          if (u.password && u.password !== existing.password) {
+            updates.push('password = ?');
+            params.push(u.password);
+          }
           if (u.plan && u.plan !== existing.plan) {
             updates.push('plan = ?');
             params.push(u.plan);
+          }
+          if (u.planChosen !== undefined && (u.planChosen ? 1 : 0) !== existing.plan_chosen) {
+            updates.push('plan_chosen = ?');
+            params.push(u.planChosen ? 1 : 0);
           }
           if (u.avatar && u.avatar !== existing.avatar) {
             updates.push('avatar = ?');
@@ -896,7 +923,9 @@ async function restoreFromMongo() {
     const mongoContent = await mdb.collection('content').find({}).toArray();
     if (mongoContent.length === 0) {
       console.log('[Restore] MongoDB content empty');
-      return;
+      fixVideoTypes();
+      sanitizeUrls();
+      return true;
     }
 
     let contentRestored = 0;
@@ -1007,7 +1036,9 @@ async function restoreFromMongo() {
 
   } catch (err) {
     console.error('[Restore] Failed:', err.message);
+    return false;
   }
+  return true;
 }
 
 function detectVideoType(url, fallback) {

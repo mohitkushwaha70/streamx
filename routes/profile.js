@@ -75,13 +75,24 @@ router.post('/avatar', (req, res) => {
     }
     if (!req.file) return res.status(400).json({ success: false, error: 'No image provided.' });
 
-    var avatarUrl = '/uploads/avatars/' + req.file.filename;
-    var userId = req.session.user.id;
+    try {
+      var filePath = req.file.path;
+      var fileData = fs.readFileSync(filePath);
+      var ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
+      var mimeMap = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
+      var mime = mimeMap[ext] || 'image/jpeg';
+      var avatarUrl = 'data:' + mime + ';base64,' + fileData.toString('base64');
 
-    db.users.update(userId, { avatar: avatarUrl });
-    req.session.user.avatar = avatarUrl;
+      try { fs.unlinkSync(filePath); } catch(e) {}
 
-    res.json({ success: true, avatar: avatarUrl });
+      var userId = req.session.user.id;
+      db.users.update(userId, { avatar: avatarUrl });
+      req.session.user.avatar = avatarUrl;
+
+      res.json({ success: true, avatar: avatarUrl });
+    } catch(e) {
+      res.status(500).json({ success: false, error: 'Failed to process image.' });
+    }
   });
 });
 

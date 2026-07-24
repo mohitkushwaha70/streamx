@@ -3,7 +3,11 @@ const router = express.Router();
 const { fetchPopularMovies, getMovieDetails, searchMovies } = require('../services/archivedotorg');
 const { searchFullMovies, searchByGenre, getFallbackMovies } = require('../services/youtube');
 
-router.get('/', async (req, res) => {
+function asyncHandler(fn) {
+  return function(req, res, next) { Promise.resolve(fn(req, res, next)).catch(next); };
+}
+
+router.get('/', asyncHandler(async (req, res) => {
   const tab = req.query.tab || 'archive';
   const search = req.query.search || '';
   const genre = req.query.genre || '';
@@ -37,9 +41,9 @@ router.get('/', async (req, res) => {
     movies, title, tab, search, genre, genres,
     page: 'free-movies'
   });
-});
+}));
 
-router.get('/watch/:id', async (req, res) => {
+router.get('/watch/:id', asyncHandler(async (req, res) => {
   const tab = req.query.source || 'archive';
 
   if (tab === 'youtube') {
@@ -61,6 +65,6 @@ router.get('/watch/:id', async (req, res) => {
     if (!movie) return res.redirect('/free-movies');
     res.render('free-player', { item: movie, type: 'movie' });
   }
-});
+}));
 
 module.exports = router;

@@ -9,6 +9,10 @@ function isAdmin(req, res, next) {
   res.redirect('/auth/login');
 }
 
+function asyncHandler(fn) {
+  return function(req, res, next) { Promise.resolve(fn(req, res, next)).catch(next); };
+}
+
 router.use(isAdmin);
 
 const PREMIUM_MONTHLY = 199;
@@ -108,8 +112,12 @@ router.get('/movies/add', (req, res) => {
   res.render('admin/movie-form', { movie: null });
 });
 
-router.post('/movies/add', async (req, res) => {
+router.post('/movies/add', asyncHandler(async (req, res) => {
   const { title, genre, year, rating, duration, premium, description, poster, backdrop, videoUrl, videoType, cast, director, language } = req.body;
+  if (!title || !title.trim()) {
+    req.session.error = 'Title is required.';
+    return res.redirect('/admin/movies/add');
+  }
   const detectedType = detectVideoType(videoUrl, videoType, 'mp4');
   await db.content.create({
     tmdb_id: null, title, type: 'movie', genre,
@@ -125,7 +133,7 @@ router.post('/movies/add', async (req, res) => {
   db.logs.add('content', `Movie "${title}" added to catalog`, req.session.user.name);
   req.session.success = 'Movie added successfully!';
   res.redirect('/admin/movies');
-});
+}));
 
 router.get('/movies/edit/:id', (req, res) => {
   const id = parseInt(req.params.id);
@@ -134,7 +142,7 @@ router.get('/movies/edit/:id', (req, res) => {
   res.render('admin/movie-form', { movie });
 });
 
-router.post('/movies/edit/:id', async (req, res) => {
+router.post('/movies/edit/:id', asyncHandler(async (req, res) => {
   const id = parseInt(req.params.id);
   const { title, genre, year, rating, duration, premium, description, poster, backdrop, videoUrl, videoType, cast, director, language } = req.body;
   const existing = db.content.findById(id);
@@ -162,9 +170,9 @@ router.post('/movies/edit/:id', async (req, res) => {
   db.logs.add('content', `Movie "${title}" updated`, req.session.user.name);
   req.session.success = 'Movie updated successfully!';
   res.redirect('/admin/movies');
-});
+}));
 
-router.get('/movies/delete/:id', async (req, res) => {
+router.get('/movies/delete/:id', asyncHandler(async (req, res) => {
   const id = parseInt(req.params.id);
   const movie = db.content.findById(id);
   if (movie) {
@@ -173,7 +181,7 @@ router.get('/movies/delete/:id', async (req, res) => {
   }
   req.session.success = 'Movie deleted successfully!';
   res.redirect('/admin/movies');
-});
+}));
 
 router.get('/series', (req, res) => {
   const search = req.query.search || '';
@@ -188,8 +196,12 @@ router.get('/series/add', (req, res) => {
   res.render('admin/series-form', { show: null });
 });
 
-router.post('/series/add', async (req, res) => {
+router.post('/series/add', asyncHandler(async (req, res) => {
   const { title, genre, year, rating, seasons, episodes, premium, description, poster, backdrop, videoUrl, videoType } = req.body;
+  if (!title || !title.trim()) {
+    req.session.error = 'Title is required.';
+    return res.redirect('/admin/series/add');
+  }
   const detectedType = detectVideoType(videoUrl, videoType, 'mp4');
   await db.content.create({
     tmdb_id: null, title, type: 'series', genre,
@@ -205,7 +217,7 @@ router.post('/series/add', async (req, res) => {
   db.logs.add('content', `Series "${title}" added to catalog`, req.session.user.name);
   req.session.success = 'Series added successfully!';
   res.redirect('/admin/series');
-});
+}));
 
 router.get('/series/edit/:id', (req, res) => {
   const id = parseInt(req.params.id);
@@ -214,7 +226,7 @@ router.get('/series/edit/:id', (req, res) => {
   res.render('admin/series-form', { show });
 });
 
-router.post('/series/edit/:id', async (req, res) => {
+router.post('/series/edit/:id', asyncHandler(async (req, res) => {
   const id = parseInt(req.params.id);
   const { title, genre, year, rating, seasons, episodes, premium, description, poster, backdrop, videoUrl, videoType } = req.body;
   const existing = db.content.findById(id);
@@ -240,9 +252,9 @@ router.post('/series/edit/:id', async (req, res) => {
   db.logs.add('content', `Series "${title}" updated`, req.session.user.name);
   req.session.success = 'Series updated successfully!';
   res.redirect('/admin/series');
-});
+}));
 
-router.get('/series/delete/:id', async (req, res) => {
+router.get('/series/delete/:id', asyncHandler(async (req, res) => {
   const id = parseInt(req.params.id);
   const show = db.content.findById(id);
   if (show) {
@@ -251,7 +263,7 @@ router.get('/series/delete/:id', async (req, res) => {
   }
   req.session.success = 'Series deleted successfully!';
   res.redirect('/admin/series');
-});
+}));
 
 router.get('/users', (req, res) => {
   const search = req.query.search || '';
@@ -336,8 +348,12 @@ router.get('/anime/add', (req, res) => {
   res.render('admin/anime-form', { anime: null });
 });
 
-router.post('/anime/add', async (req, res) => {
+router.post('/anime/add', asyncHandler(async (req, res) => {
   const { title, genre, year, rating, duration, premium, description, poster, backdrop, videoUrl, videoType, cast, director, language, seasons, episodes } = req.body;
+  if (!title || !title.trim()) {
+    req.session.error = 'Title is required.';
+    return res.redirect('/admin/anime/add');
+  }
   const detectedType = detectVideoType(videoUrl, videoType, 'mp4');
   await db.content.create({
     tmdb_id: null, title, type: 'anime', genre: genre || 'Anime',
@@ -355,7 +371,7 @@ router.post('/anime/add', async (req, res) => {
   db.logs.add('content', `Anime "${title}" added to catalog`, req.session.user.name);
   req.session.success = 'Anime added successfully!';
   res.redirect('/admin/anime');
-});
+}));
 
 router.get('/anime/edit/:id', (req, res) => {
   const id = parseInt(req.params.id);
@@ -364,7 +380,7 @@ router.get('/anime/edit/:id', (req, res) => {
   res.render('admin/anime-form', { anime });
 });
 
-router.post('/anime/edit/:id', async (req, res) => {
+router.post('/anime/edit/:id', asyncHandler(async (req, res) => {
   const id = parseInt(req.params.id);
   const { title, genre, year, rating, duration, premium, description, poster, backdrop, videoUrl, videoType, cast, director, language, seasons, episodes } = req.body;
   const existing = db.content.findById(id);
@@ -394,9 +410,9 @@ router.post('/anime/edit/:id', async (req, res) => {
   db.logs.add('content', `Anime "${title}" updated`, req.session.user.name);
   req.session.success = 'Anime updated successfully!';
   res.redirect('/admin/anime');
-});
+}));
 
-router.get('/anime/delete/:id', async (req, res) => {
+router.get('/anime/delete/:id', asyncHandler(async (req, res) => {
   const id = parseInt(req.params.id);
   const item = db.content.findById(id);
   if (item && item.type === 'anime') {
@@ -405,7 +421,7 @@ router.get('/anime/delete/:id', async (req, res) => {
   }
   req.session.success = 'Anime deleted successfully!';
   res.redirect('/admin/anime');
-});
+}));
 
 router.get('/payments', (req, res) => {
   const allUsers = db.users.getAll();
@@ -544,7 +560,7 @@ router.get('/upload', (req, res) => {
   res.render('admin/upload', { uploadedMovies: allContent });
 });
 
-router.post('/upload', async (req, res) => {
+router.post('/upload', asyncHandler(async (req, res) => {
   const { title, genre, year, rating, videoUrl, videoType, poster, backdrop, description, duration, type: contentType, premium, cast, director, language } = req.body;
   if (!title || !videoUrl) {
     req.session.error = 'Title and Video URL are required!';
@@ -570,7 +586,7 @@ router.post('/upload', async (req, res) => {
   db.logs.add('content', `Content "${title}" uploaded`, req.session.user.name);
   req.session.success = `"${title}" added successfully!`;
   res.redirect('/admin/upload');
-});
+}));
 
 router.get('/upload/edit/:id', (req, res) => {
   const id = parseInt(req.params.id);
@@ -582,7 +598,7 @@ router.get('/upload/edit/:id', (req, res) => {
   res.render('admin/upload-edit', { item });
 });
 
-router.post('/upload/edit/:id', async (req, res) => {
+router.post('/upload/edit/:id', asyncHandler(async (req, res) => {
   const id = parseInt(req.params.id);
   const item = db.content.findById(id);
   if (!item) {
@@ -613,9 +629,9 @@ router.post('/upload/edit/:id', async (req, res) => {
   db.logs.add('content', `Content "${title}" updated`, req.session.user.name);
   req.session.success = `"${title}" updated successfully!`;
   res.redirect('/admin/upload');
-});
+}));
 
-router.get('/upload/delete/:id', async (req, res) => {
+router.get('/upload/delete/:id', asyncHandler(async (req, res) => {
   const id = parseInt(req.params.id);
   const item = db.content.findById(id);
   if (item) {
@@ -624,6 +640,6 @@ router.get('/upload/delete/:id', async (req, res) => {
     req.session.success = `"${item.title}" removed!`;
   }
   res.redirect('/admin/upload');
-});
+}));
 
 module.exports = router;

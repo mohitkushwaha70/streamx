@@ -19,7 +19,9 @@ let db = null;
 const _cache = {};
 function cacheGet(key) {
   const c = _cache[key];
-  if (c && Date.now() - c.ts < 30000) return c.val; // 30 second TTL
+  if (!c) return null;
+  if (Date.now() - c.ts < 30000) return c.val;
+  delete _cache[key];
   return null;
 }
 function cacheSet(key, val) {
@@ -333,9 +335,13 @@ function save() {
 function saveNow() {
   if (!db) return;
   if (saveTimeout) { clearTimeout(saveTimeout); saveTimeout = null; }
-  const data = db.export();
-  const buffer = Buffer.from(data);
-  fs.writeFileSync(DB_PATH, buffer);
+  try {
+    const data = db.export();
+    const buffer = Buffer.from(data);
+    fs.writeFileSync(DB_PATH, buffer);
+  } catch(e) {
+    console.error('[DB] saveNow failed:', e.message);
+  }
 }
 
 function getDb() { return db; }

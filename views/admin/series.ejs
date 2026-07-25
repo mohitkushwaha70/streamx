@@ -25,8 +25,8 @@
               <td><%= i + 1 %></td>
               <td>
                 <div class="user-cell">
-                  <img src="<%= s.poster %>" class="table-thumb" alt="<%= s.title %>">
-                  <strong><%= s.title %></strong>
+                  <img src="<%= s.poster %>" class="table-thumb" alt="<%= displayTitle(s.title) %>" onerror="this.onerror=null;this.src='/placeholder.jpg';">
+                  <strong><%= displayTitle(s.title) %></strong>
                 </div>
               </td>
               <td><span class="table-badge"><%= s.genre %></span></td>
@@ -46,6 +46,9 @@
               </td>
             </tr>
             <% }) %>
+            <% if (series.length === 0) { %>
+            <tr><td colspan="8" style="text-align:center;color:#555;padding:40px;">No series yet. Add series manually from the admin panel.</td></tr>
+            <% } %>
           </tbody>
         </table>
       </div>
@@ -53,4 +56,4 @@
   </main>
 </div>
 
-<%- include('../partials/footer') %>
+

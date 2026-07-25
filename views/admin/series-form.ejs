@@ -18,7 +18,7 @@
           <div class="form-group">
             <label>Genre *</label>
             <select name="genre" class="form-input" required>
-              <% ['Action','Comedy','Drama','Horror','Sci-Fi','Thriller','Adventure','Crime','Documentary','Fantasy','Medical','Reality'].forEach(g => { %>
+              <% ['Action','Anime','Comedy','Drama','Horror','Sci-Fi','Thriller','Adventure','Crime','Documentary','Fantasy','Medical','Reality'].forEach(g => { %>
               <option value="<%= g %>" <%= show && show.genre === g ? 'selected' : '' %>><%= g %></option>
               <% }) %>
             </select>
@@ -54,9 +54,24 @@
             <input type="url" name="backdrop" class="form-input" value="<%= show ? show.backdrop : '' %>" placeholder="https://...">
           </div>
         </div>
-        <div class="form-group">
-          <label>Video URL</label>
-          <input type="url" name="videoUrl" class="form-input" value="<%= show ? show.videoUrl : '' %>" placeholder="https://...">
+        <div class="form-grid">
+          <div class="form-group" style="flex: 2;">
+            <label>Video URL</label>
+            <input type="url" name="videoUrl" class="form-input" value="<%= show ? show.video_url : '' %>" placeholder="YouTube URL, MP4 link, or any video URL">
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>Video Type</label>
+            <select name="videoType" class="form-input">
+              <option value="auto" selected>Auto Detect</option>
+              <option value="youtube" <%= show && show.video_type === 'youtube' ? 'selected' : '' %>>YouTube Embed</option>
+              <option value="mp4" <%= show && show.video_type === 'mp4' ? 'selected' : '' %>>Direct Video (MP4/WebM)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;">
+          <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">
+            <strong style="color: #3b82f6;">Tip:</strong> Paste a YouTube URL and select "Auto Detect" — it will auto-embed. For direct MP4 files, paste the .mp4 link.
+          </p>
         </div>
         <div class="form-group">
           <label class="checkbox-label">
@@ -73,4 +88,4 @@
   </main>
 </div>
 
-<%- include('../partials/footer') %>
+

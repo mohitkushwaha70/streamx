@@ -11,7 +11,7 @@
   <div class="section">
     <div class="content-grid">
       <% results.forEach(item => { %>
-      <a href="/<%= item.seasons ? 'series' : 'movies' %>/<%= item.id %>" class="content-card">
+      <a href="/<%= item.type === 'series' ? 'series' : 'movies' %>/<%= item.id %>" class="content-card">
         <div class="card-image">
           <img src="<%= item.poster %>" alt="<%= item.title %>" loading="lazy">
           <div class="card-overlay">

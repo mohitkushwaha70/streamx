@@ -1,23 +1,27 @@
 const express = require('express');
 const router = express.Router();
-const { movies } = require('../data/sample');
+const db = require('../services/database');
 
 router.get('/', (req, res) => {
   const genre = req.query.genre || '';
   const sort = req.query.sort || 'trending';
-  let filtered = genre ? movies.filter(m => m.genre.toLowerCase() === genre.toLowerCase()) : [...movies];
-  if (sort === 'rating') filtered.sort((a, b) => b.rating - a.rating);
-  else if (sort === 'year') filtered.sort((a, b) => b.year - a.year);
-  else if (sort === 'az') filtered.sort((a, b) => a.title.localeCompare(b.title));
-  const genres = [...new Set(movies.map(m => m.genre))];
-  res.render('movies', { movies: filtered, genres, currentGenre: genre, currentSort: sort });
+  const result = db.content.list('movie', { genre, sort, limit: 50 });
+  const movies = result.items;
+  const genres = db.content.genres('movie');
+  res.render('movies', { movies, genres, currentGenre: genre, currentSort: sort });
 });
 
 router.get('/:id', (req, res) => {
-  const movie = movies.find(m => m.id === parseInt(req.params.id));
-  if (!movie) return res.redirect('/movies');
-  const related = movies.filter(m => m.genre === movie.genre && m.id !== movie.id).slice(0, 6);
-  res.render('detail', { item: movie, type: 'movie', related });
+  const item = db.content.findById(parseInt(req.params.id));
+  if (!item || (item.type !== 'movie' && item.type !== 'anime')) return res.redirect('/movies');
+  const related = db.content.list('movie', { genre: item.genre, limit: 8 }).items.filter(m => m.id !== item.id);
+  const userStatus = {};
+  if (req.session.user) {
+    userStatus.inWatchlist = db.watchlist.has(req.session.user.id, item.id, 'watchlist');
+    userStatus.inFavorite = db.watchlist.has(req.session.user.id, item.id, 'favorite');
+    userStatus.inSaved = db.watchlist.has(req.session.user.id, item.id, 'saved');
+  }
+  res.render('detail', { item, type: item.type, related, streaming: {}, userStatus });
 });
 
 module.exports = router;

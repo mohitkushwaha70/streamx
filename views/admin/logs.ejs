@@ -1,0 +1,49 @@
+<%- include('../partials/header', { pageTitle: 'Activity Logs - STREAMX Admin' }) %>
+
+<div class="admin-layout">
+  <%- include('../partials/admin-sidebar') %>
+  <main class="admin-main">
+    <div class="admin-header">
+      <div>
+        <h1>Activity Logs</h1>
+        <p style="color:#555;font-size:0.85rem;">Track all platform activity and admin actions</p>
+      </div>
+      <div class="admin-header-right">
+        <span class="admin-count"><%= logs.length %> entries</span>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-header"><h3>Recent Activity</h3></div>
+      <div style="padding: 20px;">
+        <% if (logs.length === 0) { %>
+          <p style="color:#555;text-align:center;padding:40px;">No activity yet</p>
+        <% } %>
+        <% logs.forEach(log => { %>
+          <div style="display:flex;gap:16px;padding:14px 0;border-bottom:1px solid #111;align-items:flex-start;">
+            <% if (log.type === 'user') { %>
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(34,197,94,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div>
+              <span class="table-badge" style="background:rgba(34,197,94,0.12);color:#22c55e;">User</span>
+            <% } else if (log.type === 'content') { %>
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(37,99,235,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/></svg></div>
+              <span class="table-badge" style="background:rgba(37,99,235,0.12);color:#3b82f6;">Content</span>
+            <% } else if (log.type === 'admin') { %>
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(168,85,247,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+              <span class="table-badge" style="background:rgba(168,85,247,0.12);color:#a855f7;">Admin</span>
+            <% } else if (log.type === 'report') { %>
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
+              <span class="table-badge" style="background:rgba(239,68,68,0.12);color:#ef4444;">Report</span>
+            <% } else { %>
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(37,99,235,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+              <span class="table-badge" style="background:rgba(37,99,235,0.12);color:#3b82f6;">System</span>
+            <% } %>
+            <div style="flex:1;">
+              <div style="color:#ccc;font-size:0.85rem;"><strong style="color:#fff;"><%= log.message %></strong></div>
+              <div style="color:#555;font-size:0.75rem;margin-top:2px;"><%= new Date(log.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %> <%= new Date(log.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %> &middot; by <%= log.admin %></div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </main>
+</div>

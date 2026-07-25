@@ -1,0 +1,170 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  email        String   @unique
+  password     String?
+  avatar       String?
+  role         String   @default("USER")
+  plan         String   @default("FREE")
+  banned       Boolean  @default(false)
+  watchTime    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastActiveAt DateTime?
+}
+
+model Content {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  tmdbId         Int?     @unique
+  title          String
+  slug           String   @unique
+  type           String
+  description    String   @default("")
+  poster         String   @default("")
+  banner         String   @default("")
+  backdrop       String   @default("")
+  trailerUrl     String?
+  videoUrl       String?
+  huggingFaceUrl String?
+  genre          String   @default("")
+  genres         String[]
+  language       String   @default("en")
+  country        String   @default("")
+  runtime        Int      @default(0)
+  rating         Float    @default(0)
+  releaseDate    DateTime?
+  cast           String[]
+  director       String   @default("")
+  seasons        Int      @default(0)
+  episodesCount  Int      @default(0)
+  featured       Boolean  @default(false)
+  trending       Boolean  @default(false)
+  published      Boolean  @default(false)
+  viewCount      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Episode {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  contentId      String   @db.ObjectId
+  season         Int      @default(1)
+  number         Int
+  title          String
+  description    String   @default("")
+  poster         String?
+  videoUrl       String?
+  huggingFaceUrl String?
+  duration       Int      @default(0)
+  rating         Float    @default(0)
+  airDate        DateTime?
+  createdAt      DateTime @default(now())
+}
+
+model History {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  contentId String   @db.ObjectId
+  progress  Float    @default(0)
+  completed Boolean  @default(false)
+  watchedAt DateTime @default(now())
+}
+
+model Bookmark {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  contentId String   @db.ObjectId
+  createdAt DateTime @default(now())
+}
+
+model WatchLater {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  contentId String   @db.ObjectId
+  createdAt DateTime @default(now())
+}
+
+model PlaybackPosition {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  contentId String?  @db.ObjectId
+  episodeId String?  @db.ObjectId
+  position  Float    @default(0)
+  duration  Float    @default(0)
+  updatedAt DateTime @updatedAt
+}
+
+model Subscription {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @unique @db.ObjectId
+  plan          String   @default("PREMIUM")
+  status        String   @default("ACTIVE")
+  startDate     DateTime @default(now())
+  endDate       DateTime?
+  amount        Float    @default(0)
+  paymentMethod String   @default("")
+  transactionId String?
+  createdAt     DateTime @default(now())
+}
+
+model Collection {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  slug        String   @unique
+  description String   @default("")
+  poster      String   @default("")
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model CollectionItem {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  collectionId String @db.ObjectId
+  contentId    String @db.ObjectId
+  order        Int    @default(0)
+}
+
+model Comment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  contentId String   @db.ObjectId
+  text      String
+  rating    Float?
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  key   String @unique
+  value String @default("")
+}
+
+model SyncLog {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  status     String
+  message    String
+  filesFound Int      @default(0)
+  newFiles   Int      @default(0)
+  errors     Int      @default(0)
+  duration   Int      @default(0)
+  createdAt  DateTime @default(now())
+}
+
+model ActivityLog {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  type      String
+  message   String
+  userId    String?
+  metadata  String?
+  createdAt DateTime @default(now())
+}

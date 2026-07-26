@@ -2,7 +2,7 @@ services:
   - type: web
     name: streamx
     runtime: node
-    buildCommand: "npm install"
+    buildCommand: "npm install --no-audit"
     startCommand: "node server.js"
     healthCheckPath: "/"
     envVars:
@@ -10,9 +10,9 @@ services:
         value: "22"
       - key: SESSION_SECRET
         sync: false
-      - key: VIDEO_STORAGE_BASE
-        sync: false
       - key: MONGODB_URI
         sync: false
       - key: DATABASE_URL
+        sync: false
+      - key: ADMIN_PASSWORD
         sync: false

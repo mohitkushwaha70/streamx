@@ -11,3 +11,4 @@ streamx/data/
 /tmp/
 .replit
 public/uploads/avatars/
+package-lock.json

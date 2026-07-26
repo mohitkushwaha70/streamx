@@ -324,7 +324,8 @@ function seedAdmin() {
   const existing = db.exec("SELECT id FROM users WHERE email = 'admin@streamx.com'");
   if (existing.length > 0 && existing[0].values.length > 0) return;
 
-  const hash = bcrypt.hashSync('mohit@12100890', 10);
+  const adminPass = process.env.ADMIN_PASSWORD || 'changeme';
+  const hash = bcrypt.hashSync(adminPass, 10);
   db.run(
     `INSERT INTO users (name, email, password, role, avatar, plan) VALUES (?, ?, ?, ?, ?, ?)`,
     ['Admin', 'admin@streamx.com', hash, 'admin', 'A', 'premium']
@@ -335,7 +336,8 @@ function seedAdmin() {
 function resetAdminPassword() {
   const existing = users.findByEmail('admin@streamx.com');
   if (!existing || !existing.password) {
-    const hash = bcrypt.hashSync('mohit@12100890', 10);
+    const adminPass = process.env.ADMIN_PASSWORD || 'changeme';
+    const hash = bcrypt.hashSync(adminPass, 10);
     db.run(`UPDATE users SET password = ? WHERE email = 'admin@streamx.com'`, [hash]);
     saveNow();
   }

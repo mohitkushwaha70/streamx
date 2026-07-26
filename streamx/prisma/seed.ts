@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding MongoDB...');
 
-  const adminPassword = await bcrypt.hash('mohit@12100890', 12);
+  const adminPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'changeme', 12);
 
   const existing = await prisma.user.findUnique({
     where: { email: 'admin@streamx.com' },

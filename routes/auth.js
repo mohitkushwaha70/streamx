@@ -161,7 +161,7 @@ router.get('/google', (req, res, next) => {
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     return res.redirect('/auth/login?error=google_not_configured');
   }
-  const callbackURL = (process.env.NEXT_PUBLIC_APP_URL || 'https://streamx-ntpv.onrender.com') + '/auth/google/callback';
+  const callbackURL = (process.env.NEXT_PUBLIC_APP_URL || 'https://streamx-tnhr.onrender.com') + '/auth/google/callback';
   passport.authenticate('google', { scope: ['profile', 'email'], callbackURL })(req, res, next);
 });
 
@@ -169,7 +169,7 @@ router.get('/google/callback', (req, res, next) => {
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     return res.redirect('/auth/login?error=google_not_configured');
   }
-  const callbackURL = (process.env.NEXT_PUBLIC_APP_URL || 'https://streamx-ntpv.onrender.com') + '/auth/google/callback';
+  const callbackURL = (process.env.NEXT_PUBLIC_APP_URL || 'https://streamx-tnhr.onrender.com') + '/auth/google/callback';
   passport.authenticate('google', { failureRedirect: '/auth/login', callbackURL })(req, res, () => {
     db.users.updateLastActive(req.user.id);
 

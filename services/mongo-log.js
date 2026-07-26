@@ -1,6 +1,9 @@
 const { MongoClient } = require('mongodb');
 
 const MONGO_URI = process.env.MONGODB_URI || process.env.MONGO_URL || '';
+if (!MONGO_URI) {
+  console.error('[MongoDB] WARNING: MONGODB_URI env var is not set! MongoDB will not connect.');
+}
 let client = null;
 let _db = null;
 let _connected = false;

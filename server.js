@@ -40,8 +40,9 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: '30d', etag: tr
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 app.use(express.json({ limit: '5mb' }));
 app.use(cookieParser());
+const SESSION_SECRET = process.env.SESSION_SECRET || process.env.session_secret || 'streamx_internal_secret_2026';
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'please_set_session_secret',
+  secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {

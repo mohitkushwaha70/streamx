@@ -135,8 +135,31 @@ function switchWlTab(tab) {
   document.querySelectorAll('.wl-panel').forEach(p => p.style.display = 'none');
   document.querySelectorAll('.wl-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('wl-' + tab).style.display = 'block';
-  event.currentTarget.classList.add('active');
+  document.querySelectorAll('.wl-tab').forEach(t => {
+    if (t.getAttribute('onclick').includes("'" + tab + "'")) t.classList.add('active');
+  });
+  history.replaceState(null, '', '#' + tab);
 }
+(function() {
+  var hash = location.hash.replace('#', '');
+  if (hash && document.getElementById('wl-' + hash)) {
+    switchWlTab(hash);
+  }
+})();
+document.querySelectorAll('.wl-remove-form').forEach(function(form) {
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var card = this.closest('.content-card');
+    fetch(this.action, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json'}, body: new URLSearchParams(new FormData(this)) })
+      .then(function(r) { return r.json(); })
+      .then(function() {
+        card.style.transition = 'opacity 0.3s, transform 0.3s';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.9)';
+        setTimeout(function() { card.remove(); }, 300);
+      });
+  });
+});
 </script>
 
 <%- include('partials/footer') %>

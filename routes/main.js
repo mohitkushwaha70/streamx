@@ -13,6 +13,7 @@ router.get('/', (req, res) => {
     ? heroPool.sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5).map(m => ({
         ...m,
         backdrop: m.backdrop || (m.poster ? m.poster : ''),
+        inWatchlist: req.session.user ? db.watchlist.has(req.session.user.id, m.id, 'watchlist') : false,
       }))
     : [{ id: '', title: 'streamX', genre: '', year: 2026, rating: 0, duration: '', description: 'Your favorite streaming platform.', poster: '', backdrop: '', premium: false }];
 

@@ -37,18 +37,18 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="<%= us.inSaved ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>
           <span class="action-label"><%= us.inSaved ? 'Saved' : 'Save' %></span>
         </button>
-        <a href="/download/<%= type %>/<%= item.id %>" class="btn btn-lg action-btn action-download">
+        <a href="/download/<%= type %>/<%= item.id %>" class="btn btn-lg action-btn" id="dl-btn" onclick="this.classList.add('dl-active');this.querySelector('.action-label').textContent='Downloaded';this.querySelector('svg').setAttribute('fill','currentColor')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download
+          <span class="action-label">Download</span>
         </a>
         <% } else { %>
         <button class="btn btn-lg action-btn" onclick="document.getElementById('authModal') && document.getElementById('authModal').classList.add('active')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
           Watchlist
         </button>
-        <a href="/download/<%= type %>/<%= item.id %>" class="btn btn-lg action-btn action-download">
+        <a href="/download/<%= type %>/<%= item.id %>" class="btn btn-lg action-btn" id="dl-btn" onclick="this.classList.add('dl-active');this.querySelector('.action-label').textContent='Downloaded';this.querySelector('svg').setAttribute('fill','currentColor')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download
+          <span class="action-label">Download</span>
         </a>
         <% } %>
       </div>
@@ -65,8 +65,7 @@
         #wl-toggle[data-in="true"] { background: rgba(34,197,94,0.2); border-color: rgba(34,197,94,0.5); color: #4ade80; }
         #fav-toggle[data-in="true"] { background: rgba(239,68,68,0.25); border-color: rgba(239,68,68,0.5); color: #ef4444; }
         #save-toggle[data-in="true"] { background: rgba(168,85,247,0.25); border-color: rgba(168,85,247,0.5); color: #a855f7; }
-        .action-download { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.3); color: #22c55e; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
-        .action-download:hover { background: rgba(34,197,94,0.2); }
+        .dl-active { background: rgba(34,197,94,0.25) !important; border-color: rgba(34,197,94,0.6) !important; color: #4ade80 !important; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
       </style>
       <script>
       function toggleList(btn) {

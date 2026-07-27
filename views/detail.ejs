@@ -25,57 +25,69 @@
           Watch Now
         </a>
         <% if (user) { %>
-        <form action="/watchlist/<%= us.inWatchlist ? 'remove' : 'add' %>" method="POST" style="display:inline">
-          <input type="hidden" name="id" value="<%= item.id %>">
-          <button type="submit" class="btn btn-primary btn-lg" style="<%= us.inWatchlist ? 'background:rgba(34,197,94,0.2);border:1.5px solid rgba(34,197,94,0.5);box-shadow:none;color:#4ade80;' : 'background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.3);box-shadow:none;' %>">
-            <% if (us.inWatchlist) { %>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
-              In Watchlist
-            <% } else { %>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-              Watchlist
-            <% } %>
-          </button>
-        </form>
-        <form action="/watchlist/favorite/<%= us.inFavorite ? 'remove' : 'add' %>" method="POST" style="display:inline">
-          <input type="hidden" name="id" value="<%= item.id %>">
-          <button type="submit" class="btn btn-primary btn-lg" style="<%= us.inFavorite ? 'background:rgba(239,68,68,0.25);border:1.5px solid rgba(239,68,68,0.5);box-shadow:none;color:#ef4444;' : 'background:rgba(239,68,68,0.15);border:1.5px solid rgba(239,68,68,0.4);box-shadow:none;color:#ef4444;' %>">
-            <% if (us.inFavorite) { %>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-              Favorited
-            <% } else { %>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-              Favorite
-            <% } %>
-          </button>
-        </form>
-        <form action="/watchlist/saved/<%= us.inSaved ? 'remove' : 'add' %>" method="POST" style="display:inline">
-          <input type="hidden" name="id" value="<%= item.id %>">
-          <button type="submit" class="btn btn-primary btn-lg" style="<%= us.inSaved ? 'background:rgba(168,85,247,0.25);border:1.5px solid rgba(168,85,247,0.5);box-shadow:none;color:#a855f7;' : 'background:rgba(168,85,247,0.15);border:1.5px solid rgba(168,85,247,0.4);box-shadow:none;color:#a855f7;' %>">
-            <% if (us.inSaved) { %>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
-              Saved
-            <% } else { %>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>
-              Save
-            <% } %>
-          </button>
-        </form>
-        <a href="/download/<%= type %>/<%= item.id %>" class="btn btn-primary btn-lg" style="background:rgba(34,197,94,0.15);border:1.5px solid rgba(34,197,94,0.4);box-shadow:none;color:#22c55e;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
+        <button id="wl-toggle" class="btn btn-lg action-btn" data-type="watchlist" data-id="<%= item.id %>" data-in="<%= us.inWatchlist %>" onclick="toggleList(this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="<%= us.inWatchlist ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          <span class="action-label"><%= us.inWatchlist ? 'In Watchlist' : 'Watchlist' %></span>
+        </button>
+        <button id="fav-toggle" class="btn btn-lg action-btn" data-type="favorite" data-id="<%= item.id %>" data-in="<%= us.inFavorite %>" onclick="toggleList(this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="<%= us.inFavorite ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span class="action-label"><%= us.inFavorite ? 'Favorited' : 'Favorite' %></span>
+        </button>
+        <button id="save-toggle" class="btn btn-lg action-btn" data-type="saved" data-id="<%= item.id %>" data-in="<%= us.inSaved %>" onclick="toggleList(this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="<%= us.inSaved ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>
+          <span class="action-label"><%= us.inSaved ? 'Saved' : 'Save' %></span>
+        </button>
+        <a href="/download/<%= type %>/<%= item.id %>" class="btn btn-lg action-btn action-download">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download
         </a>
         <% } else { %>
-        <button class="btn btn-primary btn-lg" style="background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.3);box-shadow:none;" onclick="document.getElementById('authModal') && document.getElementById('authModal').classList.add('active')">
+        <button class="btn btn-lg action-btn" onclick="document.getElementById('authModal') && document.getElementById('authModal').classList.add('active')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
           Watchlist
         </button>
-        <a href="/download/<%= type %>/<%= item.id %>" class="btn btn-primary btn-lg" style="background:rgba(34,197,94,0.15);border:1.5px solid rgba(34,197,94,0.4);box-shadow:none;color:#22c55e;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
+        <a href="/download/<%= type %>/<%= item.id %>" class="btn btn-lg action-btn action-download">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download
         </a>
         <% } %>
       </div>
+      <style>
+        .action-btn {
+          background: rgba(255,255,255,0.08);
+          border: 1.5px solid rgba(255,255,255,0.2);
+          box-shadow: none;
+          color: var(--text-primary);
+          cursor: pointer;
+          transition: all 0.25s;
+        }
+        .action-btn:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.35); }
+        #wl-toggle[data-in="true"] { background: rgba(34,197,94,0.2); border-color: rgba(34,197,94,0.5); color: #4ade80; }
+        #fav-toggle[data-in="true"] { background: rgba(239,68,68,0.25); border-color: rgba(239,68,68,0.5); color: #ef4444; }
+        #save-toggle[data-in="true"] { background: rgba(168,85,247,0.25); border-color: rgba(168,85,247,0.5); color: #a855f7; }
+        .action-download { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.3); color: #22c55e; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+        .action-download:hover { background: rgba(34,197,94,0.2); }
+      </style>
+      <script>
+      function toggleList(btn) {
+        var type = btn.getAttribute('data-type');
+        var id = btn.getAttribute('data-id');
+        var inList = btn.getAttribute('data-in') === 'true';
+        var action = inList ? 'remove' : 'add';
+        fetch('/watchlist/' + (type === 'watchlist' ? '' : type + '/') + action, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+          body: 'id=' + id
+        }).then(function(r) { return r.json(); }).then(function() {
+          var nowIn = !inList;
+          btn.setAttribute('data-in', nowIn);
+          var svg = btn.querySelector('svg');
+          svg.setAttribute('fill', nowIn ? 'currentColor' : 'none');
+          var labels = { watchlist: ['Watchlist','In Watchlist'], favorite: ['Favorite','Favorited'], saved: ['Save','Saved'] };
+          btn.querySelector('.action-label').textContent = nowIn ? labels[type][1] : labels[type][0];
+        });
+      }
+      </script>
     </div>
   </section>
 

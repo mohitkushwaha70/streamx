@@ -165,6 +165,22 @@ async function start() {
         console.error('Server error:', err.message);
       }
     });
+
+    // Self-ping keepalive — prevents Render free tier from sleeping
+    const selfUrl = process.env.SELF_URL || `https://streamx-tnhr.onrender.com`;
+    const pingInterval = parseInt(process.env.PING_INTERVAL || '600000', 10); // 10 min
+    if (process.env.DISABLE_SELF_PING !== 'true') {
+      const http = require('http');
+      setInterval(() => {
+        const req = http.get(selfUrl, (res) => {
+          console.log(`[KeepAlive] ping ${selfUrl} -> ${res.statusCode}`);
+          res.resume();
+        });
+        req.on('error', (e) => console.error('[KeepAlive] ping failed:', e.message));
+        req.setTimeout(15000, () => { req.destroy(); console.error('[KeepAlive] ping timeout'); });
+      }, pingInterval);
+      console.log(`[KeepAlive] self-ping every ${pingInterval / 60000} min to ${selfUrl}`);
+    }
   }
 
   listen(PORT);

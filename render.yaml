@@ -16,3 +16,5 @@ services:
         sync: false
       - key: ADMIN_PASSWORD
         value: "mohit8287819409.0"
+      - key: SELF_URL
+        value: "https://streamx-tnhr.onrender.com"
